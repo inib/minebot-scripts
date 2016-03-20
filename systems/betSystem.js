@@ -1,5 +1,6 @@
 /**
  * UPDATE TO ARENA/DOTA2
+ * 20.03. update wager
  */
 
 
@@ -10,14 +11,17 @@
         betStatus = false,
         betPot = 0,
         betOptions = [],
-        betTable = [];
+        betTable = [],
+        betClosed = false;
 
-    function betOpen(event, bet) {
+    function betOpen(event, betOptions, betString) {        
         var sender = event.getSender(),
-            args = event.getArgs(),
-            string,
+            args = event.getArgs(),            
             betOp = '',
             i;
+        if (betString ='') {
+            betString = $.lang.get('betsystem.default.opened');
+        }
 
         if (betStatus) {
             $.say($.whisperPrefix(sender) + $.lang.get('betsystem.err.bet.opened'));
@@ -38,11 +42,13 @@
             }
         }
 
-        string = betOptions.join(' vs ');
+        betString = betString + betOptions.join(' - ');
 
         betStatus = true;
+        
+        $.log.event('betSystem.js', 48, 'Bet started' + betOptions.join(', ') + 'Pot: ' + betPot);
 
-        $.say($.lang.get('betsystem.opened', string, $.pointNameMultiple));
+        $.say($.lang.get('betsystem.opened', betString, $.pointNameMultiple));
     };
 
     function resetBet() {
@@ -51,9 +57,44 @@
         betWinners = '';
         betOptions = [];
         betTable = [];
+        betClosed = false;
+    }
+    
+    function betClose(sender, event) {
+        var closedPot = 0;
+        betClosed = true;        
+        //calc pot/perc
+        for (i in betTable) {
+            bet = betTable[i];           
+            closedPot += bet.amount;
+        }
+        //
+        $.log.event('betSystem.js', 71, 'Bet closed');
+        $.say($.lang.get('betsystem.closed'), closedPot); //Njnias Zeile
+    }
+    
+    function betShowStatus(sender, event) {
+        
+        var statusString = '';
+        
+        if (betStatus && !betClosed) {
+            $.say($.whisperPrefix(sender) + $.lang.get('betsystem.err.bet.closed'));
+            return;
+        }
+        
+        for (var i in betOptions) {
+            for (var j in betTable) {
+                bet = betTable[j];
+                if (betOptions[i] == bet.option) {
+                    statusString += i + ', ';
+                }
+            }
+            $.say($.lang.get('betsystem.show.status'), statusString);
+            statusString = '';           
+        }
     }
 
-    function betClose(sender, event, subAction) {
+    function betEnd(sender, event, subAction) {
         var args = event.getArgs(),
             betWinning = subAction,
             betWinPercent = 0,
@@ -103,26 +144,18 @@
             }
         }
 
-        /**
-         * Disable for now.  Needs to have a different value for
-         * betMinimum, right now this is the minimum amount, not
-         * minimum users. Could set a default through a set command
-         * and perhaps override with !bet open min=num option option
-         * 
-         * if (a < betMinimum) {
-         *   for (i in betTable) {
-         *     bet = betTable[i];
-         *     $.inidb.incr('points', i, bet.amount);
-         *   }
-         *
-         *   $.say($.lang.get('betsystem.not.enough.ppl'));
-         *   resetBet();
-         *   return;
-         * }
-         **/
-
         if (betTotal == 0) {
-            $.say($.lang.get('betsystem.closed.404', betWinning));
+            $.say($.lang.get('betsystem.end.404', betWinning));
+            resetBet();
+            return;
+        }
+        
+        if (subAction == 'abort') {
+            for (i in betTable) {
+                bet = betTable[i];
+                $.inidb.incr('points', i, bet.amount);
+            }
+            $.say($.lang.get('betsystem.end.aborted'));
             resetBet();
             return;
         }
@@ -144,8 +177,8 @@
                 $.inidb.incr('points', i, (betPot * betWinPercent));
             }
         }
-
-        $.say($.lang.get('betsystem.closed', betWinning, $.getPointsString(betPot * betWinPercent)));
+        $.log.event('betSystem.js', 179, 'Bet ended: Pot:' + betPot + 'Win percent: ' + betWinPercent);
+        $.say($.lang.get('betsystem.end', betWinning, $.getPointsString(betPot * betWinPercent)));
         resetBet();
     };
 
@@ -171,31 +204,68 @@
              * @commandpath bet open [option option option ...] - Opens a bet with options; not allowed to be digits, words only.
              */
             if (action.equalsIgnoreCase('open')) {
-                if (!$.isModv3(sender, event.getTags())) {
-                    $.say($.whisperPrefix(sender) + $.modMsg);
+                if (!$.isModv3(sender, event.getTags())) {                    
                     return;
                 }
 
                 betOpen(event, bet);
                 return;
-
-                /**
-                 * @commandpath bet close [option] - Closes the bet and selects option as the winner.
-                 */
-            } else if (action.equalsIgnoreCase('close')) {
-                if (!$.isModv3(sender, event.getTags())) {
-                    $.say($.whisperPrefix(sender) + $.modMsg);
+                
+            /**
+            * @commandpath bet arena - Opens an HS arena bet.
+            */
+            } else if (action.equalsIgnoreCase('arena')) {
+                if (!$.isModv3(sender, event.getTags())) {                    
                     return;
                 }
-                betClose(sender, event, subAction);
+                var arenaOptions = ['0-2', '3-5', '6-8', '9-11', '12'],
+                    arenaString = $.lang.get('betsystem.arenabet.start');                    
+                
+                betOpen(event, arenaOptions, arenaString);
+                return;
+                
+            /**
+            * @commandpath bet dota - Opens a dota bet.
+            */
+            } else if (action.equalsIgnoreCase('dota')) {
+                if (!$.isModv3(sender, event.getTags())) {                    
+                    return;
+                }
+                var dotaOptions = [$.lang.get('betsystem.dotabet.win'), $.lang.get('betsystem.dotabet.lose')],
+                    dotaString = $.lang.get('betsystem.dotabet.start');                    
+                
+                betOpen(event, dotaOptions, dotaString);
                 return;
 
-                /**
-                 * @commandpath bet setminimum [value] - Set the minimum value of a bet.
-                 */
+            /**
+             * @commandpath bet end [option] - Closes the bet and selects option as the winner.
+             */
+            } else if (action.equalsIgnoreCase('end')) {
+                if (!$.isModv3(sender, event.getTags())) {                    
+                    return;
+                }
+                
+                betEnd(sender, event, subAction);
+                return;
+                
+            /**
+            * @commandpath bet abort - aborts bet.
+            */
+            } else if (action.equalsIgnoreCase('abort')) {
+                if (!$.isModv3(sender, event.getTags())) {                    
+                    return;
+                }
+                
+                subAction = 'abort';                  
+                
+                betEnd(sender, event, subAction);
+                return;
+
+            /**
+            * @commandpath bet setminimum [value] - Set the minimum value of a bet.
+             */
             } else if (action.equalsIgnoreCase('setminimum')) {
-                if (!$.isModv3(sender, event.getTags())) {
-                    $.say($.whisperPrefix(sender) + $.modMsg);
+                if (!$.isModv3(sender, event.getTags())) {                    
                     return;
                 }
 
@@ -209,12 +279,11 @@
                 $.say($.whisperPrefix(sender) + $.lang.get('betsystem.set.min', betMinimum, $.pointNameMultiple));
                 return;
 
-                /**
-                 * @commandpath bet setmaximum [value] - Set the maximum value of a bet.
-                 */
+            /**
+             * @commandpath bet setmaximum [value] - Set the maximum value of a bet.
+             */
             } else if (action.equalsIgnoreCase('setmaximum')) {
-                if (!$.isModv3(sender, event.getTags())) {
-                    $.say($.whisperPrefix(sender) + $.modMsg);
+                if (!$.isModv3(sender, event.getTags())) {                    
                     return;
                 }
 
@@ -228,11 +297,16 @@
                 $.say($.whisperPrefix(sender) + $.lang.get('betsystem.set.max', betMaximum, $.pointNameMultiple));
                 return;
 
-                /**
-                 * @commandpath bet [ [option amount] | [amount option] ]- Places a bet on option, betting an amount of points.
-                 */
+            /**
+             * @commandpath bet [ [option amount] | [amount option] ]- Places a bet on option, betting an amount of points.
+             */
             } else {
                 if (!betStatus) {
+                    $.say($.whisperPrefix(sender) + $.lang.get('betsystem.err.bet.end'));
+                    return;
+                }
+                
+                if (betClosed) {
                     $.say($.whisperPrefix(sender) + $.lang.get('betsystem.err.bet.closed'));
                     return;
                 }
@@ -274,10 +348,29 @@
                     $.say($.whisperPrefix(sender) + $.lang.get('betsystem.err.points', $.pointNameMultiple));
                     return;
                 }
-
+                
+                // Wette aktualisieren (Njnia is Schuld)
+                
                 for (i in betTable) {
+                    bet = betTable[i];
                     if (sender.equalsIgnoreCase(i)) {
-                        $.say($.whisperPrefix(sender) + $.lang.get('betsystem.err.voted'));
+                        if (bet.amount != betWager) {
+                            
+                            $.inidb.incr('points', sender, bet.amount);
+                                                       
+                            betTable[i] = { 
+                                amount: betWager,
+                                option: bet.option
+                            }
+                            
+                            $.inidb.decr('points', sender, betWager); 
+                            betPot = (betPot + betWager);
+                            $.log.event('betSystem.js', 367, 'Bet updated for: ' + sender + 'new wager: ' + betWager);
+                            $.say($.whisperPrefix(sender) + $.lang.get('betsystem.bet.updated'));
+                        }
+                        else {
+                            $.say($.whisperPrefix(sender) + $.lang.get('betsystem.err.voted'));
+                        }                        
                         return;
                     }
                 }
@@ -294,15 +387,22 @@
                     amount: betWager,
                     option: betOption
                 };
-
-                $.say($.lang.get('betsystem.bet.updated', sender, $.getPointsString(betWager), betOption, $.getPointsString(betPot)));
+                $.log.event('betSystem.js', 389, 'Bet accepted for: ' + sender + ' wager: ' + betWager);    
+                $.say($.whisperPrefix(sender) + $.lang.get('betsystem.bet.accepted', sender, $.getPointsString(betWager), betOption, $.getPointsString(betPot)));
             }
         }
     });
 
     $.bind('initReady', function() {
         if ($.bot.isModuleEnabled('./systems/betSystem.js')) {
-            $.registerChatCommand('./systems/betSystem.js', 'bet', 7);
+            $.registerChatCommand('./systems/betSystem.js', 'bet', 7);            
+            $.registerChatSubCommand('bet', 'end', 2);
+            $.registerChatSubCommand('bet', 'arena', 2);
+            $.registerChatSubCommand('bet', 'dota', 2);
+            $.registerChatSubCommand('bet', 'abort', 2);
+            $.registerChatSubCommand('bet', 'close', 2);
+            $.registerChatSubCommand('bet', 'setminimum', 2);
+            $.registerChatSubCommand('bet', 'setmaximum', 2);
         }
     });
 })();
