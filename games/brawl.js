@@ -115,7 +115,7 @@
 						while (final_brawlers.length < 3)
 						{
 							var finalist = brawl_table[Math.floor(Math.random() * brawl_table.length)];
-							if (!$.array.contains(final_brawlers, finalist)) {
+							if (!$.list.contains(final_brawlers, finalist)) {
 								final_brawlers.push(finalist);
 							};
 						}
