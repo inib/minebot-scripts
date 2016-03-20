@@ -1,3 +1,6 @@
+# VisualStudio Code folders/files
+.vscode
+
 # Windows image file caches
 Thumbs.db
 ehthumbs.db

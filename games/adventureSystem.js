@@ -1,4 +1,8 @@
 /**
+ *  PREPARE FOR SCHOKTHULU - UNDER CONSTRUCTION
+ */
+
+/**
  * adventureSystem.js
  *
  * It's an improved bankheist, basically.
