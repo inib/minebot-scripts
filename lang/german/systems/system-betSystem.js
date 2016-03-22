@@ -15,11 +15,12 @@ $.lang.register('betsystem.end.aborted', '[Wettbüro] Wette abgebrochen - Sende 
 $.lang.register('betsystem.err.bet.closed', 'Fehler! Wettbüro ist bereits geschlossen!');
 $.lang.register('betsystem.err.bet.end', 'Fehler! Derzeit läuft keine Wette');
 $.lang.register('betsystem.err.bet.opened', 'Fehler! Es läuft bereits eine Wette');
-$.lang.register('betsystem.err.open', 'Fehler! ');
+$.lang.register('betsystem.err.open', 'Fehler! Option darf keine Zahl sein.');
+$.lang.register('betsystem.end.404', '[Wettbüro] $1 hat gewonnen, leider keiner von euch EleGiggle ');
 $.lang.register('betsystem.err.option.404', 'Fehler! Diese Wettoption gibt es nicht - Optionen: $1');
 $.lang.register('betsystem.err.options', 'Fehler! Du musst mehr als eine Option angeben.');
 $.lang.register('betsystem.err.points', 'Fehler! Du hast nicht genug $1. EleGiggle');
-$.lang.register('betsystem.err.points.refunded', 'Fehler!');
+$.lang.register('betsystem.err.points.refunded', 'Fehler! Welcher weiss ich noch nicht LUL');
 $.lang.register('betsystem.err.voted', 'Fehler! Du hast bereits $1 auf $2 gesetzt.');
 $.lang.register('betsystem.err.win.option', 'Fehler! Du musst eine Option angeben.');
 $.lang.register('betsystem.opened', '[Wettbüro geöffnet] Optionen: $1 - !bet (Option) (Einsatz)');

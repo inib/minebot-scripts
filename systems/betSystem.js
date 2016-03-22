@@ -14,13 +14,13 @@
         betTable = [],
         betClosed = false;
 
-    function betOpen(event, betOptions, betString) {        
+    function betOpen(event, betOps, betString) {        
         var sender = event.getSender(),
             args = event.getArgs(),            
-            betOp = '',
+            betOp = betOps,
             i;
         if (betString ='') {
-            betString = $.lang.get('betsystem.default.opened');
+            betString = $.lang.get('betsystem.default.opened', betOps.join(', '));
         }
 
         if (betStatus) {
@@ -28,14 +28,14 @@
             return;
         }
 
-        if (bet.length < 2) {
+        if (betOp.length < 2) {
             $.say($.whisperPrefix(sender) + $.lang.get('betsystem.err.options'));
             return;
         }
 
-        for (i = 0; i < bet.length; i++) {
-            betOptions.push(bet[i].toLowerCase().trim());
-            if (!isNaN(bet[i])) {
+        for (i = 0; i < betOp.length; i++) {
+            betOptions.push(betOp[i].toLowerCase().trim());
+            if (!isNaN(betOp[i])) {
                 $.say($.whisperPrefix(sender) + $.lang.get('betsystem.err.open'));
                 betOptions = [];
                 return;
@@ -46,7 +46,7 @@
 
         betStatus = true;
         
-        $.log.event('betSystem.js', 48, 'Bet started' + betOptions.join(', ') + 'Pot: ' + betPot);
+        $.logEvent('betSystem.js', 49, 'Bet started' + betOptions.join(', ') + 'Pot: ' + betPot);
 
         $.say($.lang.get('betsystem.opened', betString, $.pointNameMultiple));
     };
@@ -69,7 +69,7 @@
             closedPot += bet.amount;
         }
         //
-        $.log.event('betSystem.js', 71, 'Bet closed');
+        $.logEvent('betSystem.js', 71, 'Bet closed');
         $.say($.lang.get('betsystem.closed'), closedPot); //Njnias Zeile
     }
     
@@ -103,6 +103,7 @@
             betTotal = 0,
             bet,
             a = 0,
+            winString ='',
             i;
 
         if (!betStatus) {
@@ -129,6 +130,12 @@
                 betTotal = bet.amount;
             }
         }
+        
+        if (betTotal == 0) {
+            $.say($.lang.get('betsystem.end.404', betWinning));
+            resetBet();
+            return;
+        }
 
         for (i in betTable) {
             a++;
@@ -143,13 +150,7 @@
                 }
             }
         }
-
-        if (betTotal == 0) {
-            $.say($.lang.get('betsystem.end.404', betWinning));
-            resetBet();
-            return;
-        }
-        
+                
         if (subAction == 'abort') {
             for (i in betTable) {
                 bet = betTable[i];
@@ -177,7 +178,7 @@
                 $.inidb.incr('points', i, (betPot * betWinPercent));
             }
         }
-        $.log.event('betSystem.js', 179, 'Bet ended: Pot:' + betPot + 'Win percent: ' + betWinPercent);
+        $.logEvent('betSystem.js', 179, 'Bet ended: Pot:' + betPot + 'Win percent: ' + betWinPercent);
         $.say($.lang.get('betsystem.end', betWinning, $.getPointsString(betPot * betWinPercent)));
         resetBet();
     };
@@ -208,7 +209,18 @@
                     return;
                 }
 
-                betOpen(event, bet);
+                betOpen(event, bet, '');
+                return;
+                 
+            /**
+            * @commandpath bet close - Closes the bet.
+            */
+            } else if (action.equalsIgnoreCase('close')) {
+                if (!$.isModv3(sender, event.getTags())) {                    
+                    return;
+                }                    
+                
+                betClose(sender, event);
                 return;
                 
             /**
@@ -218,7 +230,7 @@
                 if (!$.isModv3(sender, event.getTags())) {                    
                     return;
                 }
-                var arenaOptions = ['0-2', '3-5', '6-8', '9-11', '12'],
+                var arenaOptions = ['0-2', '3-5', '6-8', '9-11', '12WINS'],
                     arenaString = $.lang.get('betsystem.arenabet.start');                    
                 
                 betOpen(event, arenaOptions, arenaString);
@@ -238,7 +250,7 @@
                 return;
 
             /**
-             * @commandpath bet end [option] - Closes the bet and selects option as the winner.
+             * @commandpath bet end [option] - Ends the bet and selects [option] as the winner.
              */
             } else if (action.equalsIgnoreCase('end')) {
                 if (!$.isModv3(sender, event.getTags())) {                    
@@ -354,18 +366,18 @@
                 for (i in betTable) {
                     bet = betTable[i];
                     if (sender.equalsIgnoreCase(i)) {
-                        if (bet.amount != betWager) {
+                        if (bet.amount != betWager || bet.option != betOption) {
                             
                             $.inidb.incr('points', sender, bet.amount);
                                                        
                             betTable[i] = { 
                                 amount: betWager,
-                                option: bet.option
+                                option: betOption
                             }
                             
                             $.inidb.decr('points', sender, betWager); 
                             betPot = (betPot + betWager);
-                            $.log.event('betSystem.js', 367, 'Bet updated for: ' + sender + 'new wager: ' + betWager);
+                            $.logEvent('betSystem.js', 367, 'Bet updated for: ' + sender + ' wager: ' + betWager + ' option:' + betOption);
                             $.say($.whisperPrefix(sender) + $.lang.get('betsystem.bet.updated'));
                         }
                         else {
@@ -387,7 +399,7 @@
                     amount: betWager,
                     option: betOption
                 };
-                $.log.event('betSystem.js', 389, 'Bet accepted for: ' + sender + ' wager: ' + betWager);    
+                $.logEvent('betSystem.js', 389, 'Bet accepted for: ' + sender + ' wager: ' + betWager);    
                 $.say($.whisperPrefix(sender) + $.lang.get('betsystem.bet.accepted', sender, $.getPointsString(betWager), betOption, $.getPointsString(betPot)));
             }
         }
@@ -396,13 +408,14 @@
     $.bind('initReady', function() {
         if ($.bot.isModuleEnabled('./systems/betSystem.js')) {
             $.registerChatCommand('./systems/betSystem.js', 'bet', 7);            
-            $.registerChatSubCommand('bet', 'end', 2);
-            $.registerChatSubCommand('bet', 'arena', 2);
-            $.registerChatSubCommand('bet', 'dota', 2);
-            $.registerChatSubCommand('bet', 'abort', 2);
-            $.registerChatSubCommand('bet', 'close', 2);
-            $.registerChatSubCommand('bet', 'setminimum', 2);
-            $.registerChatSubCommand('bet', 'setmaximum', 2);
+            $.registerChatSubcommand('bet', 'end', 2);
+            $.registerChatSubcommand('bet', 'arena', 2);
+            $.registerChatSubcommand('bet', 'dota', 2);
+            $.registerChatSubcommand('bet', 'abort', 2);
+            $.registerChatSubcommand('bet', 'close', 2);
+            $.registerChatSubcommand('bet', 'open', 2);
+            $.registerChatSubcommand('bet', 'setminimum', 2);
+            $.registerChatSubcommand('bet', 'setmaximum', 2);
         }
     });
 })();
