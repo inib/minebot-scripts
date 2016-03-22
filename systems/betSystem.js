@@ -136,6 +136,8 @@
             resetBet();
             return;
         }
+        
+        // obsolet?
 
         for (i in betTable) {
             a++;
@@ -156,7 +158,7 @@
                 bet = betTable[i];
                 $.inidb.incr('points', i, bet.amount);
             }
-            $.say($.lang.get('betsystem.end.aborted'));
+            $.say($.lang.get('betsystem.end.aborted', $.getPointsString(betPot)));
             resetBet();
             return;
         }
@@ -179,7 +181,7 @@
             }
         }
         $.logEvent('betSystem.js', 179, 'Bet ended: Pot:' + betPot + 'Win percent: ' + betPointsWon);
-        $.say($.lang.get('betsystem.end', betWinning, $.getPointsString(betPot * betWinPercent), betWinPercent));
+        $.say($.lang.get('betsystem.end', betWinning, $.getPointsString(betPot), betPointsWon.toFixed(2)));
         resetBet();
     };
 
@@ -305,7 +307,7 @@
                 }
 
                 betMaximum = parseInt(subAction);
-                $.inidb.set('betSettings', 'betMinimum', betMaximum);
+                $.inidb.set('betSettings', 'betMaximum', betMaximum);
                 $.say($.whisperPrefix(sender) + $.lang.get('betsystem.set.max', betMaximum, $.pointNameMultiple));
                 return;
 
@@ -327,12 +329,12 @@
                     betOption;
 
                 if (!action || !subAction) {
-                    $.say($.whisperPrefix(sender) + $.lang.get('betsystem.err.option.404'));
+                    $.say($.whisperPrefix(sender) + $.lang.get('betsystem.err.option.404', betOptions.join(', ')));
                     return;
                 }
 
                 if (isNaN(action) && isNaN(subAction)) {
-                    $.say($.whisperPrefix(sender) + $.lang.get('betsystem.err.option.404'));
+                    $.say($.whisperPrefix(sender) + $.lang.get('betsystem.err.option.404', betOptions.join(', ')));
                     return;
                 }
                 if (isNaN(action) && !isNaN(subAction)) {
