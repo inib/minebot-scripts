@@ -369,6 +369,7 @@
                         if (bet.amount != betWager || bet.option != betOption) {
                             
                             $.inidb.incr('points', sender, bet.amount);
+                            betPot = betPot - bet.amount;
                                                        
                             betTable[i] = { 
                                 amount: betWager,
