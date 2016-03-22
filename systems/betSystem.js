@@ -127,7 +127,7 @@
         for (i in betTable) {
             bet = betTable[i];
             if (bet.option.equalsIgnoreCase(betWinning)) {
-                betTotal = bet.amount;
+                betTotal += bet.amount;
             }
         }
         
@@ -178,8 +178,8 @@
                 $.inidb.incr('points', i, (betPot * betWinPercent));
             }
         }
-        $.logEvent('betSystem.js', 179, 'Bet ended: Pot:' + betPot + 'Win percent: ' + betWinPercent);
-        $.say($.lang.get('betsystem.end', betWinning, $.getPointsString(betPot * betWinPercent), betPot));
+        $.logEvent('betSystem.js', 179, 'Bet ended: Pot:' + betPot + 'Win percent: ' + betPointsWon);
+        $.say($.lang.get('betsystem.end', betWinning, $.getPointsString(betPot * betWinPercent), betWinPercent));
         resetBet();
     };
 
@@ -345,7 +345,7 @@
                 }
 
                 if (!$.list.contains(betOptions, betOption.toLowerCase())) {
-                    $.say($.whisperPrefix(sender) + $.lang.get('betsystem.err.option.404'));
+                    $.say($.whisperPrefix(sender) + $.lang.get('betsystem.err.option.404', betOptions.join(', ')));
                     return;
                 } else if (betWager < 1) {
                     $.say($.whisperPrefix(sender) + $.lang.get('betsystem.bet.err.neg', $.pointNameMultiple));
