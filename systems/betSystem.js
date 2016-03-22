@@ -70,7 +70,7 @@
         }
         //
         $.logEvent('betSystem.js', 71, 'Bet closed');
-        $.say($.lang.get('betsystem.closed'), closedPot); //Njnias Zeile
+        $.say($.lang.get('betsystem.closed', closedPot)); //Njnias Zeile
     }
     
     function betShowStatus(sender, event) {
@@ -179,7 +179,7 @@
             }
         }
         $.logEvent('betSystem.js', 179, 'Bet ended: Pot:' + betPot + 'Win percent: ' + betWinPercent);
-        $.say($.lang.get('betsystem.end', betWinning, $.getPointsString(betPot * betWinPercent)));
+        $.say($.lang.get('betsystem.end', betWinning, $.getPointsString(betPot * betWinPercent), betPot));
         resetBet();
     };
 
@@ -378,7 +378,7 @@
                             $.inidb.decr('points', sender, betWager); 
                             betPot = (betPot + betWager);
                             $.logEvent('betSystem.js', 367, 'Bet updated for: ' + sender + ' wager: ' + betWager + ' option:' + betOption);
-                            $.say($.whisperPrefix(sender) + $.lang.get('betsystem.bet.updated'));
+                            $.say($.whisperPrefix(sender) + $.lang.get('betsystem.bet.updated'), sender, betWager, betOption);
                         }
                         else {
                             $.say($.whisperPrefix(sender) + $.lang.get('betsystem.err.voted'));
