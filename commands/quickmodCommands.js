@@ -14,7 +14,7 @@
         /**
          * @commandpath cl [user] - Purges a users message
          */
-        if (command.equalsIgnoreCase("cl")) {
+        if (command.equalsIgnoreCase('clr')) {
             if (!$.isModv3(sender, event.getTags())) {
                 return;
             }
@@ -31,7 +31,7 @@
         /**
          * @commandpath to [user] [time] - Times a users out
          */
-        if (command.equalsIgnoreCase("to")) {
+        if (command.equalsIgnoreCase('to')) {
             if (!$.isModv3(sender, event.getTags())) {
                 return;
             }
@@ -55,7 +55,7 @@
 
     $.bind('initReady', function() {
         if ($.bot.isModuleEnabled('./commands/quickmodCommand.js')) {
-            $.registerChatCommand('./commands/quickmodCommand.js', 'cl', 2);
+            $.registerChatCommand('./commands/quickmodCommand.js', 'clr', 2);
             $.registerChatCommand('./commands/quickmodCommand.js', 'to', 2);
         }
     });
