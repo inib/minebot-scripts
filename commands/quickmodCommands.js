@@ -15,7 +15,11 @@
          * @commandpath cl [user] - Purges a users message
          */
         if (command.equalsIgnoreCase("cl")) {
-            if (!isModv3(sender, event.getTags())) {
+            if (!$.isModv3(sender, event.getTags())) {
+                return;
+            }
+            
+            if ($.isMod(args)) {
                 return;
             }
 
@@ -28,7 +32,11 @@
          * @commandpath to [user] [time] - Times a users out
          */
         if (command.equalsIgnoreCase("to")) {
-            if (!isModv3(sender, event.getTags())) {
+            if (!$.isModv3(sender, event.getTags())) {
+                return;
+            }
+            
+            if ($.isMod(args)) {
                 return;
             }
 
