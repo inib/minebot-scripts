@@ -23,7 +23,7 @@
                 return;
             }
 
-            $.logEvent('./commands/quickmodCommand.js', 26, 'Clear: ' + sender + 'req by: ' + sender);
+            $.logEvent('./commands/quickmodCommands.js', 26, 'Clear: ' + sender + 'req by: ' + sender);
             $.timeoutUser(action, 1);
             return;
         }
@@ -41,12 +41,12 @@
             }
 
             if (isNan(actionArg1)) {
-                $.logEvent('./commands/quickmodCommand.js', 44, 'Timeout: ' + sender + 'req by: ' + sender);
+                $.logEvent('./commands/quickmodCommands.js', 44, 'Timeout: ' + sender + 'req by: ' + sender);
                 $.timeoutUser(action, 60);
                 return;
             }
             else {
-                $.logEvent('./commands/quickmodCommand.js', 49, 'Timeout: ' + sender + 'req by: ' + sender);
+                $.logEvent('./commands/quickmodCommands.js', 49, 'Timeout: ' + sender + 'req by: ' + sender);
                 $.timeoutUser(action, actionArg1);
                 return;
             }
@@ -54,9 +54,9 @@
     });
 
     $.bind('initReady', function() {
-        if ($.bot.isModuleEnabled('./commands/quickmodCommand.js')) {
-            $.registerChatCommand('./commands/quickmodCommand.js', 'clr', 2);
-            $.registerChatCommand('./commands/quickmodCommand.js', 'to', 2);
+        if ($.bot.isModuleEnabled('./commands/quickmodCommands.js')) {
+            $.registerChatCommand('./commands/quickmodCommands.js', 'clr', 2);
+            $.registerChatCommand('./commands/quickmodCommands.js', 'to', 2);
         }
     });
 })();
