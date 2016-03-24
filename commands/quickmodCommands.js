@@ -23,7 +23,7 @@
                 return;
             }
 
-            $.logEvent('./commands/quickmodCommand.js', 17, 'Clear: ' + sender + 'req by: ' + sender);
+            $.logEvent('./commands/quickmodCommand.js', 26, 'Clear: ' + sender + 'req by: ' + sender);
             $.timeoutUser(action, 1);
             return;
         }
@@ -41,12 +41,12 @@
             }
 
             if (isNan(actionArg1)) {
-                $.logEvent('./commands/quickmodCommand.js', 30, 'Timeout: ' + sender + 'req by: ' + sender);
+                $.logEvent('./commands/quickmodCommand.js', 44, 'Timeout: ' + sender + 'req by: ' + sender);
                 $.timeoutUser(action, 60);
                 return;
             }
             else {
-                $.logEvent('./commands/quickmodCommand.js', 35, 'Timeout: ' + sender + 'req by: ' + sender);
+                $.logEvent('./commands/quickmodCommand.js', 49, 'Timeout: ' + sender + 'req by: ' + sender);
                 $.timeoutUser(action, actionArg1);
                 return;
             }
