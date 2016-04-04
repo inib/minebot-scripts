@@ -3,13 +3,10 @@
     var YTAPIKey = "AIzaSyCGGEzMA38-SyvpLWvV0Q5-otLL6LQdPeo"; //needs to be checked and added
     var yturl = "https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=1&"
     var playlists = [];
-
-    if ($.inidb.exists('youtubeHandler', '')) {
-        keys = $.inidb.GetKeyList('youtubeHandler', '');
-        for (var item in keys) {
-            playlists.push(item);
-        }
-        runYTAnnounce();
+    
+    keys = $.inidb.GetKeyList('youtubeHandler', '');
+    for (var item in keys) {
+        playlists.push(item);
     }
 
     function getAPIValue(playlist, eTag) {
@@ -84,8 +81,8 @@
             command = event.getCommand(),
             argString = event.getArguments().trim(),
             args = event.getArgs(),
-            action = args[0];
-        subAction = args[1];
+            action = args[0],
+            subAction = args[1];
 
         if (command.equalsIgnoreCase('ytplaylist')) {
 
