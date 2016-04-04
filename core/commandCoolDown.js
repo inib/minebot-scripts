@@ -11,6 +11,7 @@
     var globalCooldown = ($.inidb.exists('cooldown', 'globalCooldown') ? $.getIniDbBoolean('cooldown', 'globalCooldown') : false),
         globalCooldownTime = ($.inidb.exists('cooldown', 'globalCooldownTime') ? parseInt($.inidb.get('cooldown', 'globalCooldownTime')) : 90),
         modCooldown = ($.inidb.exists('cooldown', 'modCooldown') ? $.getIniDbBoolean('cooldown', 'modCooldown') : false),
+        userCooldown = ($.inidb.exists('cooldown', 'userCooldown') ? $.getIniDbBoolean('cooldown', 'userCooldown') : false),
         cooldown = [];
 
     function set(command, time, user) {
@@ -166,6 +167,18 @@
 
             $.say($.whisperPrefix(sender) + $.lang.get('cooldown.set.togglemodcooldown', (modCooldown ? $.lang.get('common.enabled') : $.lang.get('common.disabled'))));
         }
+        
+        if (command.equalsIgnoreCase('toggleusercooldown')) {
+            if (!$.isAdmin(sender)) {
+                //$.say($.whisperPrefix(sender) + $.adminMsg);
+                return;
+            }
+
+            userCooldown = !userCooldown;
+            $.setIniDbBoolean('cooldown', 'userCooldown', userCooldown);
+
+            $.say($.whisperPrefix(sender) + $.lang.get('cooldown.set.toggleusercooldown', (userCooldown ? $.lang.get('common.enabled') : $.lang.get('common.disabled'))));
+        }
     });
 
     /**
@@ -178,6 +191,7 @@
             $.registerChatCommand('./core/commandCoolDown.js', 'globalcooldown', 1);
             $.registerChatCommand('./core/commandCoolDown.js', 'toggleglobalcooldown', 1);
             $.registerChatCommand('./core/commandCoolDown.js', 'togglemodcooldown', 1);
+            $.registerChatCommand('./core/commandCoolDown.js', 'toggleusercooldown', 1);
         }
     });
     /** EXPORT TO $. API*/
