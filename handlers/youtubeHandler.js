@@ -9,6 +9,7 @@
         for (var item in keys) {
             playlists.push(item);
         }
+        runYTAnnounce();
     }
 
     function getAPIValue(playlist, eTag) {
@@ -114,6 +115,7 @@
                     $.inidb.set('youtubeHandler', subAction, '');
                     playlists.push(subAction);
                     $.say($.whisperPrefix(sender) + $.lang.get('youtubeHandler.add'));
+                    return;
                 }
             }
 
@@ -134,10 +136,8 @@
                 }
             }
             
-            else {
-                $.say($.whisperPrefix(sender) + $.lang.get('youtubeHandler.usage'));
-                return;
-            }
+            $.say($.whisperPrefix(sender) + $.lang.get('youtubeHandler.usage'));
+            return;            
         }
     });
 
@@ -151,6 +151,6 @@
         if (!$.isOnline($.channelName)) {
             runYTAnnounce();
         }
-    }, 60 * 60 * 1000 * 5);
+    }, 60 * 1000 * 5);
 
 })();
