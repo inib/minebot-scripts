@@ -364,7 +364,7 @@
                 }
                 
                 // Wette aktualisieren (Njnia is Schuld)
-                i = sender.toLowerCase()
+                var i = sender.toLowerCase()
                 bet = betTable[i];
                 if (bet) {
                     if (bet.amount != betWager || bet.option != betOption) {
