@@ -364,30 +364,28 @@
                 }
                 
                 // Wette aktualisieren (Njnia is Schuld)
-                
-                for (i in betTable) {
-                    bet = betTable[i];
-                    if (sender.equalsIgnoreCase(i)) {
-                        if (bet.amount != betWager || bet.option != betOption) {
-                            
-                            $.inidb.incr('points', sender, bet.amount);
-                            betPot = betPot - bet.amount;
-                                                       
-                            betTable[i] = { 
-                                amount: betWager,
-                                option: betOption
-                            }
-                            
-                            $.inidb.decr('points', sender, betWager); 
-                            betPot = (betPot + betWager);
-                            $.logEvent('betSystem.js', 367, 'Bet updated for: ' + sender + ' wager: ' + betWager + ' option:' + betOption);
-                            $.say($.whisperPrefix(sender) + $.lang.get('betsystem.bet.updated', sender, betWager, betOption));
+                var i = sender.toLowerCase()
+                bet = betTable[i];
+                if (bet) {
+                    if (bet.amount != betWager || bet.option != betOption) {
+                        
+                        $.inidb.incr('points', sender, bet.amount);
+                        betPot = betPot - bet.amount;
+                                                   
+                        betTable[i] = { 
+                            amount: betWager,
+                            option: betOption
                         }
-                        else {
-                            $.say($.whisperPrefix(sender) + $.lang.get('betsystem.err.voted', betWager, betOption));
-                        }                        
-                        return;
+
+                        $.inidb.decr('points', sender, betWager); 
+                        betPot = (betPot + betWager);
+                        $.logEvent('betSystem.js', 367, 'Bet updated for: ' + sender + ' wager: ' + betWager + ' option:' + betOption);
+                        $.say($.whisperPrefix(sender) + $.lang.get('betsystem.bet.updated', sender, betWager, betOption));
                     }
+                    else {
+                        $.say($.whisperPrefix(sender) + $.lang.get('betsystem.err.voted', betWager, betOption));
+                    }
+                    return;
                 }
 
                 $.inidb.decr('points', sender, betWager);
@@ -398,7 +396,7 @@
                     betPot = (betPot + betWager);
                 }
 
-                betTable[sender] = {
+                betTable[sender.toLowerCase()] = {
                     amount: betWager,
                     option: betOption
                 };
