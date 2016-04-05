@@ -376,18 +376,17 @@
                             amount: betWager,
                             option: betOption
                         }
-                        
+
                         $.inidb.decr('points', sender, betWager); 
                         betPot = (betPot + betWager);
                         $.logEvent('betSystem.js', 367, 'Bet updated for: ' + sender + ' wager: ' + betWager + ' option:' + betOption);
                         $.say($.whisperPrefix(sender) + $.lang.get('betsystem.bet.updated', sender, betWager, betOption));
                     }
                     else {
-                        $.say($.whisperPrefix(sender) + $.lang.get('betsystem.err.voted'));
-                    }                        
+                        $.say($.whisperPrefix(sender) + $.lang.get('betsystem.err.voted', betWager, betOption));
+                    }
                     return;
                 }
-
 
                 $.inidb.decr('points', sender, betWager);
 
@@ -401,7 +400,7 @@
                     amount: betWager,
                     option: betOption
                 };
-                $.logEvent('betSystem.js', 389, 'Bet accepted for: ' + sender + ' wager: ' + betWager);    
+                $.logEvent('betSystem.js', 389, 'Bet accepted for: ' + sender + ' wager: ' + betWager + 'option: ' + betOption);    
                 $.say($.whisperPrefix(sender) + $.lang.get('betsystem.bet.accepted', sender, $.getPointsString(betWager), betOption, $.getPointsString(betPot)));
             }
         }
