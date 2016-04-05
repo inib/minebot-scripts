@@ -1,13 +1,10 @@
 (function() {
 
-    var YTAPIKey = "AIzaSyCGGEzMA38-SyvpLWvV0Q5-otLL6LQdPeo"; //needs to be checked and added
+    var YTAPIKey = "AIzaSyCqMh0--04HSjM4wLYu-PsI77t95OCZrCo"; //needs to be checked and added
     var yturl = "https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=1&"
-    var playlists = [];
-    
-    keys = $.inidb.GetKeyList('youtubeHandler', '');
-    for (var item in keys) {
-        playlists.push(item);
-    }
+    var playlists;
+
+    playlists = $.inidb.GetKeyList('youtubeHandler', '');
 
     function getAPIValue(playlist, eTag) {
         var HttpResponse = Packages.com.gmt2001.HttpResponse;
@@ -22,7 +19,7 @@
             ETagHeader.put("If-None-Match", eTag);
         }
 
-        var responseData = HttpRequest.getData(HttpRequest.RequestType.GET, url, "", ETagHeader);
+        var responseData = HttpRequest.getData(HttpRequest.RequestType.GET, buildURL, "", ETagHeader);
         return responseData.content;
     };
 
@@ -33,20 +30,21 @@
         var eTag = "";
 
         if (YTAPIKey != "") {
-            consoleLn(buildURL);
             eTag = $.inidb.get('youtubeHandler', playlist);
             playlistObj = getAPIValue(playlist, eTag);
 
-            consoleLn(playlistObj);
+            //consoleLn(playlistObj);
 
             if (playlistObj != "") {
                 JSONObj = JSON.parse(playlistObj);
                 outputString = buildOutputString(JSONObj);
-                $.inidb.set('youtubeHandler', playlist, JSONObj.eTag);
+                $.inidb.set('youtubeHandler', playlist, JSONObj.etag);
+                return outputString;
             }
 
-            return outputString;
+            return "";
         }
+        return "";
     };
 
     function buildOutputString(jsonObj) {
@@ -67,13 +65,14 @@
     }
 
     function runYTAnnounce() {
-        var outputString = "";
-        for (var i = 0; i < playlists.length; i++) {
-            outputString = getPlaylistItem(playlists[i]);
+        var outputString = "";        
+        for (var item in playlists) {            
+            outputString = getPlaylistItem(playlists[item]);
             if (outputString != "") {
                 $.say(outputString);
             }
         }
+        return;
     };
 
     $.bind('command', function(event) {
@@ -84,12 +83,27 @@
             action = args[0],
             subAction = args[1];
 
+        if (command.equalsIgnoreCase('yttest')) {
+
+            if (!action) {
+                    return;
+            }
+
+            else {
+                var kreygasm = getPlaylistItem(action);
+                if (kreygasm != "") {
+                    $.say(kreygasm);
+                    return;
+                }
+            }
+        }
+
         if (command.equalsIgnoreCase('ytplaylist')) {
 
             if (!subAction) {
 
                 if (!action) {
-                    $.say($.whisperPrefix(sender) + $.lang.get('youtubeHandler.usage'));
+                    $.say($.whisperPrefix(sender) + $.lang.get('youtubehandler.usage'));
                     return;
                 }
 
@@ -99,19 +113,19 @@
                     $.say($.whisperPrefix(sender) + plString);
                     return;
                 }
-                $.say($.whisperPrefix(sender) + $.lang.get('youtubeHandler.usage'));
+                $.say($.whisperPrefix(sender) + $.lang.get('youtubehandler.usage'));
                 return;
             }
 
             if (action.equalsIgnoreCase('add')) {
                 if ($.inidb.exists('youtubeHandler', subAction)) {
-                    $.say($.whisperPrefix(sender) + $.lang.get('youtubeHandler.error.exists'));
+                    $.say($.whisperPrefix(sender) + $.lang.get('youtubehandler.error.exists'));
                     return;
                 }
                 else {
                     $.inidb.set('youtubeHandler', subAction, '');
-                    playlists.push(subAction);
-                    $.say($.whisperPrefix(sender) + $.lang.get('youtubeHandler.add'));
+                    playlists = $.inidb.GetKeyList('youtubeHandler', '');
+                    $.say($.whisperPrefix(sender) + $.lang.get('youtubehandler.add'));
                     return;
                 }
             }
@@ -119,35 +133,33 @@
             if (action.equalsIgnoreCase('del')) {
                 if ($.inidb.exists('youtubeHandler', subAction)) {
                     $.inidb.del('youtubeHandler, subAction');
-                    keys = $.inidb.GetKeyList('youtubeHandler', '');
-                    playlists = [];
-                    for (var item in keys) {
-                        playlists.push(item);
-                    }
-                    $.say($.whisperPrefix(sender) + $.lang.get('youtubeHandler.del'));
+                    playlists = $.inidb.GetKeyList('youtubeHandler', '');
+                    $.say($.whisperPrefix(sender) + $.lang.get('youtubehandler.del'));
                     return;
                 }
                 else {
-                    $.say($.whisperPrefix(sender) + $.lang.get('youtubeHandler.error.404'));
+                    $.say($.whisperPrefix(sender) + $.lang.get('youtubehandler.error.404'));
                     return;
                 }
             }
-            
-            $.say($.whisperPrefix(sender) + $.lang.get('youtubeHandler.usage'));
-            return;            
+
+            $.say($.whisperPrefix(sender) + $.lang.get('youtubehandler.usage'));
+            return;
         }
     });
 
     $.bind('initReady', function() {
         if ($.bot.isModuleEnabled('./handlers/youtubeHandler.js')) {
             $.registerChatCommand('./handlers/youtubeHandler.js', 'ytplaylist', 1);
+            $.registerChatCommand('./handlers/youtubeHandler.js', 'yttest', 1);
         }
     });
 
     setInterval(function() {
         if (!$.isOnline($.channelName)) {
+            //$.consoleLn('times up, lets do this');
             runYTAnnounce();
         }
-    }, 60 * 1000 * 5);
+    }, 60 * 1000 * 15);
 
 })();
