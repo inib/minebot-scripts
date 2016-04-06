@@ -7,7 +7,7 @@
 (function() {
 
     var YTAPIKey = ($.inidb.exists('settings', 'ytapi') ? $.inidb.get('settings', 'ytapi') : "");
-    var yturl = "https://www.googleapis.com/youtube/v3/search?part=snippet&order=date&maxResults=1"
+    var yturl = "https://www.googleapis.com/youtube/v3/search?part=snippet&order=date&maxResults=1&"
     var playlists;
     var eTags = [];
     var updateTime = 10;
