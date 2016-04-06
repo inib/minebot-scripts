@@ -46,7 +46,16 @@
         }
 
         var responseData = HttpRequest.getData(HttpRequest.RequestType.GET, buildURL, "", ETagHeader);
-        return responseData.content;
+
+        if (responseData.httpCode == 200) {            
+            return responseData.content;
+        }
+        else {
+            if (responseData.httpCode != 304) {                
+                logError('youtubeHandler.js', 55, 'Http error: ' + responseData.httpCode);
+            }
+            return "";
+        }
     };
 
     /**
@@ -62,21 +71,31 @@
 
         if (YTAPIKey != "") {
             eTag = eTags[playlist];
-            playlistObj = getAPIValue(playlist, eTag);
+            playlistObj = getAPIValue(playlist, eTag);           
 
             if (playlistObj != "") {
-                JSONObj = JSON.parse(playlistObj);
-                outputString = buildOutputString(JSONObj);
-                eTags[playlist] = JSONObj.etag;
-                return outputString;
+                try {
+                    JSONObj = JSON.parse(playlistObj);
+                    if (JSONObj.hasOwnProperty('error')) {                        
+                        $.logError('./handlers/youtubeHandler.js', 82, 'API Error code #' + JSONObj.error.code);
+                        return outputString;
+                    }
+                    if (JSONObj.hasOwnProperty('pageInfo') && parseInt(JSONObj.pageInfo.resultsPerPage) >= 1) {
+                        outputString = buildOutputString(JSONObj);
+                        eTags[playlist] = JSONObj.etag;
+                        return outputString;
+                    }
+                } catch (error) {
+                    $.logError('./handlers/youtubeHandler.js', 92, 'Error in f:getPlaylistItem: ' + error.message);
+                    return outputString;
+                }
             }
-
-            return "";
+            return outputString;
         }
         else {
-            $.logEvent('./handlers/youtubeHandler.js', 58, 'No youtube API key specified.');
+            $.logError('./handlers/youtubeHandler.js', 58, 'No youtube API key specified.');
         }
-        return "";
+        return outputString;
     };
 
     /**
@@ -91,11 +110,11 @@
 
         vidTitle = jsonObj.items[0].snippet.title;
 
-        if (vidTitle.length >= 50) {
-            vidTitle = vidTitle.substr(0, 47) + "...";
+        if (vidTitle.length >= 75) {
+            vidTitle = vidTitle.substr(0, 72) + "...";
         }
 
-        vidID = jsonObj.items[0].snippet.Id.videoId;
+        vidID = jsonObj.items[0].id.videoId;
         outputString = "Neues Video online: " + vidTitle + " - http://youtu.be/" + vidID;
 
         return outputString;
@@ -107,7 +126,7 @@
     function runYTAnnounce() {
         var outputString = "";
         for (var item in playlists) {
-            outputString = getPlaylistItem(playlists[item]);
+            outputString = getPlaylistItem(playlists[item]);            
             if (outputString != "" && outputString != $.inidb.get('youtubeHandler', playlists[item])) {
                 $.say(outputString);
                 $.logEvent('./handlers/youtubeHandler.js', 83, 'Announced new video for playlist: ' + playlists[item]);
@@ -165,7 +184,7 @@
                     $.inidb.set('youtubeHandler', subAction, '');
                     reloadCache();
                     $.say($.whisperPrefix(sender) + $.lang.get('youtubehandler.add'));
-                    $.logEvent('./handlers/youtubeHandler.js', 126, 'Added playlist: ' + subAction);
+                    $.logEvent('./handlers/youtubeHandler.js', 126, 'Added channel: ' + subAction);
                     return;
                 }
             }
@@ -178,7 +197,7 @@
                     $.inidb.del('youtubeHandler', subAction);
                     reloadCache();
                     $.say($.whisperPrefix(sender) + $.lang.get('youtubehandler.del'));
-                    $.logEvent('./handlers/youtubeHandler.js', 136, 'Deleted playlist: ' + subAction);
+                    $.logEvent('./handlers/youtubeHandler.js', 136, 'Deleted channel: ' + subAction);
                     return;
                 }
                 else {
@@ -216,7 +235,7 @@
     * @timer start the announcement timer
     */
     setInterval(function() {
-        if (!$.isOnline($.channelName)) {
+        if (!$.isOnline($.channelName)) {            
             runYTAnnounce();
         }
     }, 60 * 1000 * updateTime);
