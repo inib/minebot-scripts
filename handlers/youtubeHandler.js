@@ -95,7 +95,7 @@
             vidTitle = vidTitle.substr(0, 47) + "...";
         }
 
-        vidID = jsonObj.items[0].snippet.resourceId.videoId;
+        vidID = jsonObj.items[0].snippet.Id.videoId;
         outputString = "Neues Video online: " + vidTitle + " - http://youtu.be/" + vidID;
 
         return outputString;
