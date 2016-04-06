@@ -1,7 +1,17 @@
 /**
  * UPDATE TO ARENA/DOTA2
  * 20.03. update wager
+ * 
+ * TODO LIST:
+ * - announce winners
+ * - announce bets
+ * - advanced DAU control FailFish
+ * - announcements during open bet
+ * - ALLCAPS bet options
+ * 
  */
+
+
 
 
 (function() {
@@ -61,16 +71,23 @@
     }
     
     function betClose(sender, event) {
-        var closedPot = 0;
-        betClosed = true;        
-        //calc pot/perc
-        for (i in betTable) {
-            bet = betTable[i];           
-            closedPot += bet.amount;
+        
+        if (betStatus && !betClosed) {
+            
+            var closedPot = 0;
+            betClosed = true;
+            //calc pot/perc
+            for (i in betTable) {
+                bet = betTable[i];
+                closedPot += bet.amount;
+            }
+
+            $.logEvent('betSystem.js', 71, 'Bet closed');
+            $.say($.lang.get('betsystem.closed', closedPot)); //Njnias Zeile
         }
-        //
-        $.logEvent('betSystem.js', 71, 'Bet closed');
-        $.say($.lang.get('betsystem.closed', closedPot)); //Njnias Zeile
+        else {
+                // TODO
+             }
     }
     
     function betShowStatus(sender, event) {
@@ -182,7 +199,12 @@
         }
         $.logEvent('betSystem.js', 179, 'Bet ended: Pot:' + betPot + 'Win percent: ' + betPointsWon);
         $.say($.lang.get('betsystem.end', betWinning, $.getPointsString(betPot), betPointsWon.toFixed(2)));
+        
+        // ToDo
+        //Announce Top winner
+        
         resetBet();
+        
     };
 
     $.bind('command', function(event) {
