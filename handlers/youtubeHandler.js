@@ -7,7 +7,7 @@
 (function() {
 
     var YTAPIKey = ($.inidb.exists('settings', 'ytapi') ? $.inidb.get('settings', 'ytapi') : "");
-    var yturl = "https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=1&"
+    var yturl = "https://www.googleapis.com/youtube/v3/search?part=snippet&order=date&maxResults=1"
     var playlists;
     var eTags = [];
     var updateTime = 10;
@@ -39,7 +39,7 @@
         var ETagHeader = new HashMap();
         var buildURL = "";
 
-        buildURL = yturl + "playlistId=" + playlist + "&key=" + YTAPIKey;
+        buildURL = yturl + "channelId=" + playlist + "&key=" + YTAPIKey;
 
         if (eTag && eTag != "") {
             ETagHeader.put("If-None-Match", eTag);
