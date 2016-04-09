@@ -38,19 +38,19 @@
         var trigger = 0;
         var sac = 0;
 
-        opferC = parseInt($.inidb.get('opfer', 'opferCount'));
-        opferS = parseInt($.inidb.get('opfer', 'opferSchoki'));
+        opferC = parseInt($.inidb.get('opferschoki', 'opferCount'));
+        opferS = parseInt($.inidb.get('opferschoki', 'opferSchoki'));        
         sac = calcSacrifice(user);
 
         if (sac > 0) {            
             $.inidb.incr('opferschoki', 'opferCount', 1);
             opferC++;
             $.inidb.incr('opferschoki', 'opferSchoki', sac);
-            opferS += sac;
+            opferS = opferS + sac;            
             $.inidb.decr('points', user, sac);
-            $.log('pointSystem', 'operschoki.js : ' + user + 'sacs ' + sac);
+            $.log('pointSystem', 'operschoki.js : ' + user + ' sacs ' + sac);
             $.say(user + " opfert ein hart verdientes Schoki den Twitchgöttern. Es wurden schon " + opferS + " Schoki geopfert.");
-            $.logEvent('./games/opferschoki.js', 45, user + 'sacs. ' + sac + ' . ' + opferS + 'saced. times: ' + opferC);
+            $.logEvent('./games/opferschoki.js', 45, user + ' sacs. ' + sac + ' . ' + opferS + ' saced. times: ' + opferC);
             trigger = checkTrigger(opferC);
         }
 
@@ -81,7 +81,7 @@
 
     function doomed(user) {
         
-        $.logEvent('./games/opferschoki.js', 74, user + 'dooms chat. ' + opferS + 'saced. times: ' + opferC);
+        $.logEvent('./games/opferschoki.js', 74, user + ' dooms chat. ' + opferS + ' saced. times: ' + opferC);
         
         setTimeout(function() {
             var numb = Math.floor(Math.random() * 4);
@@ -118,11 +118,12 @@
 
         for (var i = 0; i < 5; i++) {
          
-            var newOpfer = $.username.resolve($.randElement($.users)[0]);
+            var newOpfer = $.randElement($.users)[0];
+            //$.username.resolve
 
-            if ($.getUserPoints(newOpfer) > 500 || !opferList.contains(newOpfer)) {
+            if ($.getUserPoints(newOpfer) > 500 && !$.list.contains(opferList, newOpfer)) {
                 $.inidb.decr('points', newOpfer.toLowerCase(), 50);
-                $.log('pointSystem', 'operschoki.js : ' + user + 'gets 50 robbed.');
+                $.log('pointSystem', 'opferschoki.js : ' + user + ' gets 50 robbed.');
                 opferList.push(newOpfer);
             }
             else {
@@ -137,7 +138,7 @@
         }, 5 * 1000);
         
         setTimeout(function() {
-            $.say("S C H O K T H U L U schleicht durch den Chat und klaut " + opferList.join(", ") + "jew. 50 Schoki - WutFace");
+            $.say("S C H O K T H U L U schleicht durch den Chat und klaut " + opferList.join(", ") + " jew. 50 Schoki - WutFace");
         }, 15 * 1000);
         
         setTimeout(function() {
