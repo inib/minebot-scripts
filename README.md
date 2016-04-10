@@ -147,7 +147,8 @@ Details siehe `!moderation`
 Benutzergruppen können von der Botmoderation ausgenommen werden.
 [Derzeit für Subscriber aktiv.]
 
-* Subscribergruppe ausnehmen  
+* Subscribergruppe ausnehmen
+
         !moderation subscribers  <true/false>
 
 <a name="schokisystem"></a>
