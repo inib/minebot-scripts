@@ -65,10 +65,10 @@ Moderatoren: *Incardia13, Hopskukkelitar*
 ### Aliase
 
 * Hinzufügen: (*Moderatoren*) 
-	  !aliascom <Alias> <Befehl>
+	    !aliascom <Alias> <Befehl>
 
 * Löschen: (*Moderatoren*) 
-	  !delalias <Alias>
+	    !delalias <Alias>
     
 #### Beispiel
 	!addcom kappa Kappa 123
@@ -84,35 +84,35 @@ Moderatoren: *Incardia13, Hopskukkelitar*
 **Vorsicht:** Der Bot beherrscht einige, mächtige Spambekämpfungsfunktionen, falsch konfiguriert hat er das Potential in Sekunden den Chat leerzuräumen.
 
 * Zeigt Hilfe zu allen Moderationsfunktionen
-      !moderation 
+        !moderation 
 
 ### QuickMod Befehle
 
 Diese Funktionen erlauben es die Moderation via Bot fernzusteuern, dh. auch Botadmins, die nicht Channel-Mod Status haben, haben hier Zugriff. Deshalb sind die Timeouts begrenzt und die Ban-Funktion deaktiviert.
 
 * Nachrichten eines Users aus dem Chat Löschen [entspr. einem timeout für 1 sek.]
-      !clr <User>
+        !clr <User>
 * Löscht alle Chatnachrichten eines Users und bannt ihn **temporär**. (Standardwert: 1 Minute)
-      !to <User> [Zeit in Sekunden]
+        !to <User> [Zeit in Sekunden]
 * Timeout/Ban aufheben
-      !unban <User>
+        !unban <User>
 
 ### Anti-Link Bekämpfung (derzeit aktiv)
 
 Posts eines User mit einem Link/etwas Linkähnliches werden aus dem Chat entfernt. (Timeout 1 Sekunde)
 
 * Linkerkennung (de-)aktivieren  
-      !moderation links <on/off>
+        !moderation links <on/off>
 * Link zur Whitelist hinzufügen  
-      !whitelist add <Link> [nur die Domain verwenden: zB. *google.de*]
+        !whitelist add <Link> [nur die Domain verwenden: zB. *google.de*]
 * Link von der Whitelist entfernen  
-      !whitelist remove <Link>
+        !whitelist remove <Link>
 * Links anzeigen
-      !whitelist show 
+        !whitelist show 
 * Nachricht des Bots, wenn ein Link gepostet wird
-      !moderation linksmessage
+        !moderation linksmessage
 * Einem User temporär erlauben einen Link zu posten (300 Sekunden)  
-      !permit <User>
+        !permit <User>
 
 ### Zeichen/Spamerkennung
 
@@ -128,7 +128,7 @@ Benutzergruppen können von der Botmoderation ausgenommen werden.
 [Derzeit für Subscriber aktiv.]
 
 * Subscribergruppe ausnehmen  
-      !moderation subscribers  <true/false>
+        !moderation subscribers  <true/false>
 
 <a name="schokisystem"></a>
 ## Schokisystem
@@ -139,9 +139,9 @@ Subscriber, Moderatoren, Administratoren erhalten **16** Schoki pro **10** Minut
 ### Befehle
 
 * Abfrage des eigenen Kontos  
-      !schoki
+        !schoki
 * Schoki Top10 abfragen  
-      !top5
+        !top5
 
 <a name="wettsystem"></a>
 ## Wettsystem
@@ -160,27 +160,27 @@ Bei der Auflösung der Wette wird die Auszahlungsquote angezeigt.
 ### Modfunktionen
 
 * Wette starten (*Moderatoren*) 
-      !bet start <Option1> <Option2> <Option3> ...
+        !bet start <Option1> <Option2> <Option3> ...
 * Vorgefertigte Wetten starten (*Moderatoren*) 
-      !bet dota
-      !bet arena
+        !bet dota
+        !bet arena
 * Wettannahme schliessen (*Moderatoren*) 
-      !bet close
+        !bet close
 * Wette auflösen (*Moderatoren*) 
-      !bet end <Option>
+        !bet end <Option>
 * Wette jederzeit abbrechen (*Moderatoren*) 
-      !bet abort
+        !bet abort
 
 ### Plebfunktionen
 
 * Wettfunktionen anzeigen  
-      !bet
+        !bet
 
 * Wette abgeben  
-      !bet <Einsatz> <Option>
+        !bet <Einsatz> <Option>
 
 * Status/Letzte Wette anzeigen [derzeit nicht aktiv]  
-      !bet results
+        !bet results
 
 <a name="brawls"></a>
 ## Brawls
@@ -194,11 +194,11 @@ Brawls haben einen *Cooldown* von 15 Minuten.
 ### Befehle
 
 * Einen Brawl starten (*Moderatoren*)  
-      !brawl
+        !brawl
 * Mitbrawlen  
-      !pileon
+        !pileon
 * Top10 Brawlsieger anzeigen
-      !brawl top10
+        !brawl top10
 
 <a name="allgemeine-hinweise"></a>
 ## Allgemeine Hinweise
