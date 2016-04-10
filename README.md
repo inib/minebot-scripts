@@ -33,16 +33,20 @@ Moderatoren: *Incardia13, Hopskukkelitar*
 *./commands/customCommands.js*
 
 * Hinzufügen: (*Moderatoren*)
-      !addcom <Befehl> <Text> 
 
-* Ändern: (*Moderatoren*) 
-      !editcom <Befehl> <Text>
+        !addcom <Befehl> <Text>
 
-* Löschen: (*Moderatoren*) 
-      !delcom <Befehl>
+* Ändern: (*Moderatoren*)
+
+        !editcom <Befehl> <Text>
+
+* Löschen: (*Moderatoren*)
+
+        !delcom <Befehl>
 
 * Rechte für Befehl ändern: *Administratoren*
-      !permcom <Befehl> <Rechtegruppe> 
+  
+        !permcom <Befehl> <Rechtegruppe> 
 
 [*Rechtegruppen*: Viewer (7), Regular (6), Subscriber (3), Moderator (2), Administrator (1), Broadcaster (0)]
 
@@ -64,11 +68,13 @@ Moderatoren: *Incardia13, Hopskukkelitar*
   
 ### Aliase
 
-* Hinzufügen: (*Moderatoren*) 
-	    !aliascom <Alias> <Befehl>
+* Hinzufügen: (*Moderatoren*)
 
-* Löschen: (*Moderatoren*) 
-	    !delalias <Alias>
+        !aliascom <Alias> <Befehl>
+
+* Löschen: (*Moderatoren*)
+
+        !delalias <Alias>
     
 #### Beispiel
 	!addcom kappa Kappa 123
@@ -91,27 +97,41 @@ Moderatoren: *Incardia13, Hopskukkelitar*
 Diese Funktionen erlauben es die Moderation via Bot fernzusteuern, dh. auch Botadmins, die nicht Channel-Mod Status haben, haben hier Zugriff. Deshalb sind die Timeouts begrenzt und die Ban-Funktion deaktiviert.
 
 * Nachrichten eines Users aus dem Chat Löschen [entspr. einem timeout für 1 sek.]
+
         !clr <User>
 * Löscht alle Chatnachrichten eines Users und bannt ihn **temporär**. (Standardwert: 1 Minute)
+
         !to <User> [Zeit in Sekunden]
 * Timeout/Ban aufheben
+
         !unban <User>
 
 ### Anti-Link Bekämpfung (derzeit aktiv)
 
 Posts eines User mit einem Link/etwas Linkähnliches werden aus dem Chat entfernt. (Timeout 1 Sekunde)
 
-* Linkerkennung (de-)aktivieren  
+* Linkerkennung (de-)aktivieren
+
         !moderation links <on/off>
-* Link zur Whitelist hinzufügen  
+        
+* Link zur Whitelist hinzufügen
+
         !whitelist add <Link> [nur die Domain verwenden: zB. *google.de*]
-* Link von der Whitelist entfernen  
+        
+* Link von der Whitelist entfernen
+
         !whitelist remove <Link>
+        
 * Links anzeigen
-        !whitelist show 
+
+        !whitelist show
+        
 * Nachricht des Bots, wenn ein Link gepostet wird
+
         !moderation linksmessage
-* Einem User temporär erlauben einen Link zu posten (300 Sekunden)  
+        
+* Einem User temporär erlauben einen Link zu posten (300 Sekunden) 
+ 
         !permit <User>
 
 ### Zeichen/Spamerkennung
@@ -138,9 +158,12 @@ Subscriber, Moderatoren, Administratoren erhalten **16** Schoki pro **10** Minut
 
 ### Befehle
 
-* Abfrage des eigenen Kontos  
+* Abfrage des eigenen Kontos
+
         !schoki
-* Schoki Top10 abfragen  
+        
+* Schoki Top10 abfragen
+
         !top5
 
 <a name="wettsystem"></a>
@@ -159,27 +182,38 @@ Bei der Auflösung der Wette wird die Auszahlungsquote angezeigt.
 
 ### Modfunktionen
 
-* Wette starten (*Moderatoren*) 
+* Wette starten (*Moderatoren*)
+
         !bet start <Option1> <Option2> <Option3> ...
-* Vorgefertigte Wetten starten (*Moderatoren*) 
+        
+* Vorgefertigte Wetten starten (*Moderatoren*)
+
         !bet dota
         !bet arena
-* Wettannahme schliessen (*Moderatoren*) 
+        
+* Wettannahme schliessen (*Moderatoren*)
+
         !bet close
-* Wette auflösen (*Moderatoren*) 
+* Wette auflösen (*Moderatoren*)
+
         !bet end <Option>
-* Wette jederzeit abbrechen (*Moderatoren*) 
+        
+* Wette jederzeit abbrechen (*Moderatoren*)
+
         !bet abort
 
 ### Plebfunktionen
 
-* Wettfunktionen anzeigen  
+* Wettfunktionen anzeigen
+
         !bet
 
-* Wette abgeben  
+* Wette abgeben
+
         !bet <Einsatz> <Option>
 
-* Status/Letzte Wette anzeigen [derzeit nicht aktiv]  
+* Status/Letzte Wette anzeigen [derzeit nicht aktiv]
+
         !bet results
 
 <a name="brawls"></a>
@@ -193,11 +227,16 @@ Brawls haben einen *Cooldown* von 15 Minuten.
 
 ### Befehle
 
-* Einen Brawl starten (*Moderatoren*)  
+* Einen Brawl starten (*Moderatoren*)
+
         !brawl
-* Mitbrawlen  
+        
+* Mitbrawlen
+
         !pileon
+        
 * Top10 Brawlsieger anzeigen
+
         !brawl top10
 
 <a name="allgemeine-hinweise"></a>
