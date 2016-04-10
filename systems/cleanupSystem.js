@@ -3,11 +3,11 @@
  *
  * A module that enables channel owners to clean the bot's database.
  * It cleans the database of users that haven't been in the channel for more than
- * 30 minutes and have last been seen 3+ months ago.
+ * 30 minutes and have last been seen 10 days ago.
  */
 (function() {
-    var lastseenMaxDiff = 2592e6,
-        timeMin = 18e3,
+    var lastseenMaxDiff = 864e6,
+        timeMin = 18e2,
         logName = 'viewerCleanup',
         running = false;
 
