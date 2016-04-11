@@ -49,7 +49,7 @@
             opferS = opferS + sac;            
             $.inidb.decr('points', user, sac);
             $.log('pointSystem', 'operschoki.js : ' + user + ' sacs ' + sac);
-            $.say(user + " opfert ein hart verdientes Schoki den Twitchgöttern. Es wurden schon " + opferS + " Schoki geopfert.");
+            $.say(user + " opfert " + sac + " hart verdiente Schoki den Twitchgöttern. Es wurden schon " + opferS + " Schoki geopfert.");
             $.logEvent('./games/opferschoki.js', 45, user + ' sacs. ' + sac + ' . ' + opferS + ' saced. times: ' + opferC);
             trigger = checkTrigger(opferC);
         }
