@@ -22,14 +22,16 @@
         betPot = 0,
         betOptions = [],
         betTable = [],
-        betClosed = false;
+        betClosed = false,
+        betTotal,
+        betWinners;
 
     function betOpen(event, betOps, betString) {        
         var sender = event.getSender(),
             args = event.getArgs(),            
             betOp = betOps,
             i;
-        if (betString ='') {
+        if (betString === '') {
             betString = $.lang.get('betsystem.default.opened', betOps.join(', '));
         }
 
@@ -77,8 +79,8 @@
             var closedPot = 0;
             betClosed = true;
             //calc pot/perc
-            for (i in betTable) {
-                bet = betTable[i];
+            for (var i in betTable) {
+                var bet = betTable[i];
                 closedPot += bet.amount;
             }
 
@@ -101,7 +103,7 @@
         
         for (var i in betOptions) {
             for (var j in betTable) {
-                bet = betTable[j];
+                var bet = betTable[j];
                 if (betOptions[i] == bet.option) {
                     statusString += i + ', ';
                 }
@@ -134,7 +136,7 @@
         }
 
         if (!$.list.contains(betOptions, betWinning)) {
-            $.say($.whisperPrefix(sender) + $.lang.get('betsystem.err.option.404'));
+            $.say($.whisperPrefix(sender) + $.lang.get('betsystem.err.option.404', betOptions.join(', ')));
             return;
         }
 
@@ -386,7 +388,7 @@
                 }
                 
                 // Wette aktualisieren (Njnia is Schuld)
-                var i = sender.toLowerCase()
+                var i = sender.toLowerCase();
                 bet = betTable[i];
                 if (bet) {
                     if (bet.amount != betWager || bet.option != betOption) {
