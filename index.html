@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <title>Minebot-scripts by inib</title>
+  </head>
+
+  <body>
+    <header>
+      <div class="inner">
+        <h1>Minebot-scripts</h1>
+        <h2>This is the JS custom script collection for m1nebot, the chat mastermind of the twitch channel germandota.</h2>
+        <a href="https://github.com/inib/minebot-scripts" class="button"><small>View project on</small> GitHub</a>
+      </div>
+    </header>
+
+    <div id="content-wrapper">
+      <div class="inner clearfix">
+        <section id="main-content">
+          <h1>
+<a id="m1nebot-befehlsreferenz" class="anchor" href="#m1nebot-befehlsreferenz" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>M1nebot Befehlsreferenz</h1>
+
+<p>(v0.2, 2016/04/10)</p>
+
+<h2>
+<a id="aktuelles" class="anchor" href="#aktuelles" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Aktuelles</h2>
+
+<ul>
+<li>(2016/03/25) Update auf neue Version 2.0.6</li>
+<li>(2016/04/10) Updated custom commandlist, minor changes</li>
+</ul>
+
+<h2>
+<a id="aktuelle-bot-rechteübersicht" class="anchor" href="#aktuelle-bot-rechte%C3%BCbersicht" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Aktuelle Bot-Rechteübersicht</h2>
+
+<p>Broadcaster (Adminrechte): <em>germandota</em><br>
+Administrator: <em>alpinespielt, mineace</em><br>
+Moderatoren: <em>Incardia13, Hopskukkelitar, ggfzz, fixu13371337</em></p>
+
+
+
+<ul>
+<li><a href="#eigene-befehle">Eigene Befehle</a></li>
+<li><a href="#chatmoderation">Chatmoderation</a></li>
+<li><a href="#zeitgesteuerte-mitteilungen">Zeitgesteuerte Mitteilungen</a></li>
+<li><a href="#schokisystem">Schokisystem</a></li>
+<li><a href="#wettsystem">Wettsystem</a></li>
+<li><a href="#umfragen">Umfragen</a></li>
+<li><a href="#brawls">Brawls</a></li>
+<li><a href="#allgemeine-hinweise">Allgemeine Hinweise</a></li>
+<li><a href="#anhang">Anhang</a></li>
+</ul>
+
+
+
+<p><a name="eigene-befehle"></a></p>
+
+<h2>
+<a id="eigene-befehle" class="anchor" href="#eigene-befehle" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Eigene Befehle</h2>
+
+<p><em>./commands/customCommands.js</em></p>
+
+<ul>
+<li>
+<p>Hinzufügen: (<em>Moderatoren</em>)</p>
+
+<pre><code>!addcom &lt;Befehl&gt; &lt;Text&gt;
+</code></pre>
+</li>
+<li>
+<p>Ändern: (<em>Moderatoren</em>)</p>
+
+<pre><code>!editcom &lt;Befehl&gt; &lt;Text&gt;
+</code></pre>
+</li>
+<li>
+<p>Löschen: (<em>Moderatoren</em>)</p>
+
+<pre><code>!delcom &lt;Befehl&gt;
+</code></pre>
+</li>
+<li>
+<p>Rechte für Befehl ändern: <em>Administratoren</em></p>
+
+<pre><code>!permcom &lt;Befehl&gt; &lt;Rechtegruppe&gt; 
+</code></pre>
+</li>
+</ul>
+
+<p>[<em>Rechtegruppen</em>: Viewer (7), Regular (6), Subscriber (3), Moderator (2), Administrator (1), Broadcaster (0)]</p>
+
+<h3>
+<a id="wildcards-für-text" class="anchor" href="#wildcards-f%C3%BCr-text" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Wildcards für <code>&lt;Text&gt;</code>
+</h3>
+
+<p><code>(sender)</code> = derjenige der den Befehl ausgeführt hat<br>
+<code>(@sender)</code> = so. mit @ vor Name<br>
+<code>(touser)</code> = eine andere Person (wird durch sender ersetzt, falls nicht angegeben)<br>
+<code>(random)</code> = eine zufällige Person im Kanal<br>
+<code>(uptime)</code> = Stream Uptime, falls offline: "Stream ist offline".<br>
+<code>(game)</code> = Das aktuell auf twitch eingestellte Spiel.<br>
+<code>(status)</code> = Streamtitel<br>
+<code>(count)</code> = Wie oft dieser Befehl bereits verwendet wurde<br>
+<code>(pointname)</code> = Schoki</p>
+
+<h3>
+<a id="beispiel" class="anchor" href="#beispiel" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Beispiel</h3>
+
+<pre><code>!addcom slap (sender) haut (touser) eins über die Rübe.
+Hans: !slap Peter Stahlrohr
+Bot: Hans haut Peter eins über die Rübe.
+</code></pre>
+
+<h3>
+<a id="aliase" class="anchor" href="#aliase" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Aliase</h3>
+
+<ul>
+<li>
+<p>Hinzufügen: (<em>Moderatoren</em>)</p>
+
+<pre><code>!aliascom &lt;Alias&gt; &lt;Befehl&gt;
+</code></pre>
+</li>
+<li>
+<p>Löschen: (<em>Moderatoren</em>)</p>
+
+<pre><code>!delalias &lt;Alias&gt;
+</code></pre>
+</li>
+</ul>
+
+<h4>
+<a id="beispiel-1" class="anchor" href="#beispiel-1" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Beispiel</h4>
+
+<pre><code>!addcom kappa Kappa 123
+!aliascom keepo kappa
+!keepo 
+Bot: Kappa 123
+</code></pre>
+
+<p><a name="chatmoderation"></a></p>
+
+<h2>
+<a id="chatmoderation" class="anchor" href="#chatmoderation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Chatmoderation</h2>
+
+<p><strong>Vorsicht:</strong> Der Bot beherrscht einige, mächtige Spambekämpfungsfunktionen, falsch konfiguriert hat er das Potential in Sekunden den Chat leerzuräumen.</p>
+
+<ul>
+<li>Zeigt Hilfe zu allen Moderationsfunktionen
+    !moderation </li>
+</ul>
+
+<h3>
+<a id="quickmod-befehle" class="anchor" href="#quickmod-befehle" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>QuickMod Befehle</h3>
+
+<p>Diese Funktionen erlauben es die Moderation via Bot fernzusteuern, dh. auch Botadmins, die nicht Channel-Mod Status haben, haben hier Zugriff. Deshalb sind die Timeouts begrenzt und die Ban-Funktion deaktiviert.</p>
+
+<ul>
+<li>
+<p>Nachrichten eines Users aus dem Chat Löschen [entspr. einem timeout für 1 sek.]</p>
+
+<pre><code>!clr &lt;User&gt;
+</code></pre>
+</li>
+<li>
+<p>Löscht alle Chatnachrichten eines Users und bannt ihn <strong>temporär</strong>. (Standardwert: 1 Minute)</p>
+
+<pre><code>!to &lt;User&gt; [Zeit in Sekunden]
+</code></pre>
+</li>
+<li>
+<p>Timeout/Ban aufheben</p>
+
+<pre><code>!unban &lt;User&gt;
+</code></pre>
+</li>
+</ul>
+
+<h3>
+<a id="anti-link-bekämpfung-derzeit-aktiv" class="anchor" href="#anti-link-bek%C3%A4mpfung-derzeit-aktiv" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Anti-Link Bekämpfung (derzeit aktiv)</h3>
+
+<p>Posts eines User mit einem Link/etwas Linkähnliches werden aus dem Chat entfernt. (Timeout 1 Sekunde)</p>
+
+<ul>
+<li>
+<p>Linkerkennung (de-)aktivieren</p>
+
+<pre><code>!moderation links &lt;on/off&gt;
+</code></pre>
+</li>
+<li>
+<p>Link zur Whitelist hinzufügen</p>
+
+<pre><code>!whitelist add &lt;Link&gt; [nur die Domain verwenden: zB. *google.de*]
+</code></pre>
+</li>
+<li>
+<p>Link von der Whitelist entfernen</p>
+
+<pre><code>!whitelist remove &lt;Link&gt;
+</code></pre>
+</li>
+<li>
+<p>Links anzeigen</p>
+
+<pre><code>!whitelist show
+</code></pre>
+</li>
+<li>
+<p>Nachricht des Bots, wenn ein Link gepostet wird</p>
+
+<pre><code>!moderation linksmessage
+</code></pre>
+</li>
+<li>
+<p>Einem User temporär erlauben einen Link zu posten (300 Sekunden) </p>
+
+<pre><code>!permit &lt;User&gt;
+</code></pre>
+</li>
+</ul>
+
+<h3>
+<a id="zeichenspamerkennung" class="anchor" href="#zeichenspamerkennung" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Zeichen/Spamerkennung</h3>
+
+<p>Neben der Linkerkennung, können auch Worte, Sätze, Sonderzeichen, Emotes automatisch moderiert werden.
+Für kleine Kanäle unter 1.000 User aber kaum sinnvoll.</p>
+
+<p>Details siehe <code>!moderation</code></p>
+
+<h3>
+<a id="ausnahmeregelungen" class="anchor" href="#ausnahmeregelungen" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Ausnahmeregelungen</h3>
+
+<p>Benutzergruppen können von der Botmoderation ausgenommen werden.
+[Derzeit für Subscriber aktiv.]</p>
+
+<ul>
+<li>
+<p>Subscribergruppe ausnehmen</p>
+
+<pre><code>!moderation subscribers  &lt;true/false&gt;
+</code></pre>
+</li>
+</ul>
+
+<p><a name="schokisystem"></a></p>
+
+<h2>
+<a id="schokisystem" class="anchor" href="#schokisystem" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Schokisystem</h2>
+
+<p>Derzeit bekomt man nur während eines Streams <strong>8</strong> Schoki pro <strong>10</strong> Minuten gutgeschrieben.<br>
+Subscriber, Moderatoren, Administratoren erhalten <strong>16</strong> Schoki pro <strong>10</strong> Minuten.</p>
+
+<h3>
+<a id="befehle" class="anchor" href="#befehle" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Befehle</h3>
+
+<ul>
+<li>
+<p>Abfrage des eigenen Kontos</p>
+
+<pre><code>!schoki
+</code></pre>
+</li>
+<li>
+<p>Schoki Top10 abfragen</p>
+
+<pre><code>!top5
+</code></pre>
+</li>
+</ul>
+
+<p><a name="wettsystem"></a></p>
+
+<h2>
+<a id="wettsystem" class="anchor" href="#wettsystem" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Wettsystem</h2>
+
+<p>Alle Einsätze werden in einem <em>Pot</em> gespeichert. Alle Teilnehmer, die richtig getippt haben, bekommen abhängig von ihrem Einsatz ihren Anteil vom Pot ausgezahlt. Es gibt derzeit keine Bonusschoki für einen richtigen Tipp.  </p>
+
+<p>Bei der Auflösung der Wette wird die Auszahlungsquote angezeigt.</p>
+
+<h4>
+<a id="beispiel-2" class="anchor" href="#beispiel-2" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Beispiel</h4>
+
+<blockquote>
+<p>Peter wettet <strong>50</strong> auf <strong>1</strong>, Paul wettet <strong>50</strong> auf <strong>1</strong>,  Hans wettet <strong>50</strong> auf <strong>2</strong><br>
+Gewinnt <strong>1</strong> bekommen Peter und Paul jeweils <strong>75</strong> ausgezahlt (Quote 1.5)<br>
+Gewinnt <strong>2</strong> bekommt Hans <strong>150</strong> ausgezahlt (Quote 3)  </p>
+</blockquote>
+
+<h3>
+<a id="modfunktionen" class="anchor" href="#modfunktionen" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Modfunktionen</h3>
+
+<ul>
+<li>
+<p>Wette starten (<em>Moderatoren</em>)</p>
+
+<pre><code>!bet start &lt;Option1&gt; &lt;Option2&gt; &lt;Option3&gt; ...
+</code></pre>
+</li>
+<li>
+<p>Vorgefertigte Wetten starten (<em>Moderatoren</em>)</p>
+
+<pre><code>!bet dota
+!bet arena
+</code></pre>
+</li>
+<li>
+<p>Wettannahme schliessen (<em>Moderatoren</em>)</p>
+
+<pre><code>!bet close
+</code></pre>
+</li>
+<li>
+<p>Wette auflösen (<em>Moderatoren</em>)</p>
+
+<pre><code>!bet end &lt;Option&gt;
+</code></pre>
+</li>
+<li>
+<p>Wette jederzeit abbrechen (<em>Moderatoren</em>)</p>
+
+<pre><code>!bet abort
+</code></pre>
+</li>
+</ul>
+
+<h3>
+<a id="plebfunktionen" class="anchor" href="#plebfunktionen" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Plebfunktionen</h3>
+
+<ul>
+<li>
+<p>Wettfunktionen anzeigen</p>
+
+<pre><code>!bet
+</code></pre>
+</li>
+<li>
+<p>Wette abgeben</p>
+
+<pre><code>!bet &lt;Einsatz&gt; &lt;Option&gt;
+</code></pre>
+</li>
+<li>
+<p>Status/Letzte Wette anzeigen [derzeit nicht aktiv]</p>
+
+<pre><code>!bet results
+</code></pre>
+</li>
+</ul>
+
+<p><a name="brawls"></a></p>
+
+<h2>
+<a id="brawls" class="anchor" href="#brawls" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Brawls</h2>
+
+<p>Aus allen Brawllteilnehmern wird ein Sieger per Zufall ermittelt.<br>
+Der Sieger bekommt <strong>10</strong> Schoki pro Teilnehmer.</p>
+
+<p>Brawls können nur von Moderatoren <em>während</em> eines Streams gestartet werden.<br>
+Brawls haben einen <em>Cooldown</em> von 15 Minuten.</p>
+
+<h3>
+<a id="befehle-1" class="anchor" href="#befehle-1" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Befehle</h3>
+
+<ul>
+<li>
+<p>Einen Brawl starten (<em>Moderatoren</em>)</p>
+
+<pre><code>!brawl
+</code></pre>
+</li>
+<li>
+<p>Mitbrawlen</p>
+
+<pre><code>!pileon
+</code></pre>
+</li>
+<li>
+<p>Top10 Brawlsieger anzeigen</p>
+
+<pre><code>!brawl top10
+</code></pre>
+</li>
+</ul>
+
+<p><a name="allgemeine-hinweise"></a></p>
+
+<h2>
+<a id="allgemeine-hinweise" class="anchor" href="#allgemeine-hinweise" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Allgemeine Hinweise</h2>
+
+<p>Die meisten Funktionen werden mit einer Ausgabe/einem Whisper bestätigt.</p>
+
+<p><a name="anhang"></a></p>
+
+<h2>
+<a id="anhang" class="anchor" href="#anhang" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Anhang</h2>
+
+<h3>
+<a id="liste-benutzerdefinierter-befehle" class="anchor" href="#liste-benutzerdefinierter-befehle" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Liste benutzerdefinierter Befehle</h3>
+
+<p>(Stand 2016/04/10)</p>
+
+<table>
+<thead>
+<tr>
+<th align="left">Befehl</th>
+<th align="left">Inhalt</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left">120</td>
+<td align="left">
+<a href="http://imgur.com/3jp3nha">http://imgur.com/3jp3nha</a> Kreygasm</td>
+</tr>
+<tr>
+<td align="left">achmartin</td>
+<td align="left">(sender) schüttelt den Kopf und murmelt fassungslos "Ach Martin" FailFish</td>
+</tr>
+<tr>
+<td align="left">allard0802</td>
+<td align="left">"Der Name ist Bond. Le Bond."</td>
+</tr>
+<tr>
+<td align="left">aufstellung</td>
+<td align="left">Martin/Tidehunter / rNy/Zeus / Fewa/Undying / ByFos/Sven / YourJayer/Lion</td>
+</tr>
+<tr>
+<td align="left">autsch</td>
+<td align="left">(sender) hat sich verletzt! Hier ein Pflaster.</td>
+</tr>
+<tr>
+<td align="left">battlepass</td>
+<td align="left">Der neue Battle Pass - Winter Season 2016 ist raus und Martin erklärt ihn euch (zusammen mit dem Compendium): <a href="http://bit.ly/1Snr21H">http://bit.ly/1Snr21H</a>
+</td>
+</tr>
+<tr>
+<td align="left">botreferenz</td>
+<td align="left">/w (sender) <a href="http://tinyurl.com/m1inebot-ref">http://tinyurl.com/m1inebot-ref</a>
+</td>
+</tr>
+<tr>
+<td align="left">commgames</td>
+<td align="left">Custom Community Games: Um dem Spiel zu betreten den Modus &lt; &lt; 10 vs 10 &gt;&gt; runter laden und bei den Privaten Lobbies nach germandota suchen.</td>
+</tr>
+<tr>
+<td align="left">debug</td>
+<td align="left">Jetzt geht's Kappa</td>
+</tr>
+<tr>
+<td align="left">dota</td>
+<td align="left">Martins Dota-Spiele vom 22.03.: 1. Earthshaker (Sieg), 2. Weaver (Niederlage), 3. Orge (Niederlage), 4. Naga Siren (Niederlage), 5. Wraith King (Sieg)</td>
+</tr>
+<tr>
+<td align="left">dota_woche</td>
+<td align="left">Dota Streams für die Woche 04.04. - 10.04.: DI 5.4. 14:30 - 20:30 / DO 7.4. 19:00 - 00:00</td>
+</tr>
+<tr>
+<td align="left">dotafail</td>
+<td align="left">Martin hat es in Episode 144 von Dotacinema Dota 2 Fails of the week geschafft. <a href="https://youtu.be/wQ2w8VDf7-o?t=116">https://youtu.be/wQ2w8VDf7-o?t=116</a>
+</td>
+</tr>
+<tr>
+<td align="left">ds</td>
+<td align="left">DS3 jetzt schon auf deutsch auf der XB1? Infos: <a href="http://bit.ly/1Sj5S1N">http://bit.ly/1Sj5S1N</a>
+</td>
+</tr>
+<tr>
+<td align="left">factorio</td>
+<td align="left">Factorio Playlist auf Youtube: <a href="http://bit.ly/1V4lpVM">http://bit.ly/1V4lpVM</a>
+</td>
+</tr>
+<tr>
+<td align="left">farcry</td>
+<td align="left">Wer Martins Meinung und erste Eindrücke sehen möchte, oder einfach die ersten Folgen verpasst hat, findet hier das komplette Let's Play <a href="https://www.youtube.com/watch?v=LZij7JuEwkA&amp;list=PLrTIPs_k-YKFa1Yo4j-7A_EYAhPBPJPeD">https://www.youtube.com/watch?v=LZij7JuEwkA&amp;list=PLrTIPs_k-YKFa1Yo4j-7A_EYAhPBPJPeD</a> / Gespielt wird auf der XBOX One, für PC erscheint das Spiel am 01.03.</td>
+</tr>
+<tr>
+<td align="left">fewa</td>
+<td align="left">Jeder hat einen eigenen Chatbefehl ausser mir BibleThump</td>
+</tr>
+<tr>
+<td align="left">fps</td>
+<td align="left">Um sich FPS/Ping/Loss in Dota anzeigen zu lassen: Einstellungen &gt; Optionen &gt; Netzwerk (Rechts): Display Network Information</td>
+</tr>
+<tr>
+<td align="left">fucker</td>
+<td align="left">Immer mit der Ruhe (sender). Kein Grund, gleich zu fluchen. SwiftRage</td>
+</tr>
+<tr>
+<td align="left">heute</td>
+<td align="left">Streamplan für Heute (8.4.): Dark Souls 3 14:30-18:00 Uhr</td>
+</tr>
+<tr>
+<td align="left">holy</td>
+<td align="left">Holy Moly! :O Ein GodLEike Martin LE! martinTinyfin</td>
+</tr>
+<tr>
+<td align="left">hopsi</td>
+<td align="left">Endlich gibt es Fotos von unserer Hops ;) hier <a href="http://bit.ly/1nMDXwm">http://bit.ly/1nMDXwm</a>
+</td>
+</tr>
+<tr>
+<td align="left">hs</td>
+<td align="left">Martin hört mit Hearthstone auf - dafür konzentriert er sich auf Dota &amp; MartinSpielt! Details: <a href="http://bit.ly/1TE39T2">http://bit.ly/1TE39T2</a>
+</td>
+</tr>
+<tr>
+<td align="left">joindota</td>
+<td align="left">Martin und sein Team sind in der joinDota-League angemeldet. Infos zum Team findet ihr hier: <a href="http://bit.ly/1LNuDTS">http://bit.ly/1LNuDTS</a> und zu ihren Spielen in der jDL hier: <a href="http://bit.ly/1Z6t5p7">http://bit.ly/1Z6t5p7</a> // Leider haben sie es am Samstag nicht geschafft und sind nicht in die 3. sondern "nur" in die 4. Division aufgestiegen. Hier der Link zu den Play-Offs: <a href="http://bit.ly/1Ml0irk">http://bit.ly/1Ml0irk</a>
+</td>
+</tr>
+<tr>
+<td align="left">keks</td>
+<td align="left">/me gibt (touser) einen Keks. OpieOP</td>
+</tr>
+<tr>
+<td align="left">ladies</td>
+<td align="left">martinLadies Ladies, Martin Le martinLadies</td>
+</tr>
+<tr>
+<td align="left">le</td>
+<td align="left">M-M-M-M-MonsterLE 4Head</td>
+</tr>
+<tr>
+<td align="left">lethal</td>
+<td align="left">FailFish Und schon wieder ein Lethal verpasst! Da weint selbst der martinTinyfin</td>
+</tr>
+<tr>
+<td align="left">lol</td>
+<td align="left">A LoL and a DotA player have a conversation: the DotA-player says DotA is better, the LoL-player can't deny. Kappa</td>
+</tr>
+<tr>
+<td align="left">met</td>
+<td align="left">Aus dem Weinkeller des Chats (direkt neben dem Keksbunker) holt der M1neBot eine Flasche Honigwein samt Trinkhorn und schenkt (sender) ein, bevor er selbst den Rest der Flasche runterkippt. <em>hicks</em>
+</td>
+</tr>
+<tr>
+<td align="left">mic</td>
+<td align="left">Oh nein! Martin wurde von einem Silence erwischt. Die Flüche, sobald er es raus findet, könnt ihr euch sicher schon vorstellen. PJSalt</td>
+</tr>
+<tr>
+<td align="left">mmr</td>
+<td align="left">Solo-MMR: 4585 / Gruppen-MMR: 4226 / Team-MMR: 4348</td>
+</tr>
+<tr>
+<td align="left">mobile</td>
+<td align="left">Klasse: Krieger // Lvl: 77 // Aushöhlung: 99 (Maximum) // Tode: ~62 // Erlegte Bosse: Iudex Gundyr, Vordt vom Nordwindtal, Fluchverderbtes Großholz, Wächter des Abgrundes, Hochfürst Wolnir, Kristallweiser, Diakone des Abgrunds, Alter Dämonenkönig, Hohepriester Sulyvahn</td>
+</tr>
+<tr>
+<td align="left">mopedtobias</td>
+<td align="left">Der Name MopedTobias (wie Martin sich in Steam nennt) stammt aus dem Helge Schneider Sketch "Deutschland sucht den Moped Tobias". (Martin ist großer Helge Schneider Fan.)</td>
+</tr>
+<tr>
+<td align="left">moremurloc</td>
+<td align="left">Do Murlocs ever get tired of making the sam noise over and over again? martinTinyfin Nope! martinTinyfin Mrglmrglmrgl martinTinyfin</td>
+</tr>
+<tr>
+<td align="left">morgen</td>
+<td align="left">Am Wochenende (9./10.04.) sind keine Streams geplant. Allerdings könnte es Spontan-Streams geben. ;) Einfach den Kanal im Auge behalten! Auf !ts wird es sicher bekannt gegeben sollte martin streamen</td>
+</tr>
+<tr>
+<td align="left">ms_woche</td>
+<td align="left">Die Martin spielt Projekte im Stream für 04.04 - 10.04.: MO 4.4. 18:00 - 20:00 DS3 / DO 7.4. 14:30 - 18:00 Factorio / FR 8.4. 14:30 - 18:00 DS3</td>
+</tr>
+<tr>
+<td align="left">murloc</td>
+<td align="left">martinTinyfin mrglmrglmrgl martinTinyfin <a href="https://www.youtube.com/watch?v=uOpdyytB3OY">https://www.youtube.com/watch?v=uOpdyytB3OY</a>
+</td>
+</tr>
+<tr>
+<td align="left">njnia</td>
+<td align="left">Jetzt kommt eine Pause! Manche geh'n nach Hause, manche trinken Brause, das ist der Zweck der Pause! Wie schön ist es, eine Wurst zu verzehren und gleichzeitig Martin zuzuhören! OpieOP</td>
+</tr>
+<tr>
+<td align="left">patch</td>
+<td align="left">Hier gehts zu den Patch-Notes: <a href="http://www.dota2.com/balanceofpower">http://www.dota2.com/balanceofpower</a> Martin hat den Patch ausgiebig analysiert: Sein erstes Video findet ihr hier: <a href="https://www.youtube.com/watch?v=N6QErlsMPo8">https://www.youtube.com/watch?v=N6QErlsMPo8</a>
+</td>
+</tr>
+<tr>
+<td align="left">patreon</td>
+<td align="left">Unterstützt Martins Projekte via Patreon: <a href="https://www.patreon.com/GermanDota">https://www.patreon.com/GermanDota</a> // <a href="https://www.patreon.com/MartinSpielt">https://www.patreon.com/MartinSpielt</a>
+</td>
+</tr>
+<tr>
+<td align="left">pc</td>
+<td align="left">Martins Pc: i7 4790k auf 4,75 Ghz übertaktet; 8GB Ram; Nividia 980 GTX.</td>
+</tr>
+<tr>
+<td align="left">ping</td>
+<td align="left">Martin hat Osteuropa als Suchoption festgelegt, weil die Server für Osteuropa in Österreich stehen. Dort hat man als Bayer einen besseren Ping. Die Server für Westeuropa stehen in Luxemburg.</td>
+</tr>
+<tr>
+<td align="left">rangliste</td>
+<td align="left">Die Schoki-Ränge, die man im Chat erreichen kann, sind (in der Reihenfolge von Wenig bis Viel Schoki): "LEtzter" (0 Schoki), "LEiche" (ab 50), "LEergut" (ab 200), "LEvel-Up" (ab 450), "LEichtgewicht" (ab 800), "LEpragnom" (ab 1250), "LEbendiger" (ab 1800), "LEguan" (ab 2450), "LEopard" (ab 3200), "LEgionär" (ab 4050), "LEutnant" (ab 5000), "LEader" (ab 6050), "LEthal" (ab 7200), "LEgion Commander" (ab 8450) und "LEgende" (ab 9800).</td>
+</tr>
+<tr>
+<td align="left">sam</td>
+<td align="left">Von Aliens, Schokthulu und Diabetes bedroht schreit (sender) um Hilfe von ganz oben! Commander LE schickt seine beste Kämpferin um die Community zu unterstützen. Mit Mettkit, Schwert und Waffe ausgerüstet bahnt sich Anführerin Sam "Slayer" Frosch den Weg durch die Massen und sorgt wieder für Ruhe im Chat.</td>
+</tr>
+<tr>
+<td align="left">sanjig</td>
+<td align="left">Sanjig und Yasha best item ever</td>
+</tr>
+<tr>
+<td align="left">schinken</td>
+<td align="left">Ja, auch der M1neBot ist schlagfertig Kappa <a href="https://www.youtube.com/watch?v=j5AFVlxYLPU">https://www.youtube.com/watch?v=j5AFVlxYLPU</a>
+</td>
+</tr>
+<tr>
+<td align="left">shop</td>
+<td align="left">Mit Schoki könnt ihr in Martins Online-Shop einkaufen: <a href="http://tinyurl.com/b3pnl5j">http://tinyurl.com/b3pnl5j</a>
+</td>
+</tr>
+<tr>
+<td align="left">social</td>
+<td align="left">Martins Social Media-Infos: YouTube-Kanäle: <a href="http://bit.ly/MartinSpielt">http://bit.ly/MartinSpielt</a> // <a href="http://bit.ly/MartinHearthstone">http://bit.ly/MartinHearthstone</a> // <a href="http://bit.ly/MartinDota">http://bit.ly/MartinDota</a> // Facebook: <a href="http://www.facebook.com/GTMartinLe">http://www.facebook.com/GTMartinLe</a>
+</td>
+</tr>
+<tr>
+<td align="left">speak</td>
+<td align="left">Martin spricht für gewöhnlich erst zu Beginn eines Spiels. In den Pausen ruht er seine Stimme aus bzw. isst oder trinkt etwas. Ausserdem wird in den Pausen bei einigen Viewern Werbung geschaltet (Danke dafür :) ) und es wäre ziemlich unpraktisch, wenn Martin etwas erzählt und einige das nicht mitbekommen würden.</td>
+</tr>
+<tr>
+<td align="left">spiele</td>
+<td align="left">Martins Spiele (7.04.): 1. Anti Mage (win), 2. Natures Prophet (win), 3. Silencer-Mid (lose), 4. Enigma (lose), 5. Venomancer (win)</td>
+</tr>
+<tr>
+<td align="left">stream</td>
+<td align="left">Gestreamt wird mit Open Broadcaster in 1080p, 60 FPS und 3,3 Mbit.</td>
+</tr>
+<tr>
+<td align="left">streamplan</td>
+<td align="left">Der aktuelle Streamingplan: <a href="http://tiny.cc/MartinStreamplan">http://tiny.cc/MartinStreamplan</a>
+</td>
+</tr>
+<tr>
+<td align="left">team</td>
+<td align="left">Das GermanDota-Team: MopedTobias (Martin) - Offlane / rNy (Simon) - Mitte / ByFos (Dominik) - Carry / Xylenol (Simon) - (Lane)Support / Fewa (Fabian) - (Farm)Support /</td>
+</tr>
+<tr>
+<td align="left">tinyspam</td>
+<td align="left">martinTinyfin martinTinyfin martinTinyfin martinTinyfin martinTinyfin martinTinyfin martinTinyfin</td>
+</tr>
+<tr>
+<td align="left">trade</td>
+<td align="left">Martins Steam Trading Link: <a href="http://tiny.cc/MartinTrade">http://tiny.cc/MartinTrade</a>
+</td>
+</tr>
+<tr>
+<td align="left">ts</td>
+<td align="left">Ich hab gehöhrt hier gehts ab <a href="https://discord.gg/0WvMm8tYOgpgYNao">https://discord.gg/0WvMm8tYOgpgYNao</a>
+</td>
+</tr>
+<tr>
+<td align="left">unrigbrawl</td>
+<td align="left">Der Brawl kann leider derzeit nicht repariert werden. DansGame</td>
+</tr>
+<tr>
+<td align="left">uptime</td>
+<td align="left">Online seit: (uptime)</td>
+</tr>
+<tr>
+<td align="left">wasdalos</td>
+<td align="left">Martin hört mit Hearthstone auf - dafür konzentriert er sich auf Dota &amp; MartinSpielt! Details: <a href="http://bit.ly/1TE39T2">http://bit.ly/1TE39T2</a>
+</td>
+</tr>
+<tr>
+<td align="left">wetten</td>
+<td align="left">Alle Infos zum Wettsystem findet ihr hier: <a href="http://i.imgur.com/uEGYlYP.png">http://i.imgur.com/uEGYlYP.png</a>
+</td>
+</tr>
+<tr>
+<td align="left">wolfi</td>
+<td align="left">Erzittert Sterbliche, der Meister der Zitate ist wieder da! Keepo</td>
+</tr>
+<tr>
+<td align="left">wow</td>
+<td align="left">War geil? War sogar supergeil Martin! BloodTrail</td>
+</tr>
+<tr>
+<td align="left">wowmartin</td>
+<td align="left">War geil? Sogar supergeil, Martin! BloodTrail</td>
+</tr>
+</tbody>
+</table>
+        </section>
+
+        <aside id="sidebar">
+          <a href="https://github.com/inib/minebot-scripts/zipball/master" class="button">
+            <small>Download</small>
+            .zip file
+          </a>
+          <a href="https://github.com/inib/minebot-scripts/tarball/master" class="button">
+            <small>Download</small>
+            .tar.gz file
+          </a>
+
+          <p class="repo-owner"><a href="https://github.com/inib/minebot-scripts"></a> is maintained by <a href="https://github.com/inib">inib</a>.</p>
+
+          <p>This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the Architect theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.</p>
+        </aside>
+      </div>
+    </div>
+
+  
+  </body>
+</html>
