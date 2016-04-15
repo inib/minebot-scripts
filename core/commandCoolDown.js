@@ -58,7 +58,7 @@
         }
 
         for (i in cooldown) {
-            if (cooldown[i].command.equalsIgnoreCase(command) && cooldown[i].user.equalsIgnoreCase(user)) {
+            if (cooldown[i].command.equalsIgnoreCase(command)) {
                 cool = cooldown[i].time - $.systemTime();
                  if (cool > 0) {
                     if (!modCooldown && $.isMod(user)) {
