@@ -10,8 +10,8 @@
 ## Aktuelle Bot-Rechteübersicht
 
 Broadcaster (Adminrechte): *germandota*  
-Adminitrator: *alpinespielt, mineace*  
-Moderatoren: *Incardia13, Hopskukkelitar*
+Administrator: *alpinespielt, mineace*  
+Moderatoren: *Incardia13, Hopskukkelitar, ggfzz, fixu13371337*
 
 <!-- MarkdownTOC -->
 
