@@ -667,7 +667,7 @@
         }
 
         /**
-         * @commandpath grouppoints [groupId] [online|offline] [points] - Show/set the points gained for each group. -1 defaults to the global configuration. - Administrator
+         * @commandpath grouppoints [groupId] [online/offline] [points] - Show/set the points gained for each group. minus 1 defaults to the global configuration. - Administrator
          */
         if (command.equalsIgnoreCase('grouppoints')) {
 

@@ -10,37 +10,61 @@ use File::Basename;
 
 use strict;
 
-my (@fileList, @commandPathData);
-my ($moduleName, $commandName, $commandSubText, $commandOptions, $commandDesc, $commandPriv, $commandSubCommands, $extractString, $fileName);
+my (@fileList, @folderList, @commandPathData);
+my ($moduleName, $folderName, $commandName, $commandSubText, $commandOptions, $commandDesc, $commandPriv, $commandSubCommands, $extractString, $fileName);
 
-sub findWanted { if (/\.js$/s && !($File::Find::name =~ /lang+/)) { push @fileList, $File::Find::name; } } 
+sub findWanted { if (/\.js$/s && !($File::Find::name =~ /lang+/)) { 
+  push @fileList, $File::Find::name;  
+  }
+}
 find(\&findWanted, ".");
 
+sub findDirs { if (/[^.]/) {
+ push @folderList, $File::Find::name if (-d $File::Find::name);
+}
+}
+find(\&findDirs, ".");
+
 my (@dateData) = localtime();
+
+print "# minebot commands\n";
+
 printf "m1nebot \@commandpath Parser. Executed on: %02d/%02d/%4d \@ %02d:%02d:%02d \n\n",
         $dateData[3], $dateData[4] + 1, $dateData[5] + 1900, $dateData[2], $dateData[1], $dateData[0];
         
-foreach $moduleName (sort @fileList) {
-  $fileName = basename($moduleName);
-  print "* [$fileName](#$fileName)\n";
+foreach $folderName (sort @folderList) {
+  print "* [$folderName](#$folderName)\n";
+  foreach $moduleName (sort @fileList) {
+    if (dirname($moduleName) eq $folderName)
+    {
+      $fileName = basename($moduleName);
+      print "  * [$fileName](#$fileName)\n";      
+    }
+  }
 }
 
-foreach $moduleName (sort @fileList) {
-  $fileName = basename($moduleName);  
-  open(FH, $moduleName) or die "Failed to open file: $moduleName\n";
+foreach $folderName (sort @folderList) {
   print "\n---\n";
+  print "## $folderName\n";
+foreach $moduleName (sort @fileList) {
+  $fileName = basename($moduleName);
+  if (dirname($moduleName) eq $folderName)
+    {
+  open(FH, $moduleName) or die "Failed to open file: $moduleName\n";  
   print "### $fileName\n";  
   print "*$moduleName*\n\n";
   while (<FH>) {
     if (/\@commandpath/) {
       chomp;
-      if (/\@commandpath\s+(\w+)\s+([\w\W]*)\s+\-\s+([\w\W]+)\s+\-([\w\W]+)/) {
-        ($commandName, $commandSubText, $commandDesc, $commandPriv) = $_ =~ m/[\w\W]+\@commandpath\s+(\w+)\s+([\w\W]+)\s+\-\s+([\w\W]+)\s+\-\s+([\w\W]+)/;     
-      } elsif (/\@commandpath\s+(\w+)\s+([\w\W]*)\s+\-\s+([\w\W]+)/) { 
-        ($commandName, $commandSubText, $commandDesc) = $_ =~ m/[\w\W]+\@commandpath\s+(\w+)\s+([\w\W]+)\s+\-\s+([\w\W]+)/;
-        $commandPriv = '';      
-      } elsif (/\@commandpath\s+(\w+)\s+-\s+([\w\W]+)/) {
-        ($commandName, $commandDesc) = $_ =~ m/\@commandpath\s+(\w+)\s+\-\s+([\w\W]+)/;
+      if (/\@commandpath\s+(\w+)\s+([^-]+)\s+\-\s+([^-]+)\s+\-([\w\W]+)/) {
+        ($commandName, $commandSubText, $commandDesc, $commandPriv) = $_ =~ m/[\w\W]+\@commandpath\s+(\w+)\s+([^-]+)\s+\-\s+([^-]+)\s+\-\s+([\w\W]+)/;     
+      } elsif (/\@commandpath\s+(\w+)\s+-\s+([^-]+)\s+\-\s+([\w\W]+)/) {
+        ($commandName, $commandDesc, $commandPriv) = $_ =~ m/\@commandpath\s+(\w+)\s+\-\s+([^-]+)\s+\-\s+([\w\W]+)/;
+        $commandSubText = '';
+        $commandOptions = '';
+        $commandSubCommands = '';
+      } elsif (/\@commandpath\s+(\w+)\s+-\s+([^-]+)/) {
+        ($commandName, $commandDesc) = $_ =~ m/\@commandpath\s+(\w+)\s+\-\s+([^-]+)/;
         $commandSubText = '';
         $commandOptions = '';
         $commandSubCommands = '';
@@ -74,15 +98,17 @@ foreach $moduleName (sort @fileList) {
       }
       
       if (length($commandPriv) > 0) {
-        print "*Needed rights:* **$commandPriv**\n\n";
+        print "*Needed rights:* **$commandPriv**  \n\n";
       }
       else {
         print "\n";
       }      
     }
   }
-  print "\n";
+  #print "\n";
   close(FH);  
+    }
+}
 }
 
 printf "\nm1nebot \@commandpath Parser. Executed on: %02d/%02d/%4d \@ %02d:%02d:%02d \n",
