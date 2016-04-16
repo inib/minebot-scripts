@@ -81,7 +81,7 @@
             inversedState;
 
         /**
-         * @commandpath lang [language name] - Get or optionally set the current language (use folder name from "./lang" directory);
+         * @commandpath lang [language name] - Get or optionally set the current language (use folder name from "./lang" directory); - Administrator
          */
         if (command.equalsIgnoreCase('lang')) {
             if (!$.isAdmin(sender)) {
@@ -105,7 +105,7 @@
         }
 
         /**
-         * @commandpath mute - Toggle muting the bot in the chat
+         * @commandpath mute - Toggle muting the bot in the chat - Administrator
          */
         if (command.equalsIgnoreCase('mute')) {
             inversedState = !$.getIniDbBoolean('settings', 'response_@chat');
@@ -115,7 +115,7 @@
         }
 
         /**
-         * @commandpath toggleme - Toggle prepending chat output with "/me".
+         * @commandpath toggleme - Toggle prepending chat output with "/me". - Administrator
          */
         if (command.equalsIgnoreCase('toggleme')) {
             inversedState = !$.getIniDbBoolean('settings', 'response_action');

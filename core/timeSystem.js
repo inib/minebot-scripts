@@ -153,7 +153,7 @@
             timeArg;
 
         /**
-         * @commandpath time - Announce amount of time spent in channel
+         * @commandpath time - Announce amount of time spent in channel - Viewer
          */
         if (command.equalsIgnoreCase('time')) {
             if (!hasPerm(event) || !action) {
@@ -163,7 +163,7 @@
                 timeArg = parseInt(args[2]);
 
                 /**
-                 * @commandpath time add [user] [seconds] - Add seconds to a user's logged time (for correction purposes)
+                 * @commandpath time add [user] [seconds] - Add seconds to a user's logged time (for correction purposes) - Administrator
                  */
                 if (action.equalsIgnoreCase('add')) {
 
@@ -189,7 +189,7 @@
                 }
 
                 /**
-                 * @commandpath time take [user] [seconds] - Take seconds from a user's logged time (for correction purposes)
+                 * @commandpath time take [user] [seconds] - Take seconds from a user's logged time (for correction purposes) - Administrator
                  */
                 if (action.equalsIgnoreCase('take')) {
                     if (!subject || isNaN(timeArg)) {
@@ -233,7 +233,7 @@
                 }
 
                 /**
-                 * @commandpath time promotehours [hours] - Set the amount of hours a user has to be logged to automatically become a regular
+                 * @commandpath time promotehours [hours] - Set the amount of hours a user has to be logged to automatically become a regular - Administrator
                  */
                 if (action.equalsIgnoreCase('promotehours')) {
                     if (isNaN(subject)) {
@@ -268,7 +268,7 @@
 
 
                 /**
-                 * @commandpath time offlinetime - Toggle logging a user's time when the channel is offline
+                 * @commandpath time offlinetime - Toggle logging a user's time when the channel is offline - Administrator
                  */
                 if (action.equalsIgnoreCase('offline') || action.equalsIgnoreCase('offlinetime')) {
                     keepTimeWhenOffline = !keepTimeWhenOffline;
@@ -282,7 +282,7 @@
                 }
 
                 /**
-                 * @commandpath time modpermtoggle - Toggle permissions for changing user's logged time between admin/mod
+                 * @commandpath time modpermtoggle - Toggle permissions for changing user's logged time between admin/mod - Administrator
                  */
                 if (action.equalsIgnoreCase('modpermtoggle')) {
                     modTimePermToggle = !modTimePermToggle;
@@ -297,7 +297,7 @@
         }
 
         /**
-         * @commandpath streamertime - Announce the caster's local time
+         * @commandpath streamertime - Announce the caster's local time - Viewer
          */
         if (command.equalsIgnoreCase('streamertime')) {
             $.say($.whisperPrefix(sender) + $.lang.get(
@@ -308,7 +308,7 @@
         }
 
         /**
-         * @commandpath timezone [timezone name] - Show configured timezone or optionally set the timezone. See List: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+         * @commandpath timezone [timezone name] - Show configured timezone or optionally set the timezone. See List: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones - Administrator
          */
         if (command.equalsIgnoreCase('timezone')) {
             var tzData;
@@ -365,8 +365,8 @@
      */
     $.bind('initReady', function() {
         if ($.bot.isModuleEnabled('./core/timeSystem.js')) {
-            $.registerChatCommand('./core/timeSystem.js', 'time');
-            $.registerChatCommand('./core/timeSystem.js', 'streamertime');
+            $.registerChatCommand('./core/timeSystem.js', 'time', 7);
+            $.registerChatCommand('./core/timeSystem.js', 'streamertime', 7);
             $.registerChatCommand('./core/timeSystem.js', 'timezone', 1);
         }
     });

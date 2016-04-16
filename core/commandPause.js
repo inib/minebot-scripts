@@ -56,8 +56,8 @@
             args = event.getArgs();
 
         /**
-         * @commandpath pausecommands [seconds] - Pause all command usage for the given amount of time. If [seconds] is not present, uses a default value
-         * @commandpath pausecommands clear - Unpause commands 
+         * @commandpath pausecommands [seconds] - Pause all command usage for the given amount of time. If [seconds] is not present, uses a default value (5 mins) - Moderator
+         * @commandpath pausecommands clear - Unpause commands - Moderator
          */
         if (command.equalsIgnoreCase('pausecommands')) {
             if (args[0] != undefined || args[0] != null) {

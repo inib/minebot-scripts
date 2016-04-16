@@ -94,7 +94,7 @@
         time = parseInt(args[1]);
 
         /**
-         * @commandpath coolcom [command or keyword] [seconds] - Sets a cooldown in seconds for a command or a keyword. Use -1 for seconds to remove it.
+         * @commandpath coolcom [command or keyword] [seconds] - Sets a cooldown in seconds for a command or a keyword. Use -1 for seconds to remove it. - Administrator
          */
         if (command.equalsIgnoreCase('coolcom') || command.equalsIgnoreCase('cooldown')) {
             if (!$.isAdmin(sender)) {
@@ -120,7 +120,7 @@
         }
 
         /**
-         * @commandpath toggleglobalcooldown - Enables/Disables the global command cooldown.
+         * @commandpath toggleglobalcooldown - Enables/Disables the global command cooldown. - Administrator
          */
         if (command.equalsIgnoreCase('toggleglobalcooldown')) {
             if (!$.isAdmin(sender)) {
@@ -135,7 +135,7 @@
         }
 
         /**
-         * @commandpath globalcooldown [seconds] - Sets the global cooldown time in seconds.
+         * @commandpath globalcooldown [seconds] - Sets the global cooldown time in seconds. - Administrator
          */
         if (command.equalsIgnoreCase('globalcooldown')) {
             if (!$.isAdmin(sender)) {
@@ -153,7 +153,7 @@
         }
 
         /**
-         * @commandpath togglemodcooldown - Enable/Disable mods being affected by cooldowns
+         * @commandpath togglemodcooldown - Enable/Disable mods being affected by cooldowns - Administrator
          */
         if (command.equalsIgnoreCase('togglemodcooldown')) {
             if (!$.isAdmin(sender)) {

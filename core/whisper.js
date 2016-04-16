@@ -37,7 +37,7 @@
             command = event.getCommand();
 
         /**
-         * @commandpath togglewhispermode - Toggle whisper mode
+         * @commandpath togglewhispermode - Toggle whisper mode - Administrator
          */
         if (command.equalsIgnoreCase('togglewhispermode')) {
             if (!$.isAdmin(sender)) {

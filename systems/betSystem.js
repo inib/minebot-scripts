@@ -217,7 +217,7 @@
             bet = args.slice(1);
 
         /**
-         * @commandpath bet - Performs bet operations.
+         * @commandpath bet - Performs bet operations. - Viewer
          */
         if (command.equalsIgnoreCase('bet')) {
             if (!action) {
@@ -226,7 +226,7 @@
             }
 
             /**
-             * @commandpath bet open [option option option ...] - Opens a bet with options; not allowed to be digits, words only.
+             * @commandpath bet open [option option option ...] - Opens a bet with options; not allowed to be digits, words only. - Moderator
              */
             if (action.equalsIgnoreCase('open')) {
                 if (!$.isModv3(sender, event.getTags())) {                    
@@ -237,7 +237,7 @@
                 return;
                  
             /**
-            * @commandpath bet close - Closes the bet.
+            * @commandpath bet close - Closes the bet. - Moderator
             */
             } else if (action.equalsIgnoreCase('close')) {
                 if (!$.isModv3(sender, event.getTags())) {                    
@@ -248,7 +248,7 @@
                 return;
                 
             /**
-            * @commandpath bet arena - Opens an HS arena bet.
+            * @commandpath bet arena - Opens an HS arena bet. - Moderator
             */
             } else if (action.equalsIgnoreCase('arena')) {
                 if (!$.isModv3(sender, event.getTags())) {                    
@@ -261,7 +261,7 @@
                 return;
                 
             /**
-            * @commandpath bet dota - Opens a dota bet.
+            * @commandpath bet dota - Opens a dota bet. - Moderator
             */
             } else if (action.equalsIgnoreCase('dota')) {
                 if (!$.isModv3(sender, event.getTags())) {                    
@@ -274,7 +274,7 @@
                 return;
 
             /**
-             * @commandpath bet end [option] - Ends the bet and selects [option] as the winner.
+             * @commandpath bet end [option] - Ends the bet and selects [option] as the winner. - Moderator
              */
             } else if (action.equalsIgnoreCase('end')) {
                 if (!$.isModv3(sender, event.getTags())) {                    
@@ -285,7 +285,7 @@
                 return;
                 
             /**
-            * @commandpath bet abort - aborts bet.
+            * @commandpath bet abort - aborts bet. - Moderator
             */
             } else if (action.equalsIgnoreCase('abort')) {
                 if (!$.isModv3(sender, event.getTags())) {                    
@@ -298,7 +298,7 @@
                 return;
 
             /**
-            * @commandpath bet setminimum [value] - Set the minimum value of a bet.
+            * @commandpath bet setminimum [value] - Set the minimum value of a bet. - Administrator
              */
             } else if (action.equalsIgnoreCase('setminimum')) {
                 if (!$.isModv3(sender, event.getTags())) {                    
@@ -316,7 +316,7 @@
                 return;
 
             /**
-             * @commandpath bet setmaximum [value] - Set the maximum value of a bet.
+             * @commandpath bet setmaximum [value] - Set the maximum value of a bet. - Administrator
              */
             } else if (action.equalsIgnoreCase('setmaximum')) {
                 if (!$.isModv3(sender, event.getTags())) {                    
@@ -334,7 +334,7 @@
                 return;
 
             /**
-             * @commandpath bet [ [option amount] | [amount option] ]- Places a bet on option, betting an amount of points.
+             * @commandpath bet [ [option amount] | [amount option] ]- Places a bet on option, betting an amount of points. - Viewer
              */
             } else {
                 if (!betStatus) {
@@ -437,8 +437,8 @@
             $.registerChatSubcommand('bet', 'abort', 2);
             $.registerChatSubcommand('bet', 'close', 2);
             $.registerChatSubcommand('bet', 'open', 2);
-            $.registerChatSubcommand('bet', 'setminimum', 2);
-            $.registerChatSubcommand('bet', 'setmaximum', 2);
+            $.registerChatSubcommand('bet', 'setminimum', 1);
+            $.registerChatSubcommand('bet', 'setmaximum', 1);
         }
     });
 })();

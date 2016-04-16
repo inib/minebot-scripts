@@ -281,7 +281,7 @@
             subAction = args[1];
 
         /**
-         * @commandpath addcom [command] [command text] - Add a custom command (see !listtags)
+         * @commandpath addcom [command] [command text] - Add a custom command (see !listtags) - Moderator
          */
         if (command.equalsIgnoreCase('addcom')) {
             if (!$.isModv3(sender, event.getTags())) {
@@ -304,7 +304,7 @@
         }
 
         /**
-         * @commandpath editcom [command] [command text] - Replaces the given custom command
+         * @commandpath editcom [command] [command text] - Replaces the given custom command - Moderator
          */
         if (command.equalsIgnoreCase('editcom')) {
             if (!$.isModv3(sender, event.getTags())) {
@@ -331,7 +331,7 @@
         }
 
         /**
-         * @commandpath delcom [command] - Delete a custom command
+         * @commandpath delcom [command] - Delete a custom command - Moderator
          */
         if (command.equalsIgnoreCase('delcom')) {
             if (!$.isModv3(sender, event.getTags())) {
@@ -362,7 +362,7 @@
         }
 
         /**
-         * @commandpath aliascom [alias] [command] - Create an alias to any command
+         * @commandpath aliascom [alias] [command] - Create an alias to any command - Moderator
          */
         if (command.equalsIgnoreCase('aliascom')) {
             if (!$.isModv3(sender, event.getTags())) {
@@ -395,7 +395,7 @@
         }
 
         /**
-         * @commandpath delalias [alias] - Delete an alias
+         * @commandpath delalias [alias] - Delete an alias - Moderator
          */
         if (command.equalsIgnoreCase('delalias')) {
             if (!$.isModv3(sender, event.getTags())) {
@@ -421,8 +421,8 @@
         }
 
         /**
-         * @commandpath permcom [command] [groupId] - Set the permissions for a command
-         * @commandpath permcom [command] [subcommand] [groupId] - Set the permissions for a subcommand
+         * @commandpath permcom [command] [groupId] - Set the permissions for a command - Administrator
+         * @commandpath permcom [command] [subcommand] [groupId] - Set the permissions for a subcommand - Administrator
          */
         if (command.equalsIgnoreCase('permcom')) {
             if (!$.isAdmin(sender)) {
@@ -472,7 +472,7 @@
         }
 
         /**
-         * @commandpath pricecom [command] [amount] - Set the amount of points a command should cost
+         * @commandpath pricecom [command] [amount] - Set the amount of points a command should cost - Administrator
          */
         if (command.equalsIgnoreCase('pricecom')) {
             if (!$.isAdmin(sender)) {
@@ -507,7 +507,7 @@
         }
 
         /**
-         * @commandpath listtags - Displays a list of tags that may be used in custom commands
+         * @commandpath listtags - Displays a list of tags that may be used in custom commands - Moderator
          */
         if (command.equalsIgnoreCase('listtags')) {
             if (!$.isAdmin(sender)) {
@@ -518,7 +518,7 @@
         }
 
         /**
-         * @commandpath commands - Provides a list of all available commands.
+         * @commandpath commands - Provides a list of all available commands. - Viewer
          */
         if (command.equalsIgnoreCase('commands')) {
             var cmds = $.inidb.GetKeyList('command', ''),
@@ -552,7 +552,7 @@
             addComRegisterAliases();
 
             $.registerChatCommand('./commands/customCommands.js', 'addcom', 2);
-            $.registerChatCommand('./commands/customCommands.js', 'pricecom', 2);
+            $.registerChatCommand('./commands/customCommands.js', 'pricecom', 1);
             $.registerChatCommand('./commands/customCommands.js', 'aliascom', 2);
             $.registerChatCommand('./commands/customCommands.js', 'delalias', 2);
             $.registerChatCommand('./commands/customCommands.js', 'delcom', 2);

@@ -148,7 +148,7 @@
             subAction = args[1];
 
         /**
-        * @command ytplaylists
+        * @commandpath ytplaylist - Shows instructions for the playlist module - Administrator
         */
         if (command.equalsIgnoreCase('ytplaylist')) {
 
@@ -160,8 +160,8 @@
                 }
 
                 /**
-                * @subCcommand ytplaylists show
-                */
+                 * @commandpath ytplaylist show - Shows playlists currently active - Administrator
+                 */
                 if (action.equalsIgnoreCase('show')) {
                     var plString = "Playlists: ";
                     plString += playlists.join(' ; ');
@@ -173,8 +173,8 @@
             }
 
             /**
-            * @subCcommand ytplaylists add
-            */
+             * @commandpath ytplaylist add [playlistID] - Adds a youtube playlist - Administrator
+             */
             if (action.equalsIgnoreCase('add')) {
                 if ($.inidb.exists('youtubeHandler', subAction)) {
                     $.say($.whisperPrefix(sender) + $.lang.get('youtubehandler.error.exists'));
@@ -190,8 +190,8 @@
             }
 
             /**
-            * @subCcommand ytplaylists del
-            */
+             * @commandpath ytplaylist del [playlistID] - Removes a youtube playlist - Administrator
+             */
             if (action.equalsIgnoreCase('del')) {
                 if ($.inidb.exists('youtubeHandler', subAction)) {
                     $.inidb.del('youtubeHandler', subAction);
@@ -207,8 +207,8 @@
             }
 
             /**
-            * @subCcommand ytplaylists api
-            */
+             * @commandpath ytplaylist api [APIkey] - Sets the youtube API key for playlists - Administrator
+             */
             if (action.equalsIgnoreCase('api')) {
                 $.inidb.set('settings', 'ytapi', subAction);
                 YTAPIKey = subAction;

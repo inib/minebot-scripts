@@ -177,7 +177,7 @@
             action = args[0];
 
         /**
-         * @commandpath log - Get current logging status
+         * @commandpath log - Get current logging status - Administrator
          */
         if (command.equalsIgnoreCase('log')) {
             if (!$.isAdmin(sender)) {
@@ -195,7 +195,7 @@
             }
 
             /**
-             * @commandpath log enable - Enable logging
+             * @commandpath log enable - Enable logging - Administrator
              */
             if (action.equalsIgnoreCase('enable')) {
                 loggingEnabled = true;
@@ -205,7 +205,7 @@
             }
 
             /**
-             * @commandpath log disable - Disable logging
+             * @commandpath log disable - Disable logging - Administrator
              */
             if (action.equalsIgnoreCase('disable')) {
                 loggingEnabled = false;
