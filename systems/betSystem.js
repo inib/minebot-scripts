@@ -61,7 +61,7 @@
         $.logEvent('betSystem.js', 49, 'Bet started' + betOptions.join(', ') + 'Pot: ' + betPot);
 
         $.say($.lang.get('betsystem.opened', betString, $.pointNameMultiple));
-    };
+    }
 
     function resetBet() {
         betPot = 0;
@@ -70,6 +70,7 @@
         betOptions = [];
         betTable = [];
         betClosed = false;
+        betStatus = false;
     }
     
     function betClose(sender, event) {
@@ -118,11 +119,8 @@
             betWinning = subAction,
             betWinPercent = 0,
             betPointsWon = 0,
-            betWinners = '',
             betTotal = 0,
             bet,
-            a = 0,
-            winString ='',
             i;
 
         if (!betStatus) {
@@ -135,13 +133,22 @@
             return;
         }
 
+        if (subAction.toLowerCase() == 'abort') {
+            for (i in betTable) {
+                bet = betTable[i];
+                $.inidb.incr('points', i, bet.amount);
+            }
+            $.say($.lang.get('betsystem.end.aborted', $.getPointsString(betPot)));
+            resetBet();
+            return;
+        }
+
         if (!$.list.contains(betOptions, betWinning)) {
             $.say($.whisperPrefix(sender) + $.lang.get('betsystem.err.option.404', betOptions.join(', ')));
             return;
         }
 
         betWinning = subAction.toLowerCase();
-        betStatus = false;
 
         for (i in betTable) {
             bet = betTable[i];
@@ -152,32 +159,6 @@
         
         if (betTotal == 0) {
             $.say($.lang.get('betsystem.end.404', betWinning));
-            resetBet();
-            return;
-        }
-        
-        // obsolet?
-
-        for (i in betTable) {
-            a++;
-            bet = betTable[i];
-            if (bet.option.equalsIgnoreCase(betWinning)) {
-                betPointsWon = (betPot / betTotal);
-                if (betPointsWon > 0) {
-                    if (betWinners.length > 0) {
-                        betWinners += ', ';
-                    }
-                    betWinners = i;
-                }
-            }
-        }
-                
-        if (subAction == 'abort') {
-            for (i in betTable) {
-                bet = betTable[i];
-                $.inidb.incr('points', i, bet.amount);
-            }
-            $.say($.lang.get('betsystem.end.aborted', $.getPointsString(betPot)));
             resetBet();
             return;
         }
@@ -207,7 +188,7 @@
         
         resetBet();
         
-    };
+    }
 
     $.bind('command', function(event) {
         var sender = event.getSender(),
