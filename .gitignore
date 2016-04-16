@@ -1,5 +1,6 @@
 # VisualStudio Code folders/files
 .vscode
+jsconfig.json
 
 # Windows image file caches
 Thumbs.db
