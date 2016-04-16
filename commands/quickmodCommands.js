@@ -12,7 +12,7 @@
             actionArg1 = args[1];
 
         /**
-         * @commandpath cl [user] - Purges a users message
+         * @commandpath cl [user] - Purges a users message - Moderator
          */
         if (command.equalsIgnoreCase('clr')) {
             if (!$.isMod(sender)) {
@@ -29,7 +29,7 @@
         }
 
         /**
-         * @commandpath to [user] [time] - Times a users out
+         * @commandpath to [user] [time] - Times a users out - Moderator
          */
         if (command.equalsIgnoreCase('to')) {
             if (!$.isMod(sender)) {
@@ -52,6 +52,9 @@
             }
         }
         
+        /**
+        * @commandpath unban [user] [time] - Unbans a user - Moderator
+        */
         if (command.equalsIgnoreCase('unban')) {
             if (!$.isMod(sender)) {
                 return;

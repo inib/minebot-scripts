@@ -67,7 +67,7 @@
             args = event.getArgs();
 
         /**
-         * @commandpath subwelcometoggle - Enable or disable subscription alerts
+         * @commandpath subwelcometoggle - Enable or disable subscription alerts - Administrator
          */
         if (command.equalsIgnoreCase('subwelcometoggle')) {
             if (!$.isAdmin(sender)) {
@@ -89,7 +89,7 @@
         }
 
         /**
-         * @commandpath resubwelcometoggle - Eenable or disable resubsciption alerts
+         * @commandpath resubwelcometoggle - Eenable or disable resubsciption alerts - Administrator
          */
         if (command.equalsIgnoreCase('resubwelcometoggle')) {
             if (!$.isAdmin(sender)) {
@@ -110,7 +110,7 @@
         }
 
         /**
-         * @commandpath submessage [message] - Set a welcome message for new subscribers when a reward is given
+         * @commandpath submessage [message] - Set a welcome message for new subscribers when a reward is given - Administrator
          */
         if (command.equalsIgnoreCase('submessage')) {
             if (!$.isAdmin(sender)) {
@@ -127,7 +127,7 @@
         }
 
         /**
-         * @commandpath resubmessage [message] - Set a message for resubscribers when a reward is given
+         * @commandpath resubmessage [message] - Set a message for resubscribers when a reward is given - Administrator
          */
         if (command.equalsIgnoreCase('resubmessage')) {
             if (!$.isAdmin(sender)) {
@@ -144,7 +144,7 @@
         }
 
         /**
-         * @commandpath submessagenoreward [message] - Set a welcome message for new subscribers when no reward is given
+         * @commandpath submessagenoreward [message] - Set a welcome message for new subscribers when no reward is given - Administrator
          */
         if (command.equalsIgnoreCase('submessagenoreward')) {
             if (!$.isAdmin(sender)) {
@@ -161,7 +161,7 @@
         }
 
         /**
-         * @commandpath resubmessagenoreward [message] - Set a message for resubscribers when no reward is given
+         * @commandpath resubmessagenoreward [message] - Set a message for resubscribers when no reward is given - Administrator
          */
         if (command.equalsIgnoreCase('resubmessagenoreward')) {
             if (!$.isAdmin(sender)) {
@@ -179,7 +179,7 @@
 
 
         /**
-         * @commandpath subscribereward [points] - Set an award for subscribers
+         * @commandpath subscribereward [points] - Set an award for subscribers - Administrator
          */
         if (command.equalsIgnoreCase('subscribereward')) {
             if (!$.isAdmin(sender)) {
@@ -196,7 +196,7 @@
         }
 
         /**
-         * @commandpath subscribercount - Provide the number of subscribers
+         * @commandpath subscribercount - Provide the number of subscribers - Administrator
          */
         if (command.equalsIgnoreCase('subscribercount')) {
             if (!$.isAdmin(sender)) {
@@ -215,7 +215,7 @@
         }
 
         /**
-         * @commandpath subscribers - Enables subscription only chat mode
+         * @commandpath subscribers - Enables subscription only chat mode - Moderator
          */
         if (command.equalsIgnoreCase('subscribers')) {
             if (!$.isModv3(sender, event.getTags())) {
@@ -226,7 +226,7 @@
         }
 
         /**
-         * @commandpath subscribersoff - Disables subscription only chat mode
+         * @commandpath subscribersoff - Disables subscription only chat mode - Moderator
          */
         if (command.equalsIgnoreCase('subscribersoff')) {
             if (!$.isModv3(sender, event.getTags())) {
@@ -281,14 +281,14 @@
      */
     $.bind('initReady', function() {
         if ($.bot.isModuleEnabled('./handlers/subscribehandler.js')) {
-            $.registerChatCommand('./handlers/subscribehandler.js', 'subwelcometoggle', 2);
-            $.registerChatCommand('./handlers/subscribehandler.js', 'resubwelcometoggle', 2);
+            $.registerChatCommand('./handlers/subscribehandler.js', 'subwelcometoggle', 1);
+            $.registerChatCommand('./handlers/subscribehandler.js', 'resubwelcometoggle', 1);
             $.registerChatCommand('./handlers/subscribehandler.js', 'subscribereward', 1);
             $.registerChatCommand('./handlers/subscribehandler.js', 'subscribercount', 1);
-            $.registerChatCommand('./handlers/subscribehandler.js', 'submessage', 2);
-            $.registerChatCommand('./handlers/subscribehandler.js', 'submessagenoreward', 2);
-            $.registerChatCommand('./handlers/subscribehandler.js', 'resubmessage', 2);
-            $.registerChatCommand('./handlers/subscribehandler.js', 'resubmessagenoreward', 2);
+            $.registerChatCommand('./handlers/subscribehandler.js', 'submessage', 1);
+            $.registerChatCommand('./handlers/subscribehandler.js', 'submessagenoreward', 1);
+            $.registerChatCommand('./handlers/subscribehandler.js', 'resubmessage', 1);
+            $.registerChatCommand('./handlers/subscribehandler.js', 'resubmessagenoreward', 1);
             $.registerChatCommand('./handlers/subscribehandler.js', 'subscribers', 2);
             $.registerChatCommand('./handlers/subscribehandler.js', 'subscribersoff', 2);
         }

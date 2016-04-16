@@ -17,7 +17,7 @@
 		var command = event.getCommand();
 
 		/**
-         * @commandpath subhype - subhype message
+         * @commandpath subhype - Puts a subhype message in the chat - Viewer
          */
 		if (command.equalsIgnoreCase("subhype")) {
 			var rand = Math.floor(Math.random() * 5);

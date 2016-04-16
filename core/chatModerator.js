@@ -329,7 +329,7 @@
             subAction = args[1];
 
         /**
-         * @commandpath permit [user] - Permit someone to post a link for a configured period of time
+         * @commandpath permit [user] - Permit someone to post a link for a configured period of time - Moderator
          */
         if (command.equalsIgnoreCase('permit')) {
             if (!$.isModv3(sender, event.getTags())) {
@@ -348,7 +348,7 @@
         }
 
         /**
-         * @commandpath blacklist - Show usage of command to manipulate the blacklist of words in chat
+         * @commandpath blacklist - Show usage of command to manipulate the blacklist of words in chat - Administrator
          */
         if (command.equalsIgnoreCase('blacklist')) {
             if (!$.isAdmin(sender)) {
@@ -362,7 +362,7 @@
             }
 
             /**
-             * @commandpath blacklist add [word] - Adds a word to the blacklist
+             * @commandpath blacklist add [word] - Adds a word to the blacklist - Administrator
              */
             if (action.equalsIgnoreCase('add')) {
                 if (!subAction) {
@@ -376,7 +376,7 @@
             }
 
             /**
-             * @commandpath blacklist remove [id] - Removes a word from the blacklist based on ID.
+             * @commandpath blacklist remove [id] - Removes a word from the blacklist based on ID. - Administrator
              */
             if (action.equalsIgnoreCase('remove')) {
                 if (!subAction) {
@@ -392,7 +392,7 @@
             }
 
             /**
-             * @commandpath blacklist show [id] - Shows the blacklist word related to the ID.
+             * @commandpath blacklist show [id] - Shows the blacklist word related to the ID. - Administrator
              */
             if (action.equalsIgnoreCase('show')) {
                 if (!subAction) {
@@ -407,7 +407,7 @@
         }
 
         /**
-         * @commandpath whitelist - Shows usage of command to manipulate the whitelist links
+         * @commandpath whitelist - Shows usage of command to manipulate the whitelist links - Administrator
          */
         if (command.equalsIgnoreCase('whiteList')) {
             if (!$.isAdmin(sender)) {
@@ -421,7 +421,7 @@
             }
 
             /**
-             * @commandpath whitelist add [link] - Adds a link to the whitelist
+             * @commandpath whitelist add [link] - Adds a link to the whitelist - Administrator
              */
             if (action.equalsIgnoreCase('add')) {
                 if (!subAction) {
@@ -435,7 +435,7 @@
             }
 
             /**
-             * @commandpath whitelist remove [id] - Removes a link from the whitelist based on ID.
+             * @commandpath whitelist remove [id] - Removes a link from the whitelist based on ID. - Administrator
              */
             if (action.equalsIgnoreCase('remove')) {
                 if (!subAction) {
@@ -451,7 +451,7 @@
             }
 
             /**
-             * @commandpath whitelist show [id] - Shows a link in the whitelist based on ID.
+             * @commandpath whitelist show [id] - Shows a link in the whitelist based on ID. - Administrator
              */
             if (action.equalsIgnoreCase('show')) {
                 if (!subAction) {
@@ -466,7 +466,7 @@
         }
 
         /**
-         * @commandpath moderation - Shows usage for the various chat moderation options
+         * @commandpath moderation - Shows usage for the various chat moderation options - Administrator
          */
         if (command.equalsIgnoreCase('moderation') || command.equalsIgnoreCase('mod')) {
             if (!$.isAdmin(sender)) {
@@ -482,7 +482,7 @@
             }
 
             /**
-             * @commandpath moderation links [on / off] - Enable/Disable the link filter
+             * @commandpath moderation links [on / off] - Enable/Disable the link filter - Administrator
              */
             if (action.equalsIgnoreCase('links')) {
                 if (!subAction) {
@@ -504,7 +504,7 @@
             }
 
             /**
-             * @commandpath moderation caps [on / off] - Enable/Disable the caps filter
+             * @commandpath moderation caps [on / off] - Enable/Disable the caps filter - Administrator
              */
             if (action.equalsIgnoreCase('caps')) {
                 if (!subAction) {
@@ -526,7 +526,7 @@
             }
 
             /**
-             * @commandpath moderation spam [on / off] - Enable/Disable the spam filter
+             * @commandpath moderation spam [on / off] - Enable/Disable the spam filter - Administrator
              */
             if (action.equalsIgnoreCase('spam')) {
                 if (!subAction) {
@@ -548,7 +548,7 @@
             }
 
             /**
-             * @commandpath moderation symbols [on / off] - Enable/Disable the symbol filter
+             * @commandpath moderation symbols [on / off] - Enable/Disable the symbol filter - Administrator
              */
             if (action.equalsIgnoreCase('symbols')) {
                 if (!subAction) {
@@ -570,7 +570,7 @@
             }
 
             /**
-             * @commandpath moderation emotes [on / off] - Enable/Disable the emotes filter
+             * @commandpath moderation emotes [on / off] - Enable/Disable the emotes filter - Administrator
              */
             if (action.equalsIgnoreCase('emotes')) {
                 if (!subAction) {
@@ -592,7 +592,7 @@
             }
 
             /**
-             * @commandpath moderation colors [on / off] - Enable/Disable the message color filter
+             * @commandpath moderation colors [on / off] - Enable/Disable the message color filter - Administrator
              */
             if (action.equalsIgnoreCase('colors')) {
                 if (!subAction) {
@@ -614,7 +614,7 @@
             }
 
             /**
-             * @commandpath moderation longmessages [on / off] - Enable/Disable the longmessages filter
+             * @commandpath moderation longmessages [on / off] - Enable/Disable the longmessages filter - Administrator
              */
             if (action.equalsIgnoreCase('longmessages')) {
                 if (!subAction) {
@@ -636,7 +636,7 @@
             }
 
             /**
-             * @commandpath moderation regulars [true / false] - Allow regulars to post links
+             * @commandpath moderation regulars [true / false] - Allow regulars to post links - Administrator
              */
             if (action.equalsIgnoreCase('regulars')) {
                 if (!subAction) {
@@ -658,7 +658,7 @@
             }
 
             /**
-             * @commandpath moderation subscribers [true / false] - Allows subscribers to post links
+             * @commandpath moderation subscribers [true / false] - Allows subscribers to post links - Administrator
              */
             if (action.equalsIgnoreCase('subscribers')) {
                 if (!subAction) {
@@ -681,7 +681,7 @@
 
 
             /**
-             * @commandpath moderation linksmessage [message] - Sets the link warning message
+             * @commandpath moderation linksmessage [message] - Sets the link warning message - Administrator
              */
             if (action.equalsIgnoreCase('linksmessage')) {
                 if (!subAction) {
@@ -695,7 +695,7 @@
             }
 
             /**
-             * @commandpath moderation capsmessage [message] - Sets the cap warning message
+             * @commandpath moderation capsmessage [message] - Sets the cap warning message - Administrator
              */
             if (action.equalsIgnoreCase('capsmessage')) {
                 if (!subAction) {
@@ -709,7 +709,7 @@
             }
 
             /**
-             * @commandpath moderation symbolsmessage [message] - Sets the symbols warning message
+             * @commandpath moderation symbolsmessage [message] - Sets the symbols warning message - Administrator
              */
             if (action.equalsIgnoreCase('symbolsmessage')) {
                 if (!subAction) {
@@ -723,7 +723,7 @@
             }
 
             /**
-             * @commandpath moderation emotesmessage [message] - Sets the emotes warning message
+             * @commandpath moderation emotesmessage [message] - Sets the emotes warning message - Administrator
              */
             if (action.equalsIgnoreCase('emotesmessage')) {
                 if (!subAction) {
@@ -737,7 +737,7 @@
             }
 
             /**
-             * @commandpath moderation colorsmessage [message] - Sets the color warning message
+             * @commandpath moderation colorsmessage [message] - Sets the color warning message - Administrator
              */
             if (action.equalsIgnoreCase('colorsmessage')) {
                 if (!subAction) {
@@ -751,7 +751,7 @@
             }
 
             /**
-             * @commandpath moderation longmsgmessage [message] - Sets the long message warning message
+             * @commandpath moderation longmsgmessage [message] - Sets the long message warning message - Administrator
              */
             if (action.equalsIgnoreCase('longmsgmessage')) {
                 if (!subAction) {
@@ -765,7 +765,7 @@
             }
 
             /**
-             * @commandpath moderation spammessage [message] - Sets the spam warning message
+             * @commandpath moderation spammessage [message] - Sets the spam warning message - Administrator
              */
             if (action.equalsIgnoreCase('spammessage')) {
                 if (!subAction) {
@@ -779,7 +779,7 @@
             }
 
             /**
-             * @commandpath moderation blacklistmessage [message] - Sets the blacklist warning message
+             * @commandpath moderation blacklistmessage [message] - Sets the blacklist warning message - Administrator
              */
             if (action.equalsIgnoreCase('blacklistmessage')) {
                 if (!subAction) {
@@ -793,7 +793,7 @@
             }
 
             /**
-             * @commandpath moderation permittime [seconds] - Sets the permit time in seconds
+             * @commandpath moderation permittime [seconds] - Sets the permit time in seconds - Administrator
              */
             if (action.equalsIgnoreCase('permittime')) {
                 if (!subAction) {
@@ -807,7 +807,7 @@
             }
 
             /**
-             * @commandpath moderation capslimit [amount] - Sets the amount (in percent) of caps allowed in a message
+             * @commandpath moderation capslimit [amount] - Sets the amount (in percent) of caps allowed in a message - Administrator
              */
             if (action.equalsIgnoreCase('capslimit')) {
                 if (!subAction) {
@@ -821,7 +821,7 @@
             }
 
             /**
-             * @commandpath moderation capstriggerlength [amount] - Sets the minimum amount of charaters before checking for caps
+             * @commandpath moderation capstriggerlength [amount] - Sets the minimum amount of charaters before checking for caps - Administrator
              */
             if (action.equalsIgnoreCase('capstriggerlength')) {
                 if (!subAction) {
@@ -835,7 +835,7 @@
             }
 
             /**
-             * @commandpath moderation spamlimit [amount] - Sets the amount of repeating charaters allowed in a message
+             * @commandpath moderation spamlimit [amount] - Sets the amount of repeating charaters allowed in a message - Administrator
              */
             if (action.equalsIgnoreCase('spamlimit')) {
                 if (!subAction) {
@@ -849,7 +849,7 @@
             }
 
             /**
-             * @commandpath moderation symbolslimit [amount] - Sets the amount (in percent) of symbols allowed in a message
+             * @commandpath moderation symbolslimit [amount] - Sets the amount (in percent) of symbols allowed in a message - Administrator
              */
             if (action.equalsIgnoreCase('symbolslimit')) {
                 if (!subAction) {
@@ -863,7 +863,7 @@
             }
 
             /**
-             * @commandpath moderation symbolsgrouplimit [amount] - Sets the max amount of grouped symbols allowed in a message
+             * @commandpath moderation symbolsgrouplimit [amount] - Sets the max amount of grouped symbols allowed in a message - Administrator
              */
             if (action.equalsIgnoreCase('symbolsgrouplimit')) {
                 if (!subAction) {
@@ -877,7 +877,7 @@
             }
 
             /**
-             * @commandpath moderation symbolstriggerlength [amount] - Sets the minimum amount of charaters before checking for symbols
+             * @commandpath moderation symbolstriggerlength [amount] - Sets the minimum amount of charaters before checking for symbols - Administrator
              */
             if (action.equalsIgnoreCase('symbolsTriggerLength')) {
                 if (!subAction) {
@@ -891,7 +891,7 @@
             }
 
             /**
-             * @commandpath moderation emoteslimit [amount] - Sets the amount of emotes allowed in a message
+             * @commandpath moderation emoteslimit [amount] - Sets the amount of emotes allowed in a message - Administrator
              */
             if (action.equalsIgnoreCase('emoteslimit')) {
                 if (!subAction) {
@@ -905,7 +905,7 @@
             }
 
             /**
-             * @commandpath moderation messagecharacterlimit [amount] - Sets the amount of characters allowed in a message
+             * @commandpath moderation messagecharacterlimit [amount] - Sets the amount of characters allowed in a message - Administrator
              */
             if (action.equalsIgnoreCase('messagecharacterlimit')) {
                 if (!subAction) {
@@ -919,7 +919,7 @@
             }
 
             /**
-             * @commandpath moderation timeouttime [seconds] - Sets the time in seconds for how a long a user gets timed out
+             * @commandpath moderation timeouttime [seconds] - Sets the time in seconds for how a long a user gets timed out - Administrator
              */
             if (action.equalsIgnoreCase('timeouttime')) {
                 if (!subAction) {
@@ -933,7 +933,7 @@
             }
 
             /**
-             * @commandpath moderation warningtime [seconds] - Sets the time in seconds for how a long a user gets purged for
+             * @commandpath moderation warningtime [seconds] - Sets the time in seconds for how a long a user gets purged for - Administrator
              */
             if (action.equalsIgnoreCase('warningtime')) {
                 if (!subAction) {
@@ -947,7 +947,7 @@
             }
 
             /**
-             * @commandpath moderation messagecooldown [seconds] - Sets a cooldown in seconds on the timeout messages
+             * @commandpath moderation messagecooldown [seconds] - Sets a cooldown in seconds on the timeout messages - Administrator
              */
             if (action.equalsIgnoreCase('messagecooldown')) {
                 if (!subAction) {

@@ -64,7 +64,7 @@
             command = event.getCommand();
 
         /**
-         * @commandpath cleanup - Run a cleanup on the database (Removing any data from users that haven't been seen for a while)
+         * @commandpath cleanup - Run a cleanup on the database (Removing any data from users that haven't been seen for a while) - Administrator
          */
         if (command.equalsIgnoreCase('cleanup') && !running) {
             if (runCleanup()) {

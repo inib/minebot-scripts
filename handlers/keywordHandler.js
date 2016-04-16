@@ -46,7 +46,7 @@
             subAction = args[1].toLowerCase();
 
         /**
-         * @commandpath keyword - Base command for keyword options
+         * @commandpath keyword - Base command for keyword options - Administrator
          */
         if (command.equalsIgnoreCase('keyword')) {
             if (!$.isAdmin(sender)) {
@@ -60,7 +60,7 @@
             }
 
             /**
-             * @commandpath keyword add [keyword] [response] - Adds a keyword and a response
+             * @commandpath keyword add [keyword] [response] - Adds a keyword and a response - Administrator
              */
             if (action.equalsIgnoreCase('add')) {
                 if (!subAction) {
@@ -76,7 +76,7 @@
             }
 
             /**
-             * @commandpath keyword remove [keyword] - Removes a given keyword
+             * @commandpath keyword remove [keyword] - Removes a given keyword - Administrator
              */
             if (action.equalsIgnoreCase('remove')) {
                 if (!subAction) {

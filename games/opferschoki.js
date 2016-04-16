@@ -157,6 +157,12 @@
         var currentTime = $.systemTime();
         var argsString = event.getArguments().trim();
         var args = event.getArgs();
+        
+        /**
+         * @commandpath opferschoki - Sacrifice up to 5% of your points to the gods (cap 66) - Viewer
+         * @commandpath opferschoki summon - Summon schokthulu (for testing purposes) - Administrator
+         * @commandpath opferschoki doom - Doom the chat (for testing purposes) - Administrator
+         */
 
         if (command.equalsIgnoreCase("opferschoki")) {
 

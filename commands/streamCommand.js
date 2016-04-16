@@ -14,7 +14,7 @@
             args = event.getArgs();
 
         /**
-         * @commandpath online - Tell if the stream is online or not
+         * @commandpath online - Tell if the stream is online or not - Viewer
          */
         if (command.equalsIgnoreCase('online')) {
             if ($.isOnline($.channelName)) {
@@ -25,14 +25,14 @@
         }
 
         /**
-         * @commandpath viewers - Announce the current amount of viewers in the chat
+         * @commandpath viewers - Announce the current amount of viewers in the chat - Moderator
          */
         if (command.equalsIgnoreCase('viewers')) {
             $.say($.whisperPrefix(sender) + 'Currently ' + $.getViewers($.channelName) + ' viewers are watching ' + $.username.resolve($.channelName) + '!');
         }
 
         /**
-         * @commandpath game [game title] - Announce Twitch game title or set the game title.
+         * @commandpath game [game title] - Announce Twitch game title or set the game title. - Viewer [Administrator]
          */
         if (command.equalsIgnoreCase('game')) {
             if (args.length == 0) {
@@ -48,7 +48,7 @@
         }
 
         /**
-         * @commandpath title [stream title] - Announce Twitch stream title or set the stream title
+         * @commandpath title [stream title] - Announce Twitch stream title or set the stream title - Viewer [Administrator]
          */
         if (command.equalsIgnoreCase('title')) {
             if (args.length == 0) {
@@ -69,10 +69,10 @@
      */
     $.bind('initReady', function() {
         if ($.bot.isModuleEnabled('./commands/streamCommand.js')) {
-            $.registerChatCommand('./commands/streamCommand.js', 'online');
-            $.registerChatCommand('./commands/streamCommand.js', 'viewers');
-            $.registerChatCommand('./commands/streamCommand.js', 'game');
-            $.registerChatCommand('./commands/streamCommand.js', 'title');
+            $.registerChatCommand('./commands/streamCommand.js', 'online', 7);
+            $.registerChatCommand('./commands/streamCommand.js', 'viewers', 2);
+            $.registerChatCommand('./commands/streamCommand.js', 'game', 7);
+            $.registerChatCommand('./commands/streamCommand.js', 'title', 7);
         }
     });
 })();

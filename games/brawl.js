@@ -44,7 +44,7 @@
 		var args = event.getArgs();
 
 		 /**
-         * @commandpath brawl - Start a brawl when ready and rights match
+         * @commandpath brawl - Start a brawl. Stream has to run, cooldown 15 min - Moderator
          */
 		if (command.equalsIgnoreCase('brawl')) {
 
@@ -146,7 +146,7 @@
 			}
 
 			/**
-             * @commandpath brawl top10 - Show top10 brawlers
+             * @commandpath brawl top10 - Shows top10 brawlers - Viewer
              */
 			if (args.length >= 1) {
 
@@ -180,7 +180,7 @@
 		}
 
 		/**
-         * @commandpath pileon - Participate in brawl
+         * @commandpath pileon - Participate in brawl - Viewer
          */
 
 		if (command.equalsIgnoreCase('pileon')) {

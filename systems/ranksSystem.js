@@ -145,13 +145,13 @@
         }
 
         /*
-         * @commandpath rankedit - Displays the usage of rankedit.
-         * @commandpath rankedit add [time] [rankname] - Add a new rank. Time is in hours.
-         * @commandpath rankedit del [time] - Deletes the rank associated with the given time
-         * @commandpath rankedit custom [user] [rankname] - Add a custom rank to a user.
-         * @commandpath rankedit customdel [user] - Remove a custom rank from a user.
-         * @commandpath rankedit settime [time] - Number of minimum hours before user can choose custom rank.
-         * @commandpath rankedit setcost [points] - Cost of custom rank.
+         * @commandpath rankedit - Displays the usage of rankedit. - Administrator
+         * @commandpath rankedit add [time] [rankname] - Add a new rank. Time is in hours. - Administrator
+         * @commandpath rankedit del [time] - Deletes the rank associated with the given time - Administrator
+         * @commandpath rankedit custom [user] [rankname] - Add a custom rank to a user. - Administrator
+         * @commandpath rankedit customdel [user] - Remove a custom rank from a user. - Administrator
+         * @commandpath rankedit settime [time] - Number of minimum hours before user can choose custom rank. - Administrator
+         * @commandpath rankedit setcost [points] - Cost of custom rank. - Administrator
          */
         if (command.equalsIgnoreCase('rankedit')) {
             if (!args[0]) {
@@ -275,9 +275,9 @@
         }
 
         /**
-         * @commandpath rank - Display current rank.
-         * @commandpath rank set [rankname] - Set rank for self if enough hours and points, if applicable, available in chat.
-         * @commandpath rank del - Deletes customized rank.
+         * @commandpath rank - Display current rank. - Viewer
+         * @commandpath rank set [rankname] - Set rank for self if enough hours and points, if applicable, available in chat. - Viewer
+         * @commandpath rank del - Deletes customized rank. - Viewer
          */
         if (command.equalsIgnoreCase('rank')) {
 

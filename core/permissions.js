@@ -613,7 +613,7 @@
             args = event.getArgs();
 
         /**
-         * @commandpath users - List users currently in the channel
+         * @commandpath users - List users currently in the channel - Administrator
          */
         if (command.equalsIgnoreCase('users')) {
             if (users.length > 20) {
@@ -624,7 +624,7 @@
         }
 
         /**
-         * @commandpath mods - List mods currently in the channel
+         * @commandpath mods - List mods currently in the channel - Moderator
          */
         if (command.equalsIgnoreCase('mods')) {
             var tmp = getUsernamesArrayByGroupId(2);
@@ -636,7 +636,7 @@
         }
 
         /**
-         * @commandpath group [username] [groupId] - Get your current group or optionally set the usergroup for a user.
+         * @commandpath group [username] [groupId] - Get your current group or optionally set the usergroup for a user. - Administrator
          */
         if (command.equalsIgnoreCase('group')) {
             if (!$.isModv3(sender, event.getTags()) || !args[0]) {
@@ -667,7 +667,7 @@
         }
 
         /**
-         * @commandpath grouppoints [groupId] [online|offline] [points] - Show/set the points gained for each group. -1 defaults to the global configuration.
+         * @commandpath grouppoints [groupId] [online|offline] [points] - Show/set the points gained for each group. -1 defaults to the global configuration. - Administrator
          */
         if (command.equalsIgnoreCase('grouppoints')) {
 
