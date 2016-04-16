@@ -26,7 +26,7 @@
             return false;
         }
         return true;
-    };
+    }
 
     /**
      * @function getCurLocalTimeString
@@ -99,7 +99,7 @@
         } else {
             return day + '-' + month + '-' + year + ' ' + hours + ':' + minutes;
         }
-    };
+    }
 
     /**
      * @function getTimeString
@@ -118,7 +118,7 @@
         } else {
             return (time >= 60 ? (floor(cHours) + 'hrs ' + floor(~~cMins) + 'min ').replace(/^0hrs/, '') : floor(cMins % 1 * 60) + 'sec');
         }
-    };
+    }
 
     /**
      * @function getUserTime
@@ -128,7 +128,7 @@
      */
     function getUserTime(username) {
         return ($.inidb.exists('time', username) ? $.inidb.get('time', username) : 0);
-    };
+    }
 
     /**
      * @function getUserTimeString
@@ -138,7 +138,7 @@
      */
     function getUserTimeString(username) {
         return $.getTimeString($.getUserTime(username));
-    };
+    }
 
     /**
      * @event command
@@ -208,7 +208,7 @@
 
                     $.inidb.decr('time', subject, timeArg);
                     $.say($.whisperPrefix(sender) + $.lang.get('timesystem.take.success',
-                        $.getTimeString(timeArg), $.username.resolve(subject), $.getUserTimeString(sender)))
+                        $.getTimeString(timeArg), $.username.resolve(subject), $.getUserTimeString(sender)));
                 }
 
                 if (action.equalsIgnoreCase('set')) {
@@ -291,7 +291,7 @@
                 }
 
                 if (action.equalsIgnoreCase('help')) {
-                    $.say($.whisperPrefix(sender) + $.lang.get('timesystem.help'))
+                    $.say($.whisperPrefix(sender) + $.lang.get('timesystem.help'));
                 }
             }
         }

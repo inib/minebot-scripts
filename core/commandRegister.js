@@ -49,7 +49,7 @@
 
         commands[command].subcommands[subcommand] = {
             groupId: groupId
-        }
+        };
     }
 
     /**
@@ -83,7 +83,7 @@
         };
 
         commandScriptTable[command] = script;
-    };
+    }
 
     /**
      * @function unregisterChatCommand
@@ -93,7 +93,7 @@
     function unregisterChatCommand(command) {
         delete commands[command];
         delete commandScriptTable[command];
-    };
+    }
 
     /**
      * @function unregisterChatSubcommand
@@ -115,7 +115,7 @@
      */
     function commandExists(command) {
         return (commands[command] ? true : false);
-    };
+    }
 
     /**
      * @function subCommandExists
@@ -143,7 +143,7 @@
             return commands[command].groupId;
         }
         return 7;
-    };
+    }
 
 
     /**
@@ -173,7 +173,7 @@
             }
             return group;
         }
-    };
+    }
 
     /**
      * @function getSubcommandGroup
@@ -191,7 +191,7 @@
             return getCommandGroup(command, name);
         }
         return 7;
-    };
+    }
 
     /**
      * @function updateCommandGroup

@@ -24,7 +24,7 @@
         if (!$.inidb.exists('settings', 'response_@chat')) {
             $.setIniDbBoolean('settings', 'response_@chat', true);
         }
-    };
+    }
 
     /**
      * @function register
@@ -58,7 +58,7 @@
             }
         }
         return string;
-    };
+    }
 
     /**
      * @function exists

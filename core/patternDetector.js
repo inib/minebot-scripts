@@ -33,7 +33,7 @@
         } catch (e) {
             return false;
         }
-    };
+    }
 
     /**
      * @function getLastFoundLink
@@ -90,7 +90,7 @@
         }
 
         return message;
-    };
+    }
 
     /**
      * @function getLongestRepeatedSequence
@@ -111,7 +111,7 @@
         } catch (e) {
             return 0;
         }
-    };
+    }
 
     /**
      * @function getLongestNonLetterSequence
@@ -132,7 +132,7 @@
         } catch (e) {
             return 0;
         }
-    };
+    }
 
     /**
      * @function getNumberOfNonLetters
@@ -153,7 +153,7 @@
         } catch (e) {
             return 0;
         }
-    };
+    }
 
     /**
      * @function getNumberOfEmotes

@@ -47,14 +47,14 @@
                 $.log(logName, $.username.resolve(visited[i]) + ' Time: ' + time + ', Points: ' + points, '');
             }
 
-            if ($.getPercentage(i, visited.length) % 10 == 0) {
+            if ($.getPercentage(i, visited.length) % 10 === 0) {
                 $.consoleLn($.lang.get('cleanupsystem.run.progress', $.getPercentage(i, visited.length)));
             }
         }
 
         running = !running;
         return true;
-    };
+    }
 
     /**
      * @event command

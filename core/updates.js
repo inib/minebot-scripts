@@ -91,7 +91,7 @@
         $.consoleLn('Starting PhantomBot version 2.0.5 updates...');
 
         $.consoleLn('Disabling new default modules...');
-        for (i in newDefaultDisabledModules) {
+        for (var i in newDefaultDisabledModules) {
             $.inidb.set('modules', newDefaultDisabledModules[i], 'false');
         }
 
@@ -107,8 +107,8 @@
 
 
         if ($.inidb.exists('chatModerator', 'capsLimit')) {
-            $.consoleLn('Removing old capsLimit table')
-            $.inidb.del('chatModerator', 'capsLimit')
+            $.consoleLn('Removing old capsLimit table');
+            $.inidb.del('chatModerator', 'capsLimit');
         }
 
         $.consoleLn('PhantomBot v2.0.6 updates completed!');

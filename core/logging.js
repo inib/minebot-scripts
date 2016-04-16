@@ -20,7 +20,7 @@
                 return (i < 10 ? '0' + i : i);
             };
         return pad(now.getDate()) + '-' + pad(now.getMonth() + 1) + '-' + now.getFullYear();
-    };
+    }
 
     /**
      * @function getLogTimeString
@@ -34,7 +34,7 @@
         } else {
             return (new Date()).toTimeString();
         }
-    };
+    }
 
     /**
      * @function log
@@ -53,7 +53,7 @@
         }
 
         $.writeToFile(getLogTimeString() + ' > ' + message, './logs/' + filePrefix + '/' + getLogDateString() + '.txt', true);
-    };
+    }
 
     /**
      * @function logEvent
@@ -78,7 +78,7 @@
         var now = new Date();
         $.writeToFile(now.toDateString() + ' ' + now.toTimeString() + '[' + sourceFile + '#' + lineNumber + '] ' + message,
             './logs/event/' + getLogDateString() + '.txt', true);
-    };
+    }
 
     /**
      * @function logError
@@ -99,8 +99,8 @@
         var now = new Date();
         $.writeToFile(now.toDateString() + ' ' + now.toTimeString() + '[' + sourceFile + '#' + lineNumber + '] ' + message,
             './logs/error/' + getLogDateString() + '.txt', true);
-    };
-
+    }
+    
     /**
      * @event ircChannelMessage
      */

@@ -33,7 +33,7 @@
             });
             $.consoleDebug('pushed ' + command + ' to user cooldown.');
         }
-    };
+    }
 
     function get(command, user) {
         var cool,
@@ -71,7 +71,7 @@
             }
         }
         set(command, parseInt($.inidb.get('cooldown', command)), user);
-    };
+    }
 
     function clear(command) {
         var i;
@@ -81,7 +81,7 @@
                 return;
             }
         }
-    };
+    }
 
     /**
      * @event command

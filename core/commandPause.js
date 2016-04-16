@@ -24,7 +24,7 @@
             unPause();
         }, seconds * 1e3);
         $.say($.lang.get('commandpause.initiated', $.getTimeString(seconds)));
-    };
+    }
 
     /**
      * @function isPaused
@@ -33,7 +33,7 @@
      */
     function isPaused() {
         return isActive;
-    };
+    }
 
     /**
      * @function clear
@@ -46,7 +46,7 @@
             timerId = -1;
             $.say($.lang.get('commandpause.ended'));
         }
-    };
+    }
 
     /**
      * @event event
@@ -60,7 +60,7 @@
          * @commandpath pausecommands clear - Unpause commands - Moderator
          */
         if (command.equalsIgnoreCase('pausecommands')) {
-            if (args[0] != undefined || args[0] != null) {
+            if (args[0] !== undefined || args[0] !== null) {
                 if (args[0] == 'clear') {
                     unPause();
                     return;

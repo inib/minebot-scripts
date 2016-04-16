@@ -29,7 +29,7 @@
         var HashMap = Packages.java.util.HashMap;
         var responseData = HttpRequest.getData(HttpRequest.RequestType.GET, url, "", new HashMap());
         return responseData.content;
-    };
+    }
 
     /**
      * @function returnCommandCost
@@ -46,7 +46,7 @@
                 $.inidb.SaveAll();
             }
         }
-    };
+    }
 
     /**
      * @function replaceCommandTags
@@ -68,10 +68,11 @@
             customJSONStringTag = '',
             regExCheck,
             jsonItems,
-            jsonCheckList,
-            message = message + '',
+            jsonCheckList,            
             sender = event.getSender(),
             args = event.getArgs();
+
+        message = message + '';
 
         if (message.indexOf('(touser)') != -1) {
             touser = (!args[0] ? sender : args[0]);
@@ -183,7 +184,7 @@
         }
 
         if (tagList) {
-            for (i in tagList) {
+            for (var i in tagList) {
                 var regex = new RegExp('/' + tagList[i].replace(/([\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|])/g, '\\$&') + '/', 'ig');
                 message = message.replace(regex, tagReplacements[i]);
             }
@@ -210,7 +211,7 @@
                 .replace(reCustomAPIJson, customAPIReturnString);
 
         return message;
-    };
+    }
 
     /**
      * @function permCom
@@ -224,11 +225,11 @@
         if ($.isAdmin(user)) {
             return true;
         }
-        if (subcommand == '') {
+        if (subcommand === '') {
             return ($.getCommandGroup(command) >= $.getUserGroupId(user));
         }
         return ($.getSubcommandGroup(command, subcommand) >= $.getUserGroupId(user));
-    };
+    }
 
     /**
      * @function getCommandPrice
@@ -238,7 +239,7 @@
      */
     function getCommandPrice(command) {
         return parseInt($.inidb.exists('pricecom', command) ? $.inidb.get('pricecom', command) : 0);
-    };
+    }
 
     /**
      * @function addComRegisterCommands
@@ -251,7 +252,7 @@
                 $.registerChatCommand('./commands/customCommands.js', commands[i], 7);
             }
         }
-    };
+    }
 
     /**
      * @function addComRegisterAliases
@@ -266,7 +267,7 @@
                 $.registerChatCommand('./commands/customCommands.js', commands[i], $.getCommandGroup(ownerCommand));
             }
         }
-    };
+    }
 
     /**
      * @event command
@@ -380,7 +381,7 @@
 
             if (!$.commandExists(action)) {
                 $.say($.whisperPrefix(sender) + $.lang.get('customcommands.alias.error.target404'));
-                return
+                return;
             }
 
             if ($.inidb.exists('aliases', subAction)) {
@@ -496,7 +497,7 @@
             $.inidb.set('pricecom', action, subAction);
             list = $.inidb.GetKeyList('aliases', '');
 
-            for (i in list) {
+            for (var i in list) {
                 for (i in list) {
                     if ($.inidb.get('aliases', list[i]).equalsIgnoreCase(action)) {
                         $.inidb.set('pricecom', list[i], subAction);

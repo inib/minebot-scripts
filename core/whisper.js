@@ -18,7 +18,7 @@
 
         }
         return '@' + $.username.resolve(username) + ', ';
-    };
+    }
 
     /**
      * @function getBotWhisperMode
