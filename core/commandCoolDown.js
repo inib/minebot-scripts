@@ -15,6 +15,7 @@
 
     function set(command, time, user) {
         time = (time * 1000) + $.systemTime();
+        command = command.toLowerCase();
 
         if (globalCooldown) {
             cooldown.push({
@@ -38,6 +39,7 @@
     function get(command, user) {
         var cool,
             i;
+        command = command.toLowerCase();
 
         if (globalCooldown) {
             for (i in cooldown) {
@@ -90,8 +92,8 @@
         var sender = event.getSender().toLowerCase(),
             command = event.getCommand(),
             args = event.getArgs(),
-            cmd = args[0];
-        time = parseInt(args[1]);
+            cmd = args[0].toLowerCase();
+            time = parseInt(args[1]);
 
         /**
          * @commandpath coolcom [command] [seconds] - Sets a cooldown in seconds for a command or a keyword. Use minus 1 for seconds to remove it. - Administrator

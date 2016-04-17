@@ -11,7 +11,7 @@
             key = '',
             keys = $.inidb.GetKeyList('keywords', '');
         for (var i = 0; i < keys.length; i++) {
-            key = keys[i].toLowerCase();
+            key = keys[i];
             regex = new RegExp('\\b' + key + '\\b', 'i');
             if (regex.exec(message)) {
                 keyword = $.inidb.get('keywords', key);

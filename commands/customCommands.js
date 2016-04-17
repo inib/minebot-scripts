@@ -521,22 +521,22 @@
         /**
          * @commandpath commands - Provides a list of all available commands. - Viewer
          */
-        if (command.equalsIgnoreCase('commands')) {
-            var cmds = $.inidb.GetKeyList('command', ''),
-                cmd = '',
-                i;
-
-            for (i in cmds) {
-                cmd += '!';
-                cmd += cmds[i];
-                cmd += ', ';
-            }
-
-            if (cmd.length != 0) {
-                $.say($.whisperPrefix(sender) + $.lang.get('customcommands.cmds', cmd));
-                return;
-            }
-        }
+        //if (command.equalsIgnoreCase('commands')) {
+        //    var cmds = $.inidb.GetKeyList('command', ''),
+        //        cmd = '',
+        //        i;
+//
+        //    for (i in cmds) {
+        //        cmd += '!';
+        //        cmd += cmds[i];
+        //        cmd += ', ';
+        //    }
+//
+        //    if (cmd.length != 0) {
+        //        $.say($.whisperPrefix(sender) + $.lang.get('customcommands.cmds', cmd));
+        //        return;
+        //    }        
+        //}
 
         if ($.inidb.exists('command', command.toLowerCase())) {
             subAction = $.inidb.get('command', command.toLowerCase());
@@ -560,7 +560,7 @@
             $.registerChatCommand('./commands/customCommands.js', 'editcom', 2);
             $.registerChatCommand('./commands/customCommands.js', 'permcom', 1);
             $.registerChatCommand('./commands/customCommands.js', 'listtags', 2);
-            $.registerChatCommand('./commands/customCommands.js', 'commands', 7);
+            //$.registerChatCommand('./commands/customCommands.js', 'commands', 7);
         }
     });
 
