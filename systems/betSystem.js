@@ -1,30 +1,36 @@
 /**
- * UPDATE TO ARENA/DOTA2
  * 20.03. update wager
+ * 16.04. cleanup from kanaye
+ * 17.04. announce winners implemented => test it
  * 
  * TODO LIST:
- * - announce winners
+ * 
+ * - announce winners (==> done 17.04.)
+ *   - Top5 winners get a shoutout at the end of a bet
+ *   - dismissed idea of whisper every participant => no spamerino, double check twitch limits for whitelisted bots
+ * 
  * - announce bets
+ * 
  * - advanced DAU control FailFish
- * - announcements during open bet
- * - ALLCAPS bet options
+ *   - mods
+ *   - bet updates
+ * 
+ * - timed announcements during open bet (60s)
+ * 
+ * - ALLCAPS bet options for better visablilty?
+ *   current string:  [Wettbüro geöffnet] Optionen: sieg - niederlage - !bet (Option) (Einsatz)
+ *   to            :  [Wettbüro geöffnet] Optionen: SIEG - NIEDERLAGE - !bet (Option) (Einsatz)
  * 
  */
 
-
-
-
 (function() {
     var betMinimum = ($.inidb.exists('betSettings', 'betMinimum') ? parseInt($.inidb.get('betSettings', 'betMinimum')) : 1),
-        betMaximum = ($.inidb.exists('betSettings', 'betMaximum') ? parseInt($.inidb.get('betSettings', 'betMaximum')) : 1000),
-        time = 0,
-        betStatus = false,
-        betPot = 0,
-        betOptions = [],
-        betTable = [],
-        betClosed = false,
-        betTotal,
-        betWinners;
+        betMaximum = ($.inidb.exists('betSettings', 'betMaximum') ? parseInt($.inidb.get('betSettings', 'betMaximum')) : 1000),        
+        betStatus = false, // {bool} is bet running
+        betPot = 0, // {int} current pot size
+        betOptions = [], // { string[] } the options to bet on
+        betTable = [], // { string[] { amount: {int}, option: {string} } } hold betters and their wager
+        betClosed = false; // {bool} is bet closed
 
     function betOpen(event, betOps, betString) {        
         var sender = event.getSender(),
@@ -65,8 +71,6 @@
 
     function resetBet() {
         betPot = 0;
-        betTotal = 0;
-        betWinners = '';
         betOptions = [];
         betTable = [];
         betClosed = false;
@@ -79,14 +83,14 @@
             
             var closedPot = 0;
             betClosed = true;
-            //calc pot/perc
+            
             for (var i in betTable) {
                 var bet = betTable[i];
                 closedPot += bet.amount;
             }
 
             $.logEvent('betSystem.js', 71, 'Bet closed');
-            $.say($.lang.get('betsystem.closed', closedPot)); //Njnias Zeile
+            $.say($.lang.get('betsystem.closed', closedPot));
         }
         else {
                 // TODO
@@ -173,21 +177,35 @@
             return;
         }
 
+        var betWinners = [];
+        var betWinString = '';
+        var betWinCount = 0;
+
         for (i in betTable) {
             bet = betTable[i];
             if (bet.option.equalsIgnoreCase(betWinning)) {
                 betWinPercent = (bet.amount / betTotal);
-                $.inidb.incr('points', i, (betPot * betWinPercent));
-            }
+                $.inidb.incr('points', i, c);
+                betWinners[i] = (betPot * betWinPercent);
+            }        
         }
+
+        betWinners.sort( function(a, b) { return a-b; } );
+        betWinCount = (betWinners.length > 5 ? 5 : betWinners.length);
+        betWinString = 'Top ' + betWinCount + 'Wettgewinner: ';
+        
+        for (i = 0; i < betWinCount; i++) {
+            betWinString += i + '(' + betWinners[i] + ')';
+            betWinString += (i-1 < betWinCount ? ', ' : '');
+        }
+        
+        betWinString += (betWinners.length > betWinCount ? 'und ' + (betWinners.length - betWinCount) + 'weitere.' : '.');
+
         $.logEvent('betSystem.js', 179, 'Bet ended: Pot:' + betPot + 'Win percent: ' + betPointsWon);
         $.say($.lang.get('betsystem.end', betWinning, $.getPointsString(betPot), betPointsWon.toFixed(2)));
-        
-        // ToDo
-        //Announce Top winner
-        
+        $.say(betWinString);
+
         resetBet();
-        
     }
 
     $.bind('command', function(event) {
