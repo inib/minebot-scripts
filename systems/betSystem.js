@@ -224,12 +224,12 @@
         betWinShow = (betWinCount > 5 ? 5 : betWinCount);
         betWinString = 'Wettgewinner: ';
 
-        for (i = 0; i < betWinners.length; i++) {
+        for (i = 0; i < betWinShow; i++) {
             betWinString += betWinners[i].nick + '(' + betWinners[i].amount + ')';
             betWinString += (i+1 < betWinShow ? ', ' : '');
         }
 
-        betWinString += (betWinCount > betWinShow ? 'und ' + (betWinCount - betWinShow) + 'weitere.' : '.');
+        betWinString += (betWinCount > betWinShow ? 'und ' + (betWinCount - betWinShow) + ' weitere.' : '.');
 
         $.log('betSystem', logString);
         $.say($.lang.get('betsystem.end', betWinning, $.getPointsString(betPot), betPointsWon.toFixed(2)));
