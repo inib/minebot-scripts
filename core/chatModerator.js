@@ -351,7 +351,7 @@
          * @commandpath blacklist - Show usage of command to manipulate the blacklist of words in chat - Administrator
          */
         if (command.equalsIgnoreCase('blacklist')) {
-            if (!$.isAdmin(sender)) {
+            if (!$.isModv3(sender, event.getTags())) {
                 //$.say($.whisperPrefix(sender) + $.adminMsg);
                 return;
             }
@@ -410,7 +410,7 @@
          * @commandpath whitelist - Shows usage of command to manipulate the whitelist links - Administrator
          */
         if (command.equalsIgnoreCase('whiteList')) {
-            if (!$.isAdmin(sender)) {
+            if (!$.isModv3(sender, event.getTags())) {
                 //$.say($.whisperPrefix(sender) + $.adminMsg);
                 return;
             }
@@ -974,8 +974,8 @@
             $.registerChatCommand('./core/chatmoderator.js', 'permit', 2);
             $.registerChatCommand('./core/chatmoderator.js', 'moderation', 1);
             $.registerChatCommand('./core/chatmoderator.js', 'mod', 1);
-            $.registerChatCommand('./core/chatmoderator.js', 'blacklist', 1);
-            $.registerChatCommand('./core/chatmoderator.js', 'whitelist', 1);
+            $.registerChatCommand('./core/chatmoderator.js', 'blacklist', 2);
+            $.registerChatCommand('./core/chatmoderator.js', 'whitelist', 2);
         }
     });
 
