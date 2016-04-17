@@ -68,8 +68,8 @@
     }
 
     function checkTrigger(opfer) {
-        if (((opfer - 6) % 33) == 0) {
-            if (((opfer - 6) % 132) == 0) {
+        if (((opfer - 6) % 33) === 0) {
+            if (((opfer - 6) % 132) === 0) {
                 return 666;
             }
             else {
@@ -112,7 +112,7 @@
         if ($.getUserPoints(user) > 50) {
             opferList.push(user);
             $.inidb.decr('points', user, 50);
-        };
+        }
 
         var fehler = 0;
 
@@ -130,7 +130,7 @@
                 fehler++;
                 i--;
             }
-            if (fehler >= 25) { break; };
+            if (fehler >= 25) { break; }
         }        
 
         setTimeout(function() {

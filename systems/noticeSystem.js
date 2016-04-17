@@ -33,7 +33,7 @@
         }
 
         $.inidb.RemoveFile('tempnotices');
-    };
+    }
     /**
      * @function sendNotice
      */
@@ -54,7 +54,7 @@
         } else {
             $.say(notice);
         }
-    };
+    }
 
     /**
      * @event ircChannelMessage

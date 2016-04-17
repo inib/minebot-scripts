@@ -24,7 +24,7 @@
         }
 
         $.consoleDebug($.lang.get('gamemessages.console.loaded', winMessagesCount, lostMessagesCount));
-    };
+    }
 
     /**
      * @function getWin
@@ -39,7 +39,7 @@
         } while (rand == lastRandom);
         lastRandom = rand;
         return $.lang.get('gamemessages.win.' + rand, $.resolveRank(username));
-    };
+    }
 
     /**
      * @function getLose
@@ -54,7 +54,7 @@
         } while (rand == lastRandom);
         lastRandom = rand;
         return $.lang.get('gamemessages.lost.' + rand, $.resolveRank(username));
-    };
+    }
 
     var t = setTimeout(function() {
         if ($.bot.isModuleEnabled('./core/gameMessages.js')) {

@@ -28,7 +28,7 @@
         });
 
         return list.splice(0, 5);
-    };
+    }
 
     /**
      * @event command

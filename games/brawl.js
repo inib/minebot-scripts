@@ -24,12 +24,12 @@
 	function compareBrawlers(a, b) {
 		if (a.wins > b.wins) {
 			return -1;
-		};
+		}
 		if (b.wins > a.wins) {
 			return 1;
 		}
 		return 0;
-	};
+	}
 
     /**
      * @event command
@@ -42,6 +42,7 @@
 		var currentTime = $.systemTime();
 		var argsString = event.getArguments().trim();
 		var args = event.getArgs();
+		var i = 0;
 
 		 /**
          * @commandpath brawl - Start a brawl. Stream has to run, cooldown 15 min - Moderator
@@ -117,12 +118,12 @@
 							var finalist = brawl_table[Math.floor(Math.random() * brawl_table.length)];
 							if (!$.list.contains(final_brawlers, finalist)) {
 								final_brawlers.push(finalist);
-							};
+							}
 						}
 	
-						for (var i = 0; i < final_brawlers.length; i++) {
+						for (i = 0; i < final_brawlers.length; i++) {
 							$.inidb.incr('points', final_brawlers[i].toLowerCase(), 25);
-						};
+						}
 						$.say($.lang.get('brawl.end.top3', final_brawlers.join(", "), $.getPointsString(25)));						
 						brawl_table = final_brawlers;
 					}
@@ -154,7 +155,7 @@
 
 					var top10keys = $.inidb.GetKeyList("brawl", "");
 					var top10items = [];
-					for (var i = 0; i < top10keys.length; i++) {
+					for (i = 0; i < top10keys.length; i++) {
 						top10items[i] = { user:top10keys[i], wins: parseInt($.inidb.get('brawl', top10keys[i])) };
 					}
 
@@ -163,8 +164,12 @@
 					var j = 1;
 					var top10string = "Top 10 Brawler:";
 					var k = 10;
-					if (k > top10items.length) { k = top10items.length; };
-					for (var i = 0; i < k; i++) {
+					
+					if (k > top10items.length) { 
+						k = top10items.length;
+					 }
+					 
+					for (i = 0; i < k; i++) {
 						top10string += " " + j + ". " + top10items[i].user + " (" + top10items[i].wins + ")";
 						if (i + 1 >= k) {
 							break;
@@ -194,7 +199,7 @@
 				brawl_table.push(username);
 
 				var brawlers = "";
-				for (var i = 0; i < brawl_table.length; i++) {
+				for (i = 0; i < brawl_table.length; i++) {
 					brawlers += " " + brawl_table[i];
 				}
 			}

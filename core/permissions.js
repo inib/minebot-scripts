@@ -27,7 +27,7 @@
      */
     function userExists(username) {
         return $.list.contains(users, username, 0);
-    };
+    }
 
     /**
      * @function isBot
@@ -37,7 +37,7 @@
      */
     function isBot(username) {
         return (username.equalsIgnoreCase($.botName) || $.list.contains(botlist, username.toLowerCase()));
-    };
+    }
 
 
     /**
@@ -48,7 +48,7 @@
      */
     function isOwner(username) {
         return username.equalsIgnoreCase($.ownerName);
-    };
+    }
 
 
     /**
@@ -59,7 +59,7 @@
      */
     function isCaster(username) {
         return $.getUserGroupId(username) == 0 || $.isOwner(username) || $.isBot(username);
-    };
+    }
 
     /**
      * @function isAdmin
@@ -69,7 +69,7 @@
      */
     function isAdmin(username) {
         return $.getUserGroupId(username) <= 1 || $.isOwner(username) || $.isBot(username);
-    };
+    }
 
 
     /**
@@ -80,7 +80,7 @@
      */
     function isMod(username) {
         return $.getUserGroupId(username) <= 2 || $.isOwner(username) || $.isBot(username);
-    };
+    }
 
 
     /**
@@ -92,7 +92,7 @@
      */
     function isModv3(username, tags) {
         return $.isAdmin(username) || (tags != null && tags != '{}' && tags.get('user-type').equalsIgnoreCase('mod')) || $.isMod(username);
-    };
+    }
 
     /**
      * @function isSub
@@ -108,7 +108,7 @@
             }
         }
         return false;
-    };
+    }
 
     /**
      * @function isSubv3
@@ -119,7 +119,7 @@
      */
     function isSubv3(username, tags) {
         return (tags != null && tags != '{}' && tags.get('subscriber').equalsIgnoreCase('1')) || $.isSub(username);
-    };
+    }
     /**
      * @function isTurbo
      * @export $
@@ -128,7 +128,7 @@
      */
     function isTurbo(userTags) {
         return (userTags != null && userTags != '{}' && userTags.get('turbo').equalsIgnoreCase('1')) || false;
-    };
+    }
 
     /**
      * @function isDonator
@@ -138,7 +138,7 @@
      */
     function isDonator(username) {
         return $.getUserGroupId(username) == 4;
-    };
+    }
 
     /**
      * @function isHoster
@@ -148,7 +148,7 @@
      */
     function isHoster(username) {
         return $.getUserGroupId(username) == 5;
-    };
+    }
 
     /**
      * @function isReg
@@ -158,7 +158,7 @@
      */
     function isReg(username) {
         return $.getUserGroupId(username) <= 6 || $.isOwner(username) || $.isBot(username);
-    };
+    }
 
     /**
      * @function hasModeO
@@ -168,7 +168,7 @@
      */
     function hasModeO(username) {
         return $.list.contains(modeOUsers, username.toLowerCase(), 0);
-    };
+    }
 
     /**
      * @function hasModList
@@ -178,7 +178,7 @@
      */
     function hasModList(username) {
         return $.list.contains(modListUsers, username.toLowerCase());
-    };
+    }
 
     /**
      * @function getUserGroupId
@@ -193,7 +193,7 @@
         } else {
             return 7;
         }
-    };
+    }
 
     /**
      * @function getUserGroupName
@@ -203,7 +203,7 @@
      */
     function getUserGroupName(username) {
         return $.getGroupNameById($.getUserGroupId(username));
-    };
+    }
 
     /**
      * @function getGroupNameById
@@ -218,7 +218,7 @@
         } else {
             return userGroups[7];
         }
-    };
+    }
 
     /**
      * @function getGroupIdByName
@@ -234,7 +234,7 @@
             }
         }
         return 7;
-    };
+    }
 
     /**
      * @function getGroupPointMultiplier
@@ -244,7 +244,7 @@
      */
     function getGroupPointMultiplier(username) {
         return parseInt($.inidb.get('grouppoints', $.getUserGroupName(username)));
-    };
+    }
 
     /**
      * @function setUserGroupById
@@ -256,7 +256,7 @@
         if ($.userExists(username.toLowerCase())) {
             $.inidb.set('group', username.toLowerCase(), id);
         }
-    };
+    }
 
     /**
      * @function setUserGroupByName
@@ -266,7 +266,7 @@
      */
     function setUserGroupByName(username, groupName) {
         $.setUserGroupById(username, $.getGroupIdByName(groupName));
-    };
+    }
 
     /**
      * @function reloadGroups
@@ -279,7 +279,7 @@
         for (i in groupKeys) {
             userGroups[parseInt(groupKeys[i])] = $.inidb.get('groups', groupKeys[i]);
         }
-    };
+    }
 
     /**
      * @function getUsernamesArrayByGroupId
@@ -298,7 +298,7 @@
             }
         }
         return array;
-    };
+    }
 
     /**
      * @function addSubUsersList
@@ -307,7 +307,7 @@
      */
     function addSubUsersList(username) {
         username = (username + '').toLowerCase();
-        for (i in subUsers) {
+        for (var i in subUsers) {
             if (subUsers[i][0].equalsIgnoreCase(username)) {
                 return;
             }
@@ -324,7 +324,7 @@
         var newSubUsers = [];
 
         username = (username + '').toLowerCase();
-        for (i in subUsers) {
+        for (var i in subUsers) {
             if (!subUsers[i][0].equalsIgnoreCase(username)) {
                 newSubUsers.push([subUsers[i][0], subUsers[i][1]]);
             }
@@ -359,7 +359,7 @@
                 setUserGroupByName(username, 'Subscriber');
             }
         }
-    };
+    }
 
     /**
      * @function generateDefaultGroups
@@ -422,7 +422,7 @@
         }
 
         $.inidb.set('group', $.ownerName.toLowerCase(), 0);
-    };
+    }
 
     /**
      * @event ircJoinComplete

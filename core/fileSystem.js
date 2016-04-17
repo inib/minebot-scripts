@@ -27,7 +27,7 @@
             $.consoleLn('Failed to open \'' + path + '\': ' + e);
         }
         return lines;
-    };
+    }
 
     /**
      * @function mkDir
@@ -38,7 +38,7 @@
     function mkDir(path) {
         var dir = new JFile(path);
         return dir.mkdir();
-    };
+    }
 
     /**
      * @function moveFile
@@ -53,7 +53,7 @@
         if ((fileO != null && pathO != null) || (file != "" && path != "")) {
             org.apache.commons.io.FileUtils.moveFileToDirectory(file, path, true);
         }
-    };
+    }
 
     /**
      * @function saveArray
@@ -74,7 +74,7 @@
         } catch (e) {
             $.consoleLn('Failed to write to \'' + path + '\': ' + e);
         }
-    };
+    }
 
     /**
      * @function writeToFile
@@ -92,7 +92,7 @@
         } catch (e) {
             $.consoleLn('Failed to write to \'' + path + '\': ' + e);
         }
-    };
+    }
 
     /**
      * @function touchFile
@@ -106,7 +106,7 @@
         } catch (e) {
             $.consoleLn('Failed to touch \'' + path + '\': ' + e);
         }
-    };
+    }
 
     /**
      * @function deleteFile
@@ -125,7 +125,7 @@
         } catch (e) {
             $.consoleLn('Failed to delete \'' + path + '\': ' + e)
         }
-    };
+    }
 
     /**
      * @function fileExists
@@ -140,7 +140,7 @@
         } catch (e) {
             return false;
         }
-    };
+    }
 
     /**
      * @function findFiles
@@ -166,7 +166,7 @@
             $.consoleLn('Failed to search in \'' + directory + '\': ' + e)
         }
         return [];
-    };
+    }
 
     /**
      * @function isDirectory
@@ -181,7 +181,7 @@
         } catch (e) {
             return false;
         }
-    };
+    }
 
     /**
      * @function findSize
@@ -192,7 +192,7 @@
     function findSize(file) {
         var fileO = new JFile(file);
         return fileO.length();
-    };
+    }
 
     /** Export functions to API */
     $.deleteFile = deleteFile;

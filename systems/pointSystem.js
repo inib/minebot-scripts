@@ -29,7 +29,7 @@
         } else {
             return 0;
         }
-    };
+    }
 
     /**
      * @function getPointsString
@@ -42,7 +42,7 @@
             return points + ' ' + pointNameSingle;
         }
         return points + ' ' + pointNameMultiple;
-    };
+    }
 
     /**
      * @function hasPerm
@@ -60,7 +60,7 @@
             return false;
         }
         return true;
-    };
+    }
 
     /**
      * @function registerPointCommands
@@ -94,7 +94,7 @@
             $.registerChatSubcommand(pointNameMultiple.toLowerCase(), 'setinterval', 1);
             $.registerChatSubcommand(pointNameMultiple.toLowerCase(), 'user', 7);
         }
-    };
+    }
 
     /**
      * @function runPointsPayout
@@ -142,7 +142,7 @@
         $.log('pointSystem', 'Executed ' + pointNameMultiple + ' payouts. Users: ' + (uUsers.length > 0 ? uUsers.join(', ') : 'none'));
 
         lastPayout = now;
-    };
+    }
 
     /**
      * @event command
@@ -225,7 +225,7 @@
                     actionArg2 = parseInt(actionArg2);
                     if (isNaN(actionArg2)) {
                         $.say($.whisperPrefix(sender) + $.lang.get('pointsystem.take.usage'));
-                        return
+                        return;
                     }
 
                     if (!actionArg1 || !$.user.isKnown(actionArg1)) {
@@ -240,7 +240,7 @@
 
                     $.inidb.decr('points', actionArg1, actionArg2);
                     $.say($.lang.get('pointsystem.take.success',
-                        $.getPointsString(actionArg2), $.username.resolve(actionArg1), $.getPointsString($.getUserPoints(actionArg1))))
+                        $.getPointsString(actionArg2), $.username.resolve(actionArg1), $.getPointsString($.getUserPoints(actionArg1))));
                 }
 
                 /**
@@ -295,8 +295,8 @@
                  * @commandpath points setname delete - Deletes single and multiple custom names - Administrator
                  */
                 else if (action.equalsIgnoreCase('setname')) {
-                    (actionArg1 + '');
-                    (actionArg2 + '');
+                    (actionArg1 += '');
+                    (actionArg2 += '');
 
                     if (actionArg1 == 'single' && actionArg2) {
                         temp = pointNameSingle;

@@ -55,7 +55,7 @@
             blackList.push($.inidb.get('blackList', keys[i]));
         }
         $.consoleDebug('blacklist loaded');
-    };
+    }
 
     /**
      * @function loadWhiteList
@@ -67,7 +67,7 @@
             whiteList.push($.inidb.get('whiteList', keys[i]));
         }
         $.consoleDebug('whitelist loadee');
-    };
+    }
 
     /**
      * @function timeoutUser
@@ -80,7 +80,7 @@
         setTimeout(function() {
             $.say('.timeout ' + user + ' ' + time);
         }, 1000);
-    };
+    }
 
     /**
      * @function deleteMessage
@@ -98,7 +98,7 @@
         timeoutUser(user, warningTime);
         setTimeoutAndCooldown(user);
         warning = $.lang.get('chatmoderator.warning');
-    };
+    }
 
     /**
      * @function sendMessage
@@ -109,7 +109,7 @@
         if (messageCooldown.length <= 1) {
             $.say('@' + $.username.resolve(user) + ', ' + message + ' ' + warning);
         }
-    };
+    }
 
     /**
      * @function setTimeoutAndCooldown
@@ -121,7 +121,7 @@
         if (msgCooldownSec > 0) {
             messageCooldown.push($.systemTime());
         }
-    };
+    }
 
     /**
      * @function cleartimeouts
@@ -143,7 +143,7 @@
             }
             clearTimeout(b);
         }, (60 * 60 * 1000));
-    };
+    }
 
     /**
      * @function permitUser
@@ -161,7 +161,7 @@
             }
             clearTimeout(c);
         }, (linkPermitTime * 1000));
-    };
+    }
 
     /**
      * @function getModerationFilterStatus
@@ -170,7 +170,7 @@
      */
     function getModerationFilterStatus(filter) {
         return (filter ? $.lang.get('common.enabled') : $.lang.get('common.disabled'));
-    };
+    }
 
     /**
      * @function checkBlackList
@@ -190,7 +190,7 @@
             }
         }
         return false;
-    };
+    }
 
     /**
      * @function checkPermitList
@@ -208,7 +208,7 @@
             }
         }
         return false;
-    };
+    }
 
     /**
      * @function checkWhiteList
@@ -225,7 +225,7 @@
             }
         }
         return false;
-    };
+    }
 
     /**
      * @event ircChannelMessage

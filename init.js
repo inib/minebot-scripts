@@ -30,7 +30,7 @@
 
         this.getModuleName = function() {
             return this.scriptFile.replace(/([a-z]+)\.js$/i, '$1');
-        }
+        };
     }
 
     /**
@@ -52,7 +52,7 @@
      */
     function consoleLn(message) {
         Packages.com.gmt2001.Console.out.println(java.util.Objects.toString(message));
-    };
+    }
 
     /**
      * @function consoleDebug
@@ -61,7 +61,7 @@
      */
     function consoleDebug(message) {
         Packages.com.gmt2001.Console.debug.println(java.util.Objects.toString(message));
-    };
+    }
 
     /**
      * @function generateJavaTrampolines
@@ -136,7 +136,7 @@
                 }
             }
         }
-    };
+    }
 
     /**
      * @function loadScriptRecursive
@@ -162,7 +162,7 @@
                 loadScript(path + '/' + list[i], false, silent);
             }
         }
-    };
+    }
 
     /**
      * @function getModuleIndex
@@ -177,7 +177,7 @@
             }
         }
         return -1;
-    };
+    }
 
     /**
      * @function isModuleEnabled
@@ -191,7 +191,7 @@
             return modules[i].enabled;
         }
         return false;
-    };
+    }
 
     /**
      * @function isModuleLoaded
@@ -201,7 +201,7 @@
      */
     function isModuleLoaded(scriptFile) {
         return (getModuleIndex(scriptFile) > -1);
-    };
+    }
 
     /**
      * @function getModule
@@ -214,7 +214,7 @@
             return modules[i];
         }
         return null;
-    };
+    }
 
     /**
      * @function getHookIndex
@@ -230,7 +230,7 @@
             }
         }
         return -1;
-    };
+    }
 
     /**
      * @function addHook
@@ -246,7 +246,7 @@
         } else {
             hooks.push(new Hook(scriptFile, hook, handler));
         }
-    };
+    }
 
     /**
      * @function removeHook
@@ -259,7 +259,7 @@
         if (i > -1) {
             hooks.splice(i, 1);
         }
-    };
+    }
 
     /**
      * @function callHook
@@ -272,7 +272,7 @@
 
         // Lookup the JS file that contains the command, this removes the need to cycle through all files.
         if (hook == 'command') {
-            var i = getHookIndex(getCommandScript(event.getCommand()), hook);
+            i = getHookIndex(getCommandScript(event.getCommand()), hook);
             if (i == -1) // Do not handle init.js commands here.
                 return;
             if (isModuleEnabled(hooks[i].scriptFile) || alwaysRun) {
@@ -293,7 +293,7 @@
                 }
             }
         }
-    };
+    }
 
     /**
      * Load her up!
@@ -378,7 +378,7 @@
                 cooldown;
 
             if (!$.isModv3(sender, event.getTags()) && $.commandPause.isPaused()) {
-                consoleDebug($.lang.get('commandpause.isactive'))
+                consoleDebug($.lang.get('commandpause.isactive'));
                 return;
             }
 
@@ -671,7 +671,7 @@
 
         $.logEvent('init.js', 553, 'Bot locked & loaded!');
         $.consoleDebug('Bot locked & loaded!');
-        $.consoleLn('')
+        $.consoleLn('');
 
         /**
          * @event command
@@ -829,9 +829,9 @@
 
                     if (index > 1) {
                         if (modules[index].enabled) {
-                            $.say($.whisperPrefix(sender) + $.lang.get('init.module.check.enabled', modules[index].getModuleName()))
+                            $.say($.whisperPrefix(sender) + $.lang.get('init.module.check.enabled', modules[index].getModuleName()));
                         } else {
-                            $.say($.whisperPrefix(sender) + $.lang.get('init.module.check.disabled', modules[index].getModuleName()))
+                            $.say($.whisperPrefix(sender) + $.lang.get('init.module.check.disabled', modules[index].getModuleName()));
                         }
                     } else {
                         $.say($.whisperPrefix(sender) + $.lang.get('init.module.404'));

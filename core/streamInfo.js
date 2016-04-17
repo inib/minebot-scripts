@@ -7,7 +7,7 @@
      */
     function isOnline(channelName) {
         return !$.twitch.GetStream(channelName).isNull('stream');
-    };
+    }
 
     /**
      * @function getStatus
@@ -22,7 +22,7 @@
             return channelData.getString('status');
         }
         return '';
-    };
+    }
 
     /**
      * @function getGame
@@ -37,7 +37,7 @@
             return channelData.getString("game");
         }
         return '';
-    };
+    }
 
     /**
      * @function getStreamUptimeSeconds
@@ -87,7 +87,7 @@
         } else {
             return 'Stream is offline';
         }
-    };
+    }
 
     /**
      * @function getStreamStartedAt
@@ -105,7 +105,7 @@
 
         createdAtDate = new Date(stream.getJSONObject('stream').getString('created_at'));
         return $.dateToString(createdAtDate);
-    };
+    }
 
     /**
      * @function getViewers
@@ -121,7 +121,7 @@
         } else {
             return 0;
         }
-    };
+    }
 
     /**
      * @function getFollows
@@ -137,7 +137,7 @@
         } else {
             return 0;
         }
-    };
+    }
 
     /**
      * @function updateGame
@@ -164,7 +164,7 @@
             $.consoleDebug(http.getString('_exception') + ' ' + http.getString('_exceptionMessage'));
             $.logError('streamCommand.js', 34, http.getString('_exception') + ' ' + http.getString('_exceptionMessage'));
         }
-    };
+    }
 
     /**
      * @function updateStatus
@@ -191,7 +191,7 @@
             $.consoleDebug(http.getString('_exception') + ' ' + http.getString('_exceptionMessage'));
             $.logError('streamCommand.js', 63, http.getString('_exception') + ' ' + http.getString('_exceptionMessage'));
         }
-    };
+    }
 
     /** Export functions to API */
     $.getFollows = getFollows;

@@ -23,7 +23,7 @@
             }
         }
         return false;
-    };
+    }
 
     /**
      * @function isKnown
@@ -33,7 +33,7 @@
      */
     function isKnown(username) {
         return $.inidb.exists('visited', username);
-    };
+    }
 
     /**
      * @function isFollower
@@ -52,7 +52,7 @@
             }
         }
         return false;
-    };
+    }
 
     /**
      * @function getCurrentHostTarget
@@ -60,7 +60,7 @@
      * @returns {string}
      */
     function getCurrentHostTarget() {
-        return currentHostTarget
+        return currentHostTarget;
     }
 
     /**
@@ -70,7 +70,7 @@
      * @returns {Number}
      */
     function strlen(str) {
-        if (str == null || str == undefined) {
+        if (str === null || str === undefined) {
             return 0;
         }
 
@@ -87,7 +87,7 @@
                 return str.length;
             }
         }
-    };
+    }
 
     /**
      * @function say
@@ -110,7 +110,7 @@
                 }
             }
         }
-    };
+    }
 
     /**
      * @function systemTime
@@ -119,7 +119,7 @@
      */
     function systemTime() {
         return parseInt(java.lang.System.currentTimeMillis());
-    };
+    }
 
     /**
      * @function rand
@@ -128,12 +128,12 @@
      * @returns {Number}
      */
     function rand(max) {
-        if (max == 0) {
+        if (max === 0) {
             return max;
         }
         $.random = new java.security.SecureRandom();
         return Math.abs($.random.nextInt()) % max;
-    };
+    }
 
     /**
      * @function randRange
@@ -147,7 +147,7 @@
             return min;
         }
         return $.rand(max) + min;
-    };
+    }
 
     /**
      * @function randElement
@@ -156,11 +156,11 @@
      * @returns {*}
      */
     function randElement(array) {
-        if (array == null) {
+        if (array === null) {
             return null;
         }
         return array[$.randRange(0, array.length - 1)];
-    };
+    }
 
     /**
      * @function arrayShuffle
@@ -186,7 +186,7 @@
      */
     function randInterval(min, max) {
         return Math.floor(Math.random() * (max - min + 1) + min);
-    };
+    }
 
     /**
      * @function trueRandRange
@@ -254,7 +254,7 @@
         }
 
         return $.randRange(min, max);
-    };
+    }
 
     /**
      * @function trueRandElement
@@ -267,7 +267,7 @@
             return null;
         }
         return array[$.trueRand(array.length - 1)];
-    };
+    }
 
     /**
      * @function trueRand
@@ -277,7 +277,7 @@
      */
     function trueRand(max) {
         return $.trueRandRange(0, max);
-    };
+    }
 
     /**
      * @function outOfRange
@@ -289,7 +289,7 @@
      */
     function outOfRange(number, min, max) {
         return (number < min && number > max);
-    };
+    }
 
     /**
      * @function getOrdinal
@@ -301,7 +301,7 @@
         var s = ["th", "st", "nd", "rd"],
             v = number % 100;
         return number + (s[(v - 20) % 10] || s[v] || s[0]);
-    };
+    }
 
     /**
      * @function getPercentage
@@ -312,7 +312,7 @@
      */
     function getPercentage(current, total) {
         return Math.ceil((current / total) * 100);
-    };
+    }
 
     /**
      * @function getIniDbBoolean
@@ -328,7 +328,7 @@
         } else {
             return (defaultValue);
         }
-    };
+    }
 
     /**
      * @function setIniDbBoolean
@@ -339,7 +339,7 @@
      */
     function setIniDbBoolean(fileName, key, state) {
         $.inidb.set(fileName, key, state.toString());
-    };
+    }
 
     /** Export functions to API */
     $.list = {
