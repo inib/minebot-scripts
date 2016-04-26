@@ -133,7 +133,7 @@
 						var numb = Math.floor(Math.random() * (brawl_table.length));
 						var winner = brawl_table[numb];
 
-						$.say($.lang.get('brawl.end.winner', winner, $.getPointsString(win)));
+						$.say($.lang.get('brawl.end.winner', $.resolveRank(winner), $.getPointsString(win)));
 
 						$.inidb.incr('points', winner.toLowerCase(), win);
 						$.inidb.incr('brawl', winner.toLowerCase(), 1);
