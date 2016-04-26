@@ -164,11 +164,16 @@
          */
         if (command.equalsIgnoreCase('points') || command.equalsIgnoreCase('point') || command.equalsIgnoreCase(pointNameMultiple) || command.equalsIgnoreCase(pointNameSingle)) {
             if (!action) {
+                var response = '';
                 if ($.getUserPoints(sender) == 0) {
-                    $.say($.whisperPrefix(sender) + $.lang.get('pointsystem.get.self.nopoints', pointNameMultiple));
+                    response = $.lang.get('pointsystem.get.self.nopoints', pointNameMultiple);
                 } else {
-                    $.say($.whisperPrefix(sender) + $.lang.get('pointsystem.get.self.withtime', ($.hasRank(sender) ? "the " + $.getRank(sender) : ""), $.getPointsString($.getUserPoints(sender)), $.getUserTimeString(sender)));
+                    response = $.lang.get('pointsystem.get.self.withtime', ($.hasRank(sender) ? "the " + $.getRank(sender) : ""), $.getPointsString($.getUserPoints(sender)), $.getUserTimeString(sender));
                 }
+                if ($.bot.isModuleEnabled('./systems/ranksSystem.js') && (getUserPoints(sender) > rankEligableCost) && (userTime >= rankEligableTime)) {
+                    response += ' ' + $.lang.get('ranks.rank.eligable');
+                }
+                $.say($.whisperPrefix(sender) + response);
             } else {
 
                 /**
