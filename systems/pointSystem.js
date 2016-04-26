@@ -168,7 +168,7 @@
                 if ($.getUserPoints(sender) == 0) {
                     response = $.lang.get('pointsystem.get.self.nopoints', pointNameMultiple);
                 } else {
-                    response = $.lang.get('pointsystem.get.self.withtime', ($.hasRank(sender) ? "the " + $.getRank(sender) : ""), $.getPointsString($.getUserPoints(sender)), $.getUserTimeString(sender));
+                    response = $.lang.get('pointsystem.get.self.withtime', ($.hasRank(sender) ? $.getRank(sender) : ""), $.getPointsString($.getUserPoints(sender)), $.getUserTimeString(sender));
                 }
                 if ($.bot.isModuleEnabled('./systems/ranksSystem.js') && (getUserPoints(sender) > rankEligableCost) && (userTime >= rankEligableTime)) {
                     response += ' ' + $.lang.get('ranks.rank.eligable');
