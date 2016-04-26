@@ -150,6 +150,7 @@
     $.bind('command', function(event) {
         var sender = event.getSender().toLowerCase(),
             username = $.username.resolve(sender, event.getTags()),
+            userTime = parseInt(parseInt($.inidb.get('time', sender)) / 3600),
             command = event.getCommand(),
             args = event.getArgs(),
             action = args[0],
