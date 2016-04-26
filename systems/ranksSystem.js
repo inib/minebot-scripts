@@ -56,7 +56,7 @@
         if (ranksTimeTable === undefined) {
             loadRanksTimeTable();
         }
-        if (ranksTimeTable.length == 0) {
+        if (ranksTimeTable.length === 0) {
             return false;
         }
 
@@ -282,6 +282,12 @@
         if (command.equalsIgnoreCase('rank')) {
 
             if (args[0]) {
+
+                if (args[0].equalsIgnoreCase('help')) {
+                    $.say($.whisperPrefix(sender) + $.lang.get('ranks.set.usage', rankEligableTime, rankEligableCost, $.pointNameMultiple));
+                    return;
+                }
+                
                 if (args[0].equalsIgnoreCase('del')) {
                     if (inidb.exists('viewerRanks', sender.toLowerCase())) {
                         $.say($.whisperPrefix(sender) + $.lang.get('ranks.delself.success'));
@@ -322,11 +328,16 @@
                     return;
                 }
             }
+            
+            if ($.inidb.exists('viewerRanks', username.toLowerCase())) {
+                $.say($.whisperPrefix(sender) + $.lang.get('ranks.rank.customsuccess', username, $.inidb.get('viewerRanks', username.toLowerCase())));
+                return;
+            }
 
             if (ranksTimeTable === undefined) {
                 loadRanksTimeTable();
             }
-            if (ranksTimeTable.length == 0) {
+            if (ranksTimeTable.length === 0) {
                 $.say($.whisperPrefix(sender) + $.lang.get('ranks.rank.404'));
                 return;
             }
@@ -339,23 +350,26 @@
                     i = ranksTimeTable.length;
                 }
             }
-
-            if ($.inidb.exists('viewerRanks', username.toLowerCase())) {
-                $.say($.lang.get('ranks.rank.customsuccess', username, $.inidb.get('viewerRanks', username.toLowerCase())));
-                return;
-            }
+            
+            var response = '';
 
             if (userLevel <= ranksTimeTable.length - 2) {
                 nextLevel = parseInt(userLevel) + 1;
                 timeUntilNextRank = parseInt(ranksTimeTable[nextLevel]) - userTime;
                 if (userLevel == -1) {
-                    $.say($.whisperPrefix(sender) + $.lang.get('ranks.rank.norank.success', username, timeUntilNextRank));
+                    response = $.whisperPrefix(sender) + $.lang.get('ranks.rank.norank.success', username, timeUntilNextRank);
                 } else {
-                    $.say($.whisperPrefix(sender) + $.lang.get('ranks.rank.success', username, $.inidb.get('ranksMapping', ranksTimeTable[userLevel].toString()), timeUntilNextRank));
+                    response = $.whisperPrefix(sender) + $.lang.get('ranks.rank.success', username, $.inidb.get('ranksMapping', ranksTimeTable[userLevel].toString()), timeUntilNextRank);
                 }
             } else {
-                $.say($.whisperPrefix(sender) + $.lang.get('ranks.rank.maxsuccess', username, $.inidb.get('ranksMapping', ranksTimeTable[userLevel].toString())));
+                response = $.whisperPrefix(sender) + $.lang.get('ranks.rank.maxsuccess', username, $.inidb.get('ranksMapping', ranksTimeTable[userLevel].toString()));
             }
+            
+            if ($.bot.isModuleEnabled('./systems/pointSystem.js') && (getUserPoints(sender) > rankEligableCost) && (userTime >= rankEligableTime)) {
+                response += ' ' + $.lang.get('ranks.rank.eligable');
+            }
+            
+            $.say(response);
             return;
         }
 
@@ -368,8 +382,10 @@
     $.bind('initReady', function() {
         if ($.bot.isModuleEnabled('./systems/ranksSystem.js')) {
             $.registerChatCommand('./systems/ranksSystem.js', 'rank', 7);
-            $.registerChatCommand('./systems/ranksSystem.js', 'rankedit', 1);
-
+            $.registerChatCommand('./systems/ranksSystem.js', 'rankedit', 1);            
+            $.registerChatSubcommand('rank', 'set', 7);
+            $.registerChatSubcommand('rank', 'help', 7);
+            $.registerChatSubcommand('rank', 'del', 7);
             $.registerChatSubcommand('rankedit', 'add', 1);
             $.registerChatSubcommand('rankedit', 'del', 1);
             $.registerChatSubcommand('rankedit', 'custom', 1);
