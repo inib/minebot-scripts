@@ -144,30 +144,33 @@
 						
 						// debug
 						$.log('brawlGame', '3 final brawlers selected: ' + final_brawlers.join(", ") + '.');
-	
+
 						for (i = 0; i < final_brawlers.length; i++) {
 							$.inidb.incr('points', final_brawlers[i].toLowerCase(), 25);
 						}
 						$.say($.lang.get('brawl.end.top3', final_brawlers.join(", "), $.getPointsString(25)));						
 						brawl_table = final_brawlers;
 					}
-					
+
 					// debug
 					$.log('brawlGame', 'final brawl stage started, participants: ' + brawl_table.join(", ") + '.');
-					
+	
 					setTimeout(function() {
 	
 						var numb = Math.floor(Math.random() * (brawl_table.length));
 						var winner = brawl_table[numb];
-						
-						// debug						
+
+						// debug
 						$.log('brawlGame', 'Brawl Winner selected: ' + winner + '.');
 						
-						try {
-    						$.say($.lang.get('brawl.end.winner', $.resolveRank(winner), $.getPointsString(win)));
+						// double safe rank
+						if ($.hasRank(winner)) {
+							$.log('brawlGame', 'Winner has rank: ' + winner + '.');
+							$.say($.lang.get('brawl.end.winner', $.resolveRank(winner), $.getPointsString(win)));
 						}
-						catch(err) {
-							$.log('brawlGame', 'Error resolving rank: ' + err.message + '.');
+						else {
+							$.log('brawlGame', 'Winner has no rank: ' + winner + '.');
+							$.say($.lang.get('brawl.end.winner', winner, $.getPointsString(win)));
 						}
 
 						$.inidb.incr('points', winner.toLowerCase(), win);
