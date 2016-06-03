@@ -80,7 +80,9 @@
 					return;
 				}
 
-				$.logEvent("brawl.js", 82, "Brawl started by: " + username);
+				$.logEvent('brawl.js', 82, 'Brawl started by: ' + username);
+				// Debug
+				$.log('brawlGame', 'Brawl started by ' + username);
 
 				brawl_table = [];				
 				brawlLastBrawl = $.systemTime();
@@ -98,28 +100,50 @@
 	
 					brawlActive = false;
 	
-					var brawlers = "";
+					var brawlers = '';
 					for (var i = 0; i < brawl_table.length; i++) {
-						brawlers += " "	+ brawl_table[i];
+						brawlers += ' '	+ brawl_table[i];
 					}
+					// Debug
+					$.log('brawlGame', 'Brawl ended, ' + brawl_table.length + ' participants: ' + brawlers);
 		
 					if (brawl_table.length < brawlMinCount) {
 						$.say($.lang.get('brawl.end.fail'));
-						$.logEvent("brawl.js", 107, "Brawl canceled, not enough brawlers");
+						$.logEvent('brawl.js', 107, 'Brawl canceled, not enough brawlers');
+						// Debug
+						$.log('brawlGame', 'Brawl canceled, brawl_tabl.length (' + brawl_table.length + ') < brawlTableLength: (' + brawlMinCount + ').');
 						return;
 					}
-	
-					var brawltimer = 15;
+					
+					// second callback for subBrawl
+					var brawltimer = 1 * 1000;
 	
 					if (brawl_table.length > 14) {
 						brawltimer = 30 * 1000;
-						while (final_brawlers.length < 3)
-						{
-							var finalist = brawl_table[Math.floor(Math.random() * brawl_table.length)];
-							if (!$.list.contains(final_brawlers, finalist)) {
-								final_brawlers.push(finalist);
-							}
+						// Debug
+						$.log('brawlGame', 'Brawl extended, brawl_table.length (' + brawl_table.length + ') > 14.');
+						
+						// nice code alpine Kappa
+						
+						//while (final_brawlers.length < 3)
+						//{
+						//	var finalist = brawl_table[Math.floor(Math.random() * brawl_table.length)];
+						//	if (!$.list.contains(final_brawlers, finalist)) {
+						//		final_brawlers.push(finalist);
+						//	}
+						//}
+						
+						// new selection algo
+						var randWinner = 0;
+						
+						for (i = 0; i < 3; i++) {							
+							randWinner = Math.floor(Math.random() * brawl_table.length);
+							final_brawlers.push(brawl_table[randWinner]);
+							brawl_table.splice(randWinner, 1);
 						}
+						
+						// debug
+						$.log('brawlGame', '3 final brawlers selected: ' + final_brawlers.join(", ") + '.');
 	
 						for (i = 0; i < final_brawlers.length; i++) {
 							$.inidb.incr('points', final_brawlers[i].toLowerCase(), 25);
@@ -127,18 +151,29 @@
 						$.say($.lang.get('brawl.end.top3', final_brawlers.join(", "), $.getPointsString(25)));						
 						brawl_table = final_brawlers;
 					}
-	
+					
+					// debug
+					$.log('brawlGame', 'final brawl stage started, participants: ' + brawl_table.join(", ") + '.');
+					
 					setTimeout(function() {
 	
 						var numb = Math.floor(Math.random() * (brawl_table.length));
 						var winner = brawl_table[numb];
-
-						$.say($.lang.get('brawl.end.winner', $.resolveRank(winner), $.getPointsString(win)));
+						
+						// debug						
+						$.log('brawlGame', 'Brawl Winner selected: ' + winner + '.');
+						
+						try {
+    						$.say($.lang.get('brawl.end.winner', $.resolveRank(winner), $.getPointsString(win)));
+						}
+						catch(err) {
+							$.log('brawlGame', 'Error resolving rank: ' + err.message + '.');
+						}
 
 						$.inidb.incr('points', winner.toLowerCase(), win);
 						$.inidb.incr('brawl', winner.toLowerCase(), 1);
 
-						$.logEvent("brawl.js", 140, "Brawl won by " + winner + ". Reward: "  + $.getPointsString(win));
+						$.logEvent('brawl.js', 140, 'Brawl won by ' + winner + '. Reward: '  + $.getPointsString(win));
 
 					}, (brawltimer));
 	
@@ -151,9 +186,9 @@
              */
 			if (args.length >= 1) {
 
-				if (args[0] == "top10") {
+				if (args[0] == 'top10') {
 
-					var top10keys = $.inidb.GetKeyList("brawl", "");
+					var top10keys = $.inidb.GetKeyList('brawl', '');
 					var top10items = [];
 					for (i = 0; i < top10keys.length; i++) {
 						top10items[i] = { user:top10keys[i], wins: parseInt($.inidb.get('brawl', top10keys[i])) };
@@ -162,7 +197,7 @@
 					top10items.sort(compareBrawlers);
 
 					var j = 1;
-					var top10string = "Top 10 Brawler:";
+					var top10string = 'Top 10 Brawler:';
 					var k = 10;
 					
 					if (k > top10items.length) { 
@@ -170,7 +205,7 @@
 					 }
 					 
 					for (i = 0; i < k; i++) {
-						top10string += " " + j + ". " + top10items[i].user + " (" + top10items[i].wins + ")";
+						top10string += ' ' + j + '. ' + top10items[i].user + ' (' + top10items[i].wins + ')';
 						if (i + 1 >= k) {
 							break;
 						}
@@ -192,19 +227,21 @@
 			if (!brawlActive)
 				return;
 
-			$.logEvent("brawl.js", 190, username + " piled on.");
+			$.logEvent('brawl.js', 190, username + 'piled on.');
+			// Debug
+			$.log('brawlGame', username + 'piled on.');
 
 			if (!$.list.contains(brawl_table, username)) {
 
 				brawl_table.push(username);
 
-				var brawlers = "";
+				var brawlers = '';
 				for (i = 0; i < brawl_table.length; i++) {
-					brawlers += " " + brawl_table[i];
+					brawlers += ' ' + brawl_table[i];
 				}
 			}
 
-			$.logEvent("brawl.js", 202, "Brawlers:  " + brawl_table.join(", "));
+			$.logEvent('brawl.js', 202, 'Brawlers:  ' + brawl_table.join(', '));
 		}
 	});
 
