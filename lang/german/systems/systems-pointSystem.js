@@ -3,8 +3,8 @@ $.lang.register('pointsystem.add.all.usage', 'Anleitung: "!points all [Menge]"')
 $.lang.register('pointsystem.add.error.negative', 'Fehler! Du kannst keine negativen $1 verteilen. FailFish');
 $.lang.register('pointsystem.add.success', '$1 an $2 gesendet. Neuer Kontostand: $3.');
 $.lang.register('pointsystem.add.usage', 'Anleitung: "!points give [name] [amount]"');
-$.lang.register('pointsystem.get.self.nopoints', 'Du hast noch keine $1. [Wo ist mein Schoki? BabyRage Info: http://bit.ly/1WvtEJg ]');
-$.lang.register('pointsystem.get.self.withtime', 'Du hast $2. [Wo ist mein Schoki? BabyRage Info: http://bit.ly/1WvtEJg ]');
+$.lang.register('pointsystem.get.self.nopoints', 'Du hast noch keine $1.');
+$.lang.register('pointsystem.get.self.withtime', 'Du hast $2 und den Rang $1.');
 $.lang.register('pointsystem.user.usage', 'usage: !points user [username]');
 $.lang.register('pointsystem.user.success', ' $1 hat $2.');
 $.lang.register('pointsystem.makeitrain.error.invalid', 'Sorry, but it\'s not possible to rain $1 at the moment.');

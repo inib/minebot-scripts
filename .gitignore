@@ -4,6 +4,29 @@ jsconfig.json
 conf.json
 out
 
+# JSDoc
+conf.json
+
+# buildfolders
+out
+
+# =========================
+# Operating System Files
+# =========================
+
+# OSX
+# =========================
+
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Thumbnails
+._*
+
+# WIN
+# =========================
+
 # Windows image file caches
 Thumbs.db
 ehthumbs.db
@@ -22,20 +45,6 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
-
-# =========================
-# Operating System Files
-# =========================
-
-# OSX
-# =========================
-
-.DS_Store
-.AppleDouble
-.LSOverride
-
-# Thumbnails
-._*
 
 # Files that might appear in the root of a volume
 .DocumentRevisions-V100
