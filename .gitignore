@@ -1,6 +1,8 @@
 # VisualStudio Code folders/files
 .vscode
 jsconfig.json
+conf.json
+out
 
 # JSDoc
 conf.json

@@ -1,36 +1,44 @@
 /**
- * UPDATE TO ARENA/DOTA2
  * 20.03. update wager
+ * 16.04. cleanup from kanaye
+ * 17.04. announce winners implemented => test it
  * 
  * TODO LIST:
- * - announce winners
+ * 
+ * - announce winners (==> done 17.04.)
+ *   - Top5 winners get a shoutout at the end of a bet
+ *   - dismissed idea of whisper every participant => no spamerino, double check twitch limits for whitelisted bots
+ * 
  * - announce bets
+ * 
  * - advanced DAU control FailFish
- * - announcements during open bet
- * - ALLCAPS bet options
+ *   - mods
+ *   - bet updates
+ * 
+ * - timed announcements during open bet (60s)
+ * 
+ * - ALLCAPS bet options for better visablilty?
+ *   current string:  [Wettbüro geöffnet] Optionen: sieg - niederlage - !bet (Option) (Einsatz)
+ *   to            :  [Wettbüro geöffnet] Optionen: SIEG - NIEDERLAGE - !bet (Option) (Einsatz)
  * 
  */
 
-
-
-
 (function() {
     var betMinimum = ($.inidb.exists('betSettings', 'betMinimum') ? parseInt($.inidb.get('betSettings', 'betMinimum')) : 1),
-        betMaximum = ($.inidb.exists('betSettings', 'betMaximum') ? parseInt($.inidb.get('betSettings', 'betMaximum')) : 1000),
-        time = 0,
-        betStatus = false,
-        betPot = 0,
-        betOptions = [],
-        betTable = [],
-        betClosed = false;
+        betMaximum = ($.inidb.exists('betSettings', 'betMaximum') ? parseInt($.inidb.get('betSettings', 'betMaximum')) : 1000),        
+        betStatus = false, // {bool} is bet running
+        betPot = 0, // {int} current pot size
+        betOptions = [], // { string[] } the options to bet on
+        betTable = [], // { string[] { amount: {int}, option: {string} } } hold betters and their wager
+        betClosed = false; // {bool} is bet closed
 
     function betOpen(event, betOps, betString) {        
         var sender = event.getSender(),
             args = event.getArgs(),            
             betOp = betOps,
             i;
-        if (betString ='') {
-            betString = $.lang.get('betsystem.default.opened', betOps.join(', '));
+        if (betString === '') {
+            betString = $.lang.get('betsystem.default.opened');
         }
 
         if (betStatus) {
@@ -52,22 +60,19 @@
             }
         }
 
-        betString = betString + betOptions.join(' - ');
-
         betStatus = true;
         
-        $.logEvent('betSystem.js', 49, 'Bet started' + betOptions.join(', ') + 'Pot: ' + betPot);
+        $.log('betSystem', 'Bet started by ' + event.getSender() + ' ' + betOptions.join(', '));
 
-        $.say($.lang.get('betsystem.opened', betString, $.pointNameMultiple));
-    };
+        $.say($.lang.get('betsystem.opened', betString, betOptions.join(', '), $.pointNameMultiple));
+    }
 
     function resetBet() {
         betPot = 0;
-        betTotal = 0;
-        betWinners = '';
         betOptions = [];
         betTable = [];
         betClosed = false;
+        betStatus = false;
     }
     
     function betClose(sender, event) {
@@ -76,14 +81,14 @@
             
             var closedPot = 0;
             betClosed = true;
-            //calc pot/perc
-            for (i in betTable) {
-                bet = betTable[i];
+            
+            for (var i in betTable) {
+                var bet = betTable[i];
                 closedPot += bet.amount;
             }
 
-            $.logEvent('betSystem.js', 71, 'Bet closed');
-            $.say($.lang.get('betsystem.closed', closedPot)); //Njnias Zeile
+            $.log('betSystem', 'Bet closed by ' + event.getSender() + '.');
+            $.say($.lang.get('betsystem.closed', closedPot));
         }
         else {
                 // TODO
@@ -101,7 +106,7 @@
         
         for (var i in betOptions) {
             for (var j in betTable) {
-                bet = betTable[j];
+                var bet = betTable[j];
                 if (betOptions[i] == bet.option) {
                     statusString += i + ', ';
                 }
@@ -116,31 +121,50 @@
             betWinning = subAction,
             betWinPercent = 0,
             betPointsWon = 0,
-            betWinners = '',
             betTotal = 0,
             bet,
-            a = 0,
-            winString ='',
+            logString = "Payouts: ",
             i;
 
+        // No bet is running    
         if (!betStatus) {
             $.say($.whisperPrefix(sender) + $.lang.get('betsystem.err.bet.closed'));
             return;
         }
-
+        
+        // No winning option was given
         if (!betWinning) {
             $.say($.whisperPrefix(sender) + $.lang.get('betsystem.err.win.option'));
             return;
         }
 
-        if (!$.list.contains(betOptions, betWinning)) {
-            $.say($.whisperPrefix(sender) + $.lang.get('betsystem.err.option.404'));
+        // before we check for the winning option, we want to check for an abort.
+        // sends points back and resets the betSystem        
+        if (subAction == 'abort') {
+            $.log('betSystem', 'Bet ended by ' + event.getSender() + ' Aborted.');
+            for (i in betTable) {
+            bet = betTable[i];
+                $.inidb.incr('points', i, bet.amount);
+                logString += i + parseInt(bet.amount);
+            }
+            $.say($.lang.get('betsystem.end.aborted', $.getPointsString(betPot)));
+            $.log('betSystem', logString);
+            resetBet();
             return;
         }
 
-        betWinning = subAction.toLowerCase();
-        betStatus = false;
+        // Winning option not valid
+        if (!$.list.contains(betOptions, betWinning)) {
+            $.say($.whisperPrefix(sender) + $.lang.get('betsystem.err.option.404', betOptions.join(', ')));
+            return;
+        }
 
+        // winning option is on the list
+        // disable betting, set winning option
+        betWinning = subAction.toLowerCase();
+        betStatus = false; 
+
+        // calculate the winning part of the pot
         for (i in betTable) {
             bet = betTable[i];
             if (bet.option.equalsIgnoreCase(betWinning)) {
@@ -148,64 +172,71 @@
             }
         }
         
-        if (betTotal == 0) {
+        // if winning pot equals zero, nobody won
+        // reset bet system
+        if (betTotal <= 0) {
             $.say($.lang.get('betsystem.end.404', betWinning));
+            $.log('betSystem', 'Bet ended by ' + event.getSender() + '. No Winners.');
             resetBet();
             return;
         }
         
-        // obsolet?
-
-        for (i in betTable) {
-            a++;
-            bet = betTable[i];
-            if (bet.option.equalsIgnoreCase(betWinning)) {
-                betPointsWon = (betPot / betTotal);
-                if (betPointsWon > 0) {
-                    if (betWinners.length > 0) {
-                        betWinners += ', ';
-                    }
-                    betWinners = i;
-                }
-            }
-        }
-                
-        if (subAction == 'abort') {
-            for (i in betTable) {
-                bet = betTable[i];
-                $.inidb.incr('points', i, bet.amount);
-            }
-            $.say($.lang.get('betsystem.end.aborted', $.getPointsString(betPot)));
-            resetBet();
-            return;
-        }
-
+        // if pot equals zero something went crazy (obsolete?)
+        // sends points back and resets the betSystem
         if (betPot <= 0) {
+            $.log('betSystem', 'Bet ended by ' + event.getSender() + ' betPot = 0. ?!');
             for (i in betTable) {
                 bet = betTable[i];
                 $.inidb.incr('points', i, bet.amount);
+                logString += i + parseInt(bet.amount);
             }
             $.say($.lang.get('betsystem.err.points.refunded'));
+            $.log('betSystem', logString);
             resetBet();
             return;
         }
+        
+        // Now it's save to calculate the win multiplier
+        betPointsWon = (betPot / betTotal);
+        $.log('betSystem', 'Bet ended by ' + event.getSender() + ' Pot:' + betPot + 'Win percent: ' + betPointsWon);
+
+        var betWinners = [];
+        var betWinString = '';
+        var betWinCount = 0;
+        var betWinShow = 0;
+        
+        // payout the winners
+        // inform chat
+        // reset betSystem
 
         for (i in betTable) {
             bet = betTable[i];
             if (bet.option.equalsIgnoreCase(betWinning)) {
                 betWinPercent = (bet.amount / betTotal);
-                $.inidb.incr('points', i, (betPot * betWinPercent));
+                $.inidb.incr('points', i, parseInt(betPot * betWinPercent));
+                betWinners[betWinCount] = { nick: i, amount: parseInt(betPot * betWinPercent) };
+                betWinCount++;
+                logString += i + ': ' + parseInt(betPot * betWinPercent) + ' - ';
             }
         }
-        $.logEvent('betSystem.js', 179, 'Bet ended: Pot:' + betPot + 'Win percent: ' + betPointsWon);
+
+        betWinners.sort( function(a, b) { return b.amount-a.amount; } );
+        betWinShow = (betWinCount > 5 ? 5 : betWinCount);
+        betWinString = 'Wettgewinner: ';
+
+        for (i = 0; i < betWinShow; i++) {
+            betWinString += betWinners[i].nick + '(' + betWinners[i].amount + ')';
+            betWinString += (i+1 < betWinShow ? ', ' : '');
+        }
+
+        betWinString += (betWinCount > betWinShow ? 'und ' + (betWinCount - betWinShow) + ' weitere.' : '.');
+
+        $.log('betSystem', logString);
         $.say($.lang.get('betsystem.end', betWinning, $.getPointsString(betPot), betPointsWon.toFixed(2)));
-        
-        // ToDo
-        //Announce Top winner
-        
+        $.say(betWinString);
+
         resetBet();
-        
-    };
+    }
 
     $.bind('command', function(event) {
         var sender = event.getSender(),
@@ -386,7 +417,7 @@
                 }
                 
                 // Wette aktualisieren (Njnia is Schuld)
-                var i = sender.toLowerCase()
+                var i = sender.toLowerCase();
                 bet = betTable[i];
                 if (bet) {
                     if (bet.amount != betWager || bet.option != betOption) {
@@ -397,7 +428,7 @@
                         betTable[i] = { 
                             amount: betWager,
                             option: betOption
-                        }
+                        };
 
                         $.inidb.decr('points', sender, betWager); 
                         betPot = (betPot + betWager);
