@@ -393,7 +393,8 @@
                 }
                 $.say($.whisperPrefix(sender) + response);
             }
-            } else {
+
+            else {
                 if (action && $.user.isKnown(action.toLowerCase())) {
                     $.say($.whisperPrefix(sender) + $.lang.get('pointsystem.user.success', $.username.resolve(action), getPointsString(getUserPoints(action.toLowerCase()))));
                 }
@@ -650,7 +651,6 @@
                 } 
             }
         }
-
 
         /**
          * @commandpath makeitrain [amount] - Send a random amount of points to each user in the channel - Administrator
