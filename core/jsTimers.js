@@ -10,37 +10,38 @@ var setTimeout,
     clearInterval;
 
 (function() {
-    var executor = new java.util.concurrent.Executors.newScheduledThreadPool(1),
-        counter = 1,
-        registry = [];
+    var counter = 1,
+        registry = {};
 
     /**
      * @function setTimeout
      * @param {Function} fn
      * @param {Number} delay
      * @returns {Number}
-     */
+    */
     setTimeout = function(fn, delay) {
-        var id = ++counter,
-            runnable = new JavaAdapter(java.lang.Runnable, {
-                run: fn
-            });
-        registry[id] = executor.schedule(runnable, delay, java.util.concurrent.TimeUnit.MILLISECONDS);
+        var timer = new java.util.Timer(),
+            id = counter++;
+
+        registry[id] = new JavaAdapter(java.util.TimerTask, { run: fn });
+        timer.schedule(registry[id], delay);
+
         return id;
     };
 
     /**
      * @function setInterval
      * @param {Function} fn
-     * @param {Number} delay
+     * @param {Number} interval
      * @returns {Number}
-     */
-    setInterval = function(fn, delay) {
-        var id = ++counter,
-            runnable = new JavaAdapter(java.lang.Runnable, {
-                run: fn
-            });
-        registry[id] = executor.scheduleAtFixedRate(runnable, delay, delay, java.util.concurrent.TimeUnit.MILLISECONDS);
+    */
+    setInterval = function(fn, interval) {
+        var timer = new java.util.Timer(),
+            id = counter++;
+
+        registry[id] = new JavaAdapter(java.util.TimerTask, { run: fn });
+        timer.schedule(registry[id], interval, interval);
+
         return id;
     };
 
@@ -49,9 +50,14 @@ var setTimeout,
      * @param {Number} id
      */
     clearTimeout = function(id) {
-        registry[id].cancel(false);
-        executor.purge();
-        registry[id] = null;
+        if (id == undefined) {
+            return;
+        }
+
+        if (registry[id] != undefined) {
+            registry[id].cancel();
+        }
+
         delete registry[id];
     };
 

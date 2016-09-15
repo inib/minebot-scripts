@@ -1,35 +1,56 @@
 (function() {
+    var ScriptEventManager = Packages.me.mast3rplan.phantombot.script.ScriptEventManager,
+        CommandEvent = Packages.me.mast3rplan.phantombot.event.command.CommandEvent;
 
     /**
      * @event ircChannelMessage
      */
     $.bind('ircChannelMessage', function(event) {
         var message = event.getMessage().toLowerCase(),
-            sender = event.getSender(),
-            regex = '',
-            keyword = '',
-            key = '',
-            keys = $.inidb.GetKeyList('keywords', '');
-        for (var i = 0; i < keys.length; i++) {
-            key = keys[i];
-            regex = new RegExp('\\b' + key + '\\b', 'i');
-            if (regex.exec(message)) {
-                keyword = $.inidb.get('keywords', key);
-                keyword = keyword.replace('(sender)', $.username.resolve(event.getSender()));
-                keyword = keyword.replace('(@sender)', '@' + $.username.resolve(event.getSender()));
-                keyword = keyword.replace('(baresender)', event.getSender());
-                keyword = keyword.replace('(pointsname)', $.pointNameMultiple);
-                keyword = keyword.replace('(uptime)', $.getStreamUptime($.channelName));
-                keyword = keyword.replace('(game)', $.getGame($.channelName));
-                keyword = keyword.replace('(status)', $.getStatus($.channelName));
+            keys = $.inidb.GetKeyList('keywords', ''),
+            keyword,
+            key,
+            origKey,
+            i;
+            
+        if ($.bot.isModuleEnabled('./handlers/keywordHandler.js')) {
+            for (i in keys) {
+                if (message.match(keys[i].toLowerCase())) {
+                    key = keys[i].toLowerCase();
+                    origKey = keys[i];
+                    break;
+                }
+            }
 
-                if ($.coolDown.get(key, sender) > 0) {
-                    $.consoleDebug('keyword ' + key + ' not sent because its on a cooldown.');
+            if (message.match('\\b' + key + '\\b') && !message.match(/!keyword/)) {
+                keyword = $.inidb.get('keywords', origKey);
+
+                if ($.coolDownKeywords.get(key, event.getSender()) > 0) {
+                    $.consoleDebug('[COOLDOWN] Keyword ' + key + ' was not sent because its on a cooldown.');
                     return;
                 }
 
-                $.say(keyword);
-                return;
+                if (keyword.match(/command:/g)) {
+                    var keyString = keyword.substring(8),
+                        arguments = '';
+
+                    if (keyString.contains(' ')) {
+                        keyword = keyString.substring(0, keyString.indexOf(' '));
+                        arguments = keyString.substring(keyString.indexOf(' ') + 1);
+                        keyString = keyword;
+                    }
+                    ScriptEventManager.instance().runDirect(new CommandEvent(event.getSender(), keyString, arguments));
+                    return;
+                }
+
+                if ($.inidb.exists('pricekey', key) && ((($.isMod(sender) && $.getIniDbBoolean('settings', 'pricecomMods', false) && !$.isBot(sender)) || !$.isMod(sender)))) {
+                    if ($.getUserPoints(event.getSender()) < $.inidb.get('pricekey', key)) {
+                        return;
+                    }
+                    $.inidb.decr('points', event.getSender(), parseInt($.inidb.get('pricekey', key)));
+                }
+
+                $.say($.tags(event, keyword, false));
             }
         }
     });
@@ -43,17 +64,12 @@
             argString = event.getArguments().trim(),
             args = event.getArgs(),
             action = args[0],
-            subAction = args[1].toLowerCase();
+            subAction = args[1];
 
         /**
          * @commandpath keyword - Base command for keyword options - Administrator
          */
         if (command.equalsIgnoreCase('keyword')) {
-            if (!$.isAdmin(sender)) {
-                //$.say($.whisperPrefix(sender) + $.adminMsg);
-                return;
-            }
-
             if (!action) {
                 $.say($.whisperPrefix(sender) + $.lang.get('keywordhandler.keyword.usage'));
                 return;
@@ -69,9 +85,11 @@
                 }
 
                 var response = args.splice(2).join(' ');
+                subAction = args[1].toLowerCase();
 
                 $.inidb.set('keywords', subAction, response);
                 $.say($.whisperPrefix(sender) + $.lang.get('keywordhandler.keyword.added', subAction));
+                $.log.event(sender + ' added keyword "' + subAction + '" with the message "' + response + '"');
                 return;
             }
 
@@ -82,13 +100,66 @@
                 if (!subAction) {
                     $.say($.whisperPrefix(sender) + $.lang.get('keywordhandler.remove.usage'));
                     return;
-                } else if (!$.inidb.exists('keywords', subAction)) {
+                } else if (!$.inidb.exists('keywords', subAction.toLowerCase())) {
                     $.say($.whisperPrefix(sender) + $.lang.get('keywordhandler.keyword.404'));
                     return;
                 }
 
+                subAction = args[1].toLowerCase();
+                
                 $.inidb.del('keywords', subAction);
                 $.say($.whisperPrefix(sender) + $.lang.get('keywordhandler.keyword.removed', subAction));
+                $.log.event(sender + ' removed the keyword "' + subAction + '"');
+            }
+
+            /**
+             * @commandpath keyword cooldown [keyword] [seconds] - Sets a cooldown on the keyword. Use -1 to remove it. If you use the command: tag and you have a cooldown on that command it will use that cooldown - Administrator
+             */
+            if (action.equalsIgnoreCase('cooldown') || action.equalsIgnoreCase('cooldownkeyword')) {
+                if (!subAction || !parseInt(args[2])) {
+                    $.say($.whisperPrefix(sender) + $.lang.get('keywordhandler.cooldown.usage'));
+                    return;
+                } else if (!$.inidb.exists('keywords', subAction.toLowerCase())) {
+                    $.say($.whisperPrefix(sender) + $.lang.get('keywordhandler.keyword.404'));
+                    return;
+                }
+
+                if (args[2] === -1) {
+                    $.inidb.del('coolkey', subAction.toLowerCase());
+                    $.say($.whisperPrefix(sender) + $.lang.get('keywordhandler.cooldown.removed', subAction));
+                    $.coolDownKeywords.clear(subAction.toLowerCase());
+                    return;
+                }
+
+                $.inidb.set('coolkey', subAction.toLowerCase(), parseInt(args[2]));
+                $.say($.whisperPrefix(sender) + $.lang.get('keywordhandler.cooldown.set', subAction, args[2]));
+                $.coolDownKeywords.clear(subAction.toLowerCase());
+                $.log.event(sender + ' added a cooldown to the keyword "' + subAction + '"');
+            }
+
+            /**
+             * @commandpath keyword price [keyword] [cost] - Sets a price on that keyword if points are enabled. Use -1 to remove it. If you use the command: tag it will use the pricecom that has been set on that command - Administrator
+             */
+            if (action.equalsIgnoreCase('price')) {
+                if (!subAction || !parseInt(args[2])) {
+                    $.say($.whisperPrefix(sender) + $.lang.get('keywordhandler.price.usage'));
+                    return;
+                } else if (!$.inidb.exists('keywords', subAction.toLowerCase())) {
+                    $.say($.whisperPrefix(sender) + $.lang.get('keywordhandler.keyword.404'));
+                    return;
+                }
+
+                if (args[2] === -1) {
+                    $.inidb.del('pricekey', subAction.toLowerCase());
+                    $.say($.whisperPrefix(sender) + $.lang.get('keywordhandler.price.removed', subAction));
+                    $.coolDownKeywords.clear(subAction.toLowerCase());
+                    return;
+                }
+
+                $.inidb.set('pricekey', subAction.toLowerCase(), parseInt(args[2]));
+                $.say($.whisperPrefix(sender) + $.lang.get('keywordhandler.price.set', subAction, $.getPointsString(args[2])));
+                $.coolDownKeywords.clear(subAction.toLowerCase());
+                $.log.event(sender + ' added a price to the keyword "' + subAction + '"');
             }
         }
     });

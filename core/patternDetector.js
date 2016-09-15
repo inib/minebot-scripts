@@ -6,10 +6,11 @@
  */
 (function() {
     var patterns = {
-            link: new RegExp('((?:(http|https|Http|Https|rtsp|Rtsp):\\/\\/(?:(?:[a-z0-9\\$\\-\\_\\.\\+\\!\\*\\\'\\(\\)' + '\\,\\;\\?\\&\\=]|(?:\\%[a-fA-F0-9]{2})){1,64}(?:\\:(?:[a-z0-9\\$\\-\\_' + '\\.\\+\\!\\*\\\'\\(\\)\\,\\;\\?\\&\\=]|(?:\\%[a-fA-F0-9]{2})){1,25})?\\@)?)?' + '((?:(?:[a-z0-9][a-z0-9\\-]{0,64}\\.)+' + '(?:' + '(?:aero|arpa|asia|a[cdefgilmnoqrstuwxz])' + '|(?:biz|b[abdefghijmnorstvwyz])' + '|(?:cat|com|coop|c[acdfghiklmnoruvxyz])' + '|d[ejkmoz]' + '|(?:edu|e[cegrstu])' + '|f[ijkmor]' + '|(?:gov|g[abdefghilmnpqrstuwy])' + '|h[kmnrtu]' + '|(?:info|int|i[delmnoqrst])' + '|(?:jobs|j[emop])' + '|k[eghimnrwyz]' + '|l[abcikrstuvy]' + '|(?:mil|mobi|museum|m[acdghklmnopqrstuvwxyz])' + '|(?:name|net|n[acefgilopruz])' + '|(?:org|om)' + '|(?:pro|p[aefghklmnrstwy])' + '|qa' + '|r[eouw]' + '|s[abcdeghijklmnortuvyz]' + '|(?:tel|travel|t[cdfghjklmnoprtvwz])' + '|u[agkmsyz]' + '|v[aceginu]' + '|m[e]' + '|w[fs]' + '|y[etu]' + '|z[amw]))' + '|(?:(?:25[0-5]|2[0-4]' + '[0-9]|[0-1][0-9]{2}|[1-9][0-9]|[1-9])\\.(?:25[0-5]|2[0-4][0-9]' + '|[0-1][0-9]{2}|[1-9][0-9]|[1-9]|0)\\.(?:25[0-5]|2[0-4][0-9]|[0-1]' + '[0-9]{2}|[1-9][0-9]|[1-9]|0)\\.(?:25[0-5]|2[0-4][0-9]|[0-1][0-9]{2}' + '|[1-9][0-9]|[0-9])))' + '(?:\\:\\d{1,5})?)' + '(\\/(?:(?:[a-z0-9\\;\\/\\?\\:\\@\\&\\=\\#\\~' + '\\-\\.\\+\\!\\*\\\'\\(\\)\\,\\_])|(?:\\%[a-fA-F0-9]{2}))*)?' + '(?:\\b|$)' + '|(magnet:|mailto:|ed2k:\/\/|irc:\/\/|ircs:\/\/|skype:|ymsgr:|xfire:|steam:|aim:|spotify:)', 'i'),
+            link: new RegExp('((?:(http|https|Http|Https|rtsp|Rtsp):\\/\\/(?:(?:[a-z0-9\\$\\-\\_\\.\\+\\!\\*\\\'\\(\\)' + '\\,\\;\\?\\&\\=]|(?:\\%[a-fA-F0-9]{2})){1,64}(?:\\:(?:[a-z0-9\\$\\-\\_' + '\\.\\+\\!\\*\\\'\\(\\)\\,\\;\\?\\&\\=]|(?:\\%[a-fA-F0-9]{2})){1,25})?\\@)?)?' + '((?:(?:[a-z0-9][a-z0-9\\-]{0,64}\\.)+' + '(?:' + '(?:aero|arpa|asia|a[cdefgilmnoqrstuwxz])' + '|(?:biz|b[abdefghijmnorstvwyz])' + '|(?:cat|com|coop|c[acdfghiklmnoruvxyz])' + '|d[ejkmoz]' + '|(?:edu|e[cegrstu])' + '|f[ijkmor]' + '|(?:gov|g[abdefghilmnpqrstuwy])' + '|h[kmnrtu]' + '|(?:info|int|i[delmnoqrst])' + '|(?:jobs|j[emop])' + '|k[eghimnrwyz]' + '|l[abcikrstuvy]' + '|(?:mil|mobi|museum|m[acdghklmnopqrstuvwxyz])' + '|(?:name|net|n[acefgilopruz])' + '|(?:org|om)' + '|(?:pro|p[aefghklmnrstwy])' + '|qa' + '|r[eouw]' + '|s[abcdeghijklmnortuvyz]' + '|(?:tel|travel|t[cdfghjklmnoprtvwz])' + '|u[agkmsyz]' + '|v[aceginu]' + '|m[e]' + '|(?:xxx)' + '|w[fs]' + '|y[etu]' + '|z[amw]))' + '|(?:(?:25[0-5]|2[0-4]' + '[0-9]|[0-1][0-9]{2}|[1-9][0-9]|[1-9])\\.(?:25[0-5]|2[0-4][0-9]' + '|[0-1][0-9]{2}|[1-9][0-9]|[1-9]|0)\\.(?:25[0-5]|2[0-4][0-9]|[0-1]' + '[0-9]{2}|[1-9][0-9]|[1-9]|0)\\.(?:25[0-5]|2[0-4][0-9]|[0-1][0-9]{2}' + '|[1-9][0-9]|[0-9])))' + '(?:\\:\\d{1,5})?)' + '(\\/(?:(?:[a-z0-9\\;\\/\\?\\:\\@\\&\\=\\#\\~' + '\\-\\.\\+\\!\\*\\\'\\(\\)\\,\\_])|(?:\\%[a-fA-F0-9]{2}))*)?' + '(?:\\b|$)' + '|(magnet:\/\/|mailto:\/\/|ed2k:\/\/|irc:\/\/|ircs:\/\/|skype:\/\/|ymsgr:\/\/|xfire:\/\/|steam:\/\/|aim:\/\/|spotify:\/\/)', 'i'),
             repeatedSeq: /(.)(\1+)/g,
             nonAlphaSeq: /([^a-z0-9 ])(\1+)/ig,
             nonAlphaCount: /([^a-z0-9 ])/ig,
+            capsCount: /([A-Z])/g,
         },
         lastFoundLink = '';
 
@@ -27,13 +28,11 @@
             message = deobfuscateLinks(message, (aggressive));
 
             lastFoundLink = patterns.link.exec(message)[0];
-            //$.consoleDebug('>> Matched link on message from ' + event.getSender() + ': ' + lastFoundLink);
-            $.log('patternDetector', 'Matched link on message from ' + event.getSender() + ': ' + lastFoundLink);
             return true;
         } catch (e) {
             return false;
         }
-    }
+    };
 
     /**
      * @function getLastFoundLink
@@ -42,7 +41,15 @@
      */
     function getLastFoundLink() {
         return lastFoundLink;
-    }
+    };
+
+    /**
+     * @function logLastLink
+     * @export $.patternDetector
+     */
+    function logLastLink(event) {
+        $.log.file('patternDetector', 'Matched link on message from ' + event.getSender() + ': ' + lastFoundLink);
+    };
 
     /**
      * @function deobfuscateLinks
@@ -90,7 +97,7 @@
         }
 
         return message;
-    }
+    };
 
     /**
      * @function getLongestRepeatedSequence
@@ -99,19 +106,10 @@
      * @returns {number}
      */
     function getLongestRepeatedSequence(event) {
-        try {
             var message = (event.getMessage() + ''),
-                sequences = message.match(patterns.repeatedSeq);
-
-            sequences.sort(function(a, b) {
-                return (a.length < b.length ? 1 : -1);
-            });
-
-            return sequences.slice(0, 1)[0].length;
-        } catch (e) {
-            return 0;
-        }
-    }
+                sequences = event.getMessage().match(patterns.repeatedSeq);
+        return (sequences == null ? 0 : sequences.slice(0, 1)[0].length);
+    };
 
     /**
      * @function getLongestNonLetterSequence
@@ -120,19 +118,10 @@
      * @returns {number}
      */
     function getLongestNonLetterSequence(event) {
-        try {
-            var message = (event.getMessage() + ''),
-                sequences = message.match(patterns.nonAlphaSeq);
-
-            sequences.sort(function(a, b) {
-                return (a.length < b.length ? 1 : -1);
-            });
-
-            return sequences.slice(0, 1)[0].length;
-        } catch (e) {
-            return 0;
-        }
-    }
+        var message = (event.getMessage() + ''),
+            sequences = message.match(patterns.nonAlphaSeq);
+        return (sequences == null ? 0 : sequences.slice(0, 1)[0].length);
+    };
 
     /**
      * @function getNumberOfNonLetters
@@ -143,17 +132,8 @@
     function getNumberOfNonLetters(event) {
         var message = (event.getMessage() + ''),
             sequences = message.match(patterns.nonAlphaCount);
-
-        try {
-            sequences.sort(function(a, b) {
-                return (a.length < b.length ? 1 : -1);
-            });
-
-            return sequences.length;
-        } catch (e) {
-            return 0;
-        }
-    }
+        return (sequences == null ? 0 : sequences.length);
+    };
 
     /**
      * @function getNumberOfEmotes
@@ -165,6 +145,18 @@
         return $.emotesHandler.getEmotesMatchCount(event.getMessage() + '');
     }
 
+    /**
+     * @function getNumberOfCaps
+     * @export $.patternDetector
+     * @param {Object} event
+     * @returns {number}
+     */
+    function getNumberOfCaps(event) {
+        var message = (event.getMessage() + ''),
+            sequences = message.match(patterns.capsCount);
+        return (sequences == null ? 0 : sequences.length);
+    }
+
     /** Export functions to API */
     $.patternDetector = {
         hasLinks: hasLinks,
@@ -173,5 +165,7 @@
         getNumberOfNonLetters: getNumberOfNonLetters,
         getLastFoundLink: getLastFoundLink,
         getNumberOfEmotes: getNumberOfEmotes,
+        getNumberOfCaps: getNumberOfCaps,
+        logLastLink: logLastLink,
     };
 })();

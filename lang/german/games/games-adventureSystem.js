@@ -1,10 +1,12 @@
 $.lang.register('adventuresystem.adventure.cooldown', 'The adventure is still cooling down! $1 to go.');
 $.lang.register('adventuresystem.adventure.usage', 'Usage: !adventure [$1].');
 $.lang.register('adventuresystem.alreadyjoined', 'You have already joined the adventure!');
-$.lang.register('adventuresystem.completed', 'The adventure ended with $1 survivor(s) and $2 death(s).');
+$.lang.register('adventuresystem.completed', 'The adventure ended! Survivors are: $1.');
+$.lang.register('adventuresystem.completed.no.win', 'The adventure ended! There are no survivors.');
+$.lang.register('adventuresystem.completed.win.total', 'The adventure ended with $1 survivor(s) and $2 death(s).');
 $.lang.register('adventuresystem.join.bettoohigh', 'You can not join with $1, the maximum is $2.');
 $.lang.register('adventuresystem.join.bettoolow', 'You can not join with $1, the minimum is $2.');
-$.lang.register('adventuresystem.join.needpoints', 'You can not join with $1, you only have $2..');
+$.lang.register('adventuresystem.join.needpoints', 'You can not join with $1, you only have $2.');
 $.lang.register('adventuresystem.join.notpossible', 'You can not join now.');
 $.lang.register('adventuresystem.join.success', 'You have joined the adventure with $1!');
 $.lang.register('adventuresystem.loaded', 'Loaded adventure stories (found $1).');
@@ -48,6 +50,13 @@ $.lang.register('adventuresystem.stories.4.chapter.4', '(survivors) run away. Le
  * - A story must have a title.
  * - A story can have an unlimited number of chapters, IF you keep their subsequence numbers 1, 2, 3, 4, 5...
  * - Stories are picked at random.
+ *
+ ** Game specific story how-to.
+ * - Add $.lang.register('adventuresystem.stories.NUMBER.game', 'GAME NAME IN LOWER CASE'); on top of the story chapter.
+ * Example >
+ * $.lang.register('adventuresystem.stories.5.game', 'gaming talk shows');
+ * $.lang.register('adventuresystem.stories.5.title', 'Talk Shows');
+ * $.lang.register('adventuresystem.stories.5.chapter.1', 'random story...');
  *
  * Underneath is a template for your first custom story, just remove the preceding slashes.
  */

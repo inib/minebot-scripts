@@ -18,7 +18,7 @@
      */
     function getCommandScript(command) {
         return commandScriptTable[command];
-    }
+    };
 
     /**
      * @function registerChatSubcommand
@@ -34,7 +34,7 @@
             groupId = $.getGroupIdByName(groupId);
         }
 
-        if (!$.commandExists(command)) {
+        if (!commandExists(command)) {
             return;
         }
 
@@ -45,12 +45,14 @@
         if ($.inidb.exists('permcom', command + " " + subcommand)) {
             var newGroupId = parseInt($.inidb.get('permcom', command + " " + subcommand));
             groupId = newGroupId;
+        } else {
+            $.inidb.set('permcom', command + " " + subcommand, groupId);
         }
 
         commands[command].subcommands[subcommand] = {
             groupId: groupId
-        };
-    }
+        }
+    };
 
     /**
      * @function registerChatCommand
@@ -67,13 +69,19 @@
             groupId = $.getGroupIdByName(groupId);
         }
 
+        /**
+        * As much I i love this error message some other people don't like it showing up in the console when they edit stuff on the panel.
+        */
         if ($.commandExists(command)) {
+            //$.log.error('Failed to register command as already registered: ' + command + ' Script: ' + script + ' Original Script: ' + commandScriptTable[command]);
             return;
         }
 
         if ($.inidb.exists('permcom', command)) {
             var newGroupId = parseInt($.inidb.get('permcom', command));
             groupId = newGroupId;
+        } else {
+            $.inidb.set('permcom', command, groupId);
         }
 
         commands[command] = {
@@ -83,7 +91,7 @@
         };
 
         commandScriptTable[command] = script;
-    }
+    };
 
     /**
      * @function unregisterChatCommand
@@ -91,9 +99,13 @@
      * @param {string} command
      */
     function unregisterChatCommand(command) {
-        delete commands[command];
-        delete commandScriptTable[command];
-    }
+        if (commandExists(command)) {
+            delete commands[command];
+            delete commandScriptTable[command];
+        }
+
+        $.inidb.del('permcom', command);
+    };
 
     /**
      * @function unregisterChatSubcommand
@@ -105,7 +117,9 @@
         if (commandExists(command)) {
             delete commands[command].subcommands[subcommand];
         }
-    }
+
+        $.inidb.del('permcom', command + ' ' + subcommand);
+    };
 
     /**
      * @function commandExists
@@ -115,7 +129,7 @@
      */
     function commandExists(command) {
         return (commands[command] ? true : false);
-    }
+    };
 
     /**
      * @function subCommandExists
@@ -129,7 +143,7 @@
             return (commands[command].subcommands[subcommand] ? true : false);
         }
         return false;
-    }
+    };
 
     /**
      * @function getCommandGroup
@@ -143,11 +157,11 @@
             return commands[command].groupId;
         }
         return 7;
-    }
+    };
 
 
     /**
-     * @function getCommandGroup
+     * @function getCommandGroupName
      * @export $
      * @param command
      * @returns {name}
@@ -156,8 +170,10 @@
         var group = '';
 
         if (commandExists(command)) {
-            if (commands[command].groupId == 1) {
-                group = 'Administartor';
+            if (commands[command].groupId == 0) {
+                group = 'Caster';
+            } else if (commands[command].groupId == 1) {
+                group = 'Administrator';
             } else if (commands[command].groupId == 2) {
                 group = 'Moderator';
             } else if (commands[command].groupId == 3) {
@@ -173,7 +189,8 @@
             }
             return group;
         }
-    }
+        return 'Viewer';
+    };
 
     /**
      * @function getSubcommandGroup
@@ -191,7 +208,41 @@
             return getCommandGroup(command, name);
         }
         return 7;
-    }
+    };
+
+    /**
+     * @function getSubCommandGroupName
+     * @export $
+     * @param command
+     * @param subcommand
+     * @returns {String}
+     *
+     */
+    function getSubCommandGroupName(command, subcommand) {
+        var group = '';
+
+        if (subCommandExists(command, subcommand)) {
+           if (commands[command].subcommands[subcommand].groupId == 0) {
+                group = 'Caster';
+            } else if (commands[command].subcommands[subcommand].groupId == 1) {
+                group = 'Administrator';
+            } else if (commands[command].subcommands[subcommand].groupId == 2) {
+                group = 'Moderator';
+            } else if (commands[command].subcommands[subcommand].groupId == 3) {
+                group = 'Subscriber';
+            } else if (commands[command].subcommands[subcommand].groupId == 4) {
+                group = 'Donator';
+            } else if (commands[command].subcommands[subcommand].groupId == 5) {
+                group = 'Hoster';
+            } else if (commands[command].subcommands[subcommand].groupId == 6) {
+                group = 'Regular';
+            } else if (commands[command].subcommands[subcommand].groupId == 7) {
+                group = 'Viewer';
+            }
+            return group;
+        }
+        return 'Viewer';
+    };
 
     /**
      * @function updateCommandGroup
@@ -203,7 +254,7 @@
         if (commandExists(command)) {
             commands[command].groupId = groupId;
         }
-    }
+    };
 
     /**
      * @function updateSubcommandGroup
@@ -216,7 +267,7 @@
         if (subCommandExists(command, subcommand)) {
             commands[command].subcommands[subcommand].groupId = groupId;
         }
-    }
+    };
 
     /** Export functions to API */
     $.registerChatCommand = registerChatCommand;
@@ -228,6 +279,7 @@
     $.getCommandGroup = getCommandGroup;
     $.getCommandGroupName = getCommandGroupName;
     $.getSubcommandGroup = getSubcommandGroup;
+    $.getSubCommandGroupName = getSubCommandGroupName;
     $.updateCommandGroup = updateCommandGroup;
     $.updateSubcommandGroup = updateSubcommandGroup;
     $.getCommandScript = getCommandScript;

@@ -4,8 +4,8 @@
  * Pause using ANY command
  */
 (function() {
-    var isActive = false,
-        defaultTime = ($.inidb.exists('commandPause', 'defaultTime') ? parseInt($.inidb.get('commandPause', 'defaultTime')) : 300),
+    var isActive = $.getSetIniDbBoolean('commandPause', 'commandsPaused', false),
+        defaultTime = $.getSetIniDbNumber('commandPause', 'defaultTime', 300),
         timerId = -1;
 
     /**
@@ -18,13 +18,14 @@
         if (isActive) {
             clearTimeout(timerId);
         } else {
+            $.setIniDbBoolean('commandPause', 'commandsPaused', true);
             isActive = true;
         }
         timerId = setTimeout(function() {
             unPause();
         }, seconds * 1e3);
         $.say($.lang.get('commandpause.initiated', $.getTimeString(seconds)));
-    }
+    };
 
     /**
      * @function isPaused
@@ -33,7 +34,7 @@
      */
     function isPaused() {
         return isActive;
-    }
+    };
 
     /**
      * @function clear
@@ -42,11 +43,12 @@
     function unPause() {
         if (timerId > -1) {
             clearTimeout(timerId);
+            $.setIniDbBoolean('commandPause', 'commandsPaused', false);
             isActive = false;
             timerId = -1;
             $.say($.lang.get('commandpause.ended'));
         }
-    }
+    };
 
     /**
      * @event event
@@ -56,11 +58,11 @@
             args = event.getArgs();
 
         /**
-         * @commandpath pausecommands [seconds] - Pause all command usage for the given amount of time. If [seconds] is not present, uses a default value (5 mins) - Moderator
+         * @commandpath pausecommands [seconds] - Pause all command usage for the given amount of time. If [seconds] is not present, uses a default value - Moderator
          * @commandpath pausecommands clear - Unpause commands - Moderator
          */
         if (command.equalsIgnoreCase('pausecommands')) {
-            if (args[0] !== undefined || args[0] !== null) {
+            if (args[0] != undefined || args[0] != null) {
                 if (args[0] == 'clear') {
                     unPause();
                     return;
