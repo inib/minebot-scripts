@@ -116,7 +116,7 @@
 						while (final_brawlers.length < 3)
 						{
 							var finalist = brawl_table[Math.floor(Math.random() * brawl_table.length)];
-							if (!$.list.contains(final_brawlers, finalist)) {
+							if (!$.list.hasKey(final_brawlers, finalist)) {
 								final_brawlers.push(finalist);
 							}
 						}
@@ -194,7 +194,7 @@
 
 			$.logEvent("brawl.js", 190, username + " piled on.");
 
-			if (!$.list.contains(brawl_table, username)) {
+			if (!$.list.hasKey(brawl_table, username)) {
 
 				brawl_table.push(username);
 

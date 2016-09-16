@@ -121,7 +121,7 @@
             var newOpfer = $.randElement($.users)[0];
             //$.username.resolve
 
-            if ($.getUserPoints(newOpfer) > 500 && !$.list.contains(opferList, newOpfer)) {
+            if ($.getUserPoints(newOpfer) > 500 && !$.list.hasKey(opferList, newOpfer)) {
                 $.inidb.decr('points', newOpfer.toLowerCase(), 50);
                 $.log('pointSystem', 'opferschoki.js : ' + user + ' gets 50 robbed.');
                 opferList.push(newOpfer);
