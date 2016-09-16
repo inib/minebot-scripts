@@ -48,7 +48,7 @@
             $.inidb.incr('opferschoki', 'opferSchoki', sac);
             opferS = opferS + sac;            
             $.inidb.decr('points', user, sac);
-            $.log('pointSystem', 'operschoki.js : ' + user + ' sacs ' + sac);
+            $.log.file('pointSystem', 'operschoki.js : ' + user + ' sacs ' + sac);
             $.say(user + " opfert " + sac + " hart verdiente Schoki den Twitchgöttern. Es wurden schon " + opferS + " Schoki geopfert.");
             $.logEvent('./games/opferschoki.js', 45, user + ' sacs. ' + sac + ' . ' + opferS + ' saced. times: ' + opferC);
             trigger = checkTrigger(opferC);
@@ -123,7 +123,7 @@
 
             if ($.getUserPoints(newOpfer) > 500 && !$.list.hasKey(opferList, newOpfer)) {
                 $.inidb.decr('points', newOpfer.toLowerCase(), 50);
-                $.log('pointSystem', 'opferschoki.js : ' + user + ' gets 50 robbed.');
+                $.log.file('pointSystem', 'opferschoki.js : ' + user + ' gets 50 robbed.');
                 opferList.push(newOpfer);
             }
             else {

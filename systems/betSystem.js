@@ -88,7 +88,7 @@
 
         betStatus = true;
         
-        $.log('betSystem', 'Bet started by ' + event.getSender() + ' ' + betOptions.join(', '));
+        $.log.file('betSystem', 'Bet started by ' + event.getSender() + ' ' + betOptions.join(', '));
 
         $.say($.lang.get('betsystem.opened', betString, betOptions.join(', '), $.pointNameMultiple));
     }
@@ -113,7 +113,7 @@
                 closedPot += bet.amount;
             }
 
-            $.log('betSystem', 'Bet closed by ' + event.getSender() + '.');
+            $.log.file('betSystem', 'Bet closed by ' + event.getSender() + '.');
             $.say($.lang.get('betsystem.closed', closedPot));
         }
         else {
@@ -167,14 +167,14 @@
         // before we check for the winning option, we want to check for an abort.
         // sends points back and resets the betSystem        
         if (subAction == 'abort') {
-            $.log('betSystem', 'Bet ended by ' + event.getSender() + ' Aborted.');
+            $.log.file('betSystem', 'Bet ended by ' + event.getSender() + ' Aborted.');
             for (i in betTable) {
             bet = betTable[i];
                 $.inidb.incr('points', i, bet.amount);
                 logString += i + parseInt(bet.amount);
             }
             $.say($.lang.get('betsystem.end.aborted', $.getPointsString(betPot)));
-            $.log('betSystem', logString);
+            $.log.file('betSystem', logString);
             resetBet();
             return;
         }
@@ -202,7 +202,7 @@
         // reset bet system
         if (betTotal <= 0) {
             $.say($.lang.get('betsystem.end.404', betWinning));
-            $.log('betSystem', 'Bet ended by ' + event.getSender() + '. No Winners.');
+            $.log.file('betSystem', 'Bet ended by ' + event.getSender() + '. No Winners.');
             resetBet();
             return;
         }
@@ -210,21 +210,21 @@
         // if pot equals zero something went crazy (obsolete?)
         // sends points back and resets the betSystem
         if (betPot <= 0) {
-            $.log('betSystem', 'Bet ended by ' + event.getSender() + ' betPot = 0. ?!');
+            $.log.file('betSystem', 'Bet ended by ' + event.getSender() + ' betPot = 0. ?!');
             for (i in betTable) {
                 bet = betTable[i];
                 $.inidb.incr('points', i, bet.amount);
                 logString += i + parseInt(bet.amount);
             }
             $.say($.lang.get('betsystem.err.points.refunded'));
-            $.log('betSystem', logString);
+            $.log.file('betSystem', logString);
             resetBet();
             return;
         }
         
         // Now it's save to calculate the win multiplier
         betPointsWon = (betPot / betTotal);
-        $.log('betSystem', 'Bet ended by ' + event.getSender() + ' Pot:' + betPot + 'Win percent: ' + betPointsWon);
+        $.log.file('betSystem', 'Bet ended by ' + event.getSender() + ' Pot:' + betPot + 'Win percent: ' + betPointsWon);
 
         var betWinners = [];
         var betWinString = '';
@@ -257,7 +257,7 @@
 
         betWinString += (betWinCount > betWinShow ? 'und ' + (betWinCount - betWinShow) + ' weitere.' : '.');
 
-        $.log('betSystem', logString);
+        $.log.file('betSystem', logString);
         $.say($.lang.get('betsystem.end', betWinning, $.getPointsString(betPot), betPointsWon.toFixed(2)));
         $.say(betWinString);
 
