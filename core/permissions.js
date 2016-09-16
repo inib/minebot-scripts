@@ -621,7 +621,7 @@
                     }
                 }
             } else {
-                if (hasModeO(username)) {
+                if (hasModeO(username) && !isMod(username)) {
                     var newmodeOUsers = [];
 
                     for (i in modeOUsers) {
@@ -661,7 +661,8 @@
 
                 for (i in keys) {
                     if ($.inidb.get('group', keys[i]).equalsIgnoreCase('2')) {
-                        $.inidb.del('group', keys[i]);
+                        //$.inidb.del('group', keys[i]);
+                        modListUsers.push(keys[i]);
                     }
                 }
 
