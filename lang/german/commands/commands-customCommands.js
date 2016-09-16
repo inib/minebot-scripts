@@ -4,7 +4,7 @@ $.lang.register('customcommands.add.usage', 'Anleitung: !addcom (Befehl) (Nachri
 $.lang.register('customcommands.add.commandtag.notfirst', '(command) tag must be the start of a custom command when used.');
 $.lang.register('customcommands.add.commandtag.invalid', '(command) tag command does not exist: $1');
 $.lang.register('customcommands.alias.delete.error.alias.404', 'Fehler! Alias !$1 existiert nicht');
-$.lang.register('customcommands.alias.delete.success', '$1, das Alias !$2 wurde erfolgreich gelöscht!');
+$.lang.register('customcommands.alias.delete.success', 'das Alias !$1 wurde erfolgreich gelöscht!');
 $.lang.register('customcommands.alias.delete.usage', 'Anleitung: !delalias (alias name)');
 $.lang.register('customcommands.alias.error', 'Fehler! Das Alias !$1 existiert bereits.');
 $.lang.register('customcommands.alias.error.target404', 'Fehler! Diesen Zielbefehl gibt es nicht!');
