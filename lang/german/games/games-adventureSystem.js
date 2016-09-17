@@ -1,8 +1,8 @@
 $.lang.register('adventuresystem.adventure.cooldown', 'The adventure is still cooling down! $1 to go.');
 $.lang.register('adventuresystem.adventure.usage', 'Usage: !adventure [$1].');
 $.lang.register('adventuresystem.alreadyjoined', 'You have already joined the adventure!');
-$.lang.register('adventuresystem.completed', 'The adventure ended! Survivors are: $1.');
-$.lang.register('adventuresystem.completed.no.win', 'The adventure ended! There are no survivors.');
+$.lang.register('adventuresystem.completed', 'Mission erfolgreich! Unsere Helden: $1.');
+$.lang.register('adventuresystem.completed.no.win', 'Mission gescheitert! FailFish Gruss in die ewigen Jagdgründe.');
 $.lang.register('adventuresystem.completed.win.total', 'The adventure ended with $1 survivor(s) and $2 death(s).');
 $.lang.register('adventuresystem.join.bettoohigh', 'You can not join with $1, the maximum is $2.');
 $.lang.register('adventuresystem.join.bettoolow', 'You can not join with $1, the minimum is $2.');
@@ -19,14 +19,15 @@ $.lang.register('adventuresystem.tamagotchijoined', '$1 is also joining the adve
 $.lang.register('adventuresystem.top5', 'The top 5 adventurerers are: $1.');
 $.lang.register('adventuresystem.top5.empty', 'There haven\'t been any adventure winners recorded yet.');
 
-$.lang.register('adventuresystem.stories.1.title', 'Time Heist');
+$.lang.register('adventuresystem.stories.1.title', 'Roshan');
 $.lang.register('adventuresystem.stories.1.chapter.1', 'Your memory is vague, on the table a small laptop is playing a video: "My name is The Architect. The bank of Karabraxos is the most secure bank in the universe. You will rob the bank of Karabraxos!"');
 $.lang.register('adventuresystem.stories.1.chapter.2', 'Unable to leave their minds blank, (caught) slowly feel their mind being drained as The Teller feeds on their thoughts.');
 $.lang.register('adventuresystem.stories.1.chapter.3', 'We find ourselves back in the room we started in as consciousness of (survivors) slowly fades again, only to wake up in our beds like nothing at all has happened.');
 
-$.lang.register('adventuresystem.stories.2.title', 'Beartraps');
-$.lang.register('adventuresystem.stories.2.chapter.1', 'Friends! I\'ve got coordinates for a secret stash of bolts, hidden away within the bowels of the elven forest. We should shoe up and give this a go!');
-$.lang.register('adventuresystem.stories.2.chapter.2', 'Look out, bear traps! (caught) got their legs ripped off!');
+$.lang.register('adventuresystem.stories.2.title', 'Rettet Tinyfin martinTinyfin');
+$.lang.register('adventuresystem.stories.2.chapter.1', 'martinTinyfin : Mrglgl Zu Hilfe Chat! Der grosse, böse FrankerZ ist hinter mir her, mrglgl!');
+$.lang.register('adventuresystem.stories.2.chapter.2', 'FrankerZ : Komm her, kleiner Murloc! Dich gibts heute als Hauptgericht!');
+$.lang.register('adventuresystem.stories.2.chapter.3', 'Die Chatelite macht sich auf den kleinen Tinyfin zu retten. (caught) ist das egal und schauen lieber weiter Martin zu.');
 $.lang.register('adventuresystem.stories.2.chapter.3', 'Dayum, that was a close call for loosing a leg. But you\'ve deserved this (survivors)!');
 
 $.lang.register('adventuresystem.stories.3.title', 'Vampires?!');
