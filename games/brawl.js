@@ -31,6 +31,32 @@
 		return 0;
 	}
 
+	 /** 
+     * @function hasKey
+     * @param {Array} list
+     * @param {*} value
+     * @param {Number} [subIndex]
+     * @returns {boolean}
+     */
+    function hasKey(list, value, subIndex) {
+        var i;
+
+        if (subIndex > -1) {
+            for (i in list) {
+                if (list[i][subIndex].equalsIgnoreCase(value)) {
+                    return true;
+                }
+            }
+        } else {
+            for (i in list) {
+                if (list[i].equalsIgnoreCase(value)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    };
+
     /**
      * @event command
      */     
@@ -116,7 +142,7 @@
 						while (final_brawlers.length < 3)
 						{
 							var finalist = brawl_table[Math.floor(Math.random() * brawl_table.length)];
-							if (!$.list.hasKey(final_brawlers, finalist)) {
+							if (!hasKey(final_brawlers, finalist)) {
 								final_brawlers.push(finalist);
 							}
 						}
@@ -194,7 +220,7 @@
 
 			$.logEvent("brawl.js", 190, username + " piled on.");
 
-			if (!$.list.hasKey(brawl_table, username)) {
+			if (!hasKey(brawl_table, username)) {
 
 				brawl_table.push(username);
 

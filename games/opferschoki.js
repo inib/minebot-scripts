@@ -19,6 +19,32 @@
         $.inidb.set('opferschoki', 'opferSchoki', 1);
     }
     var opferS = parseInt($.inidb.get('opferschoki', 'opferSchoki'));
+
+     /** 
+     * @function hasKey
+     * @param {Array} list
+     * @param {*} value
+     * @param {Number} [subIndex]
+     * @returns {boolean}
+     */
+    function hasKey(list, value, subIndex) {
+        var i;
+
+        if (subIndex > -1) {
+            for (i in list) {
+                if (list[i][subIndex].equalsIgnoreCase(value)) {
+                    return true;
+                }
+            }
+        } else {
+            for (i in list) {
+                if (list[i].equalsIgnoreCase(value)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    };
     
     function calcSacrifice(user) {
         var sacSchoki = 0;
@@ -121,7 +147,7 @@
             var newOpfer = $.randElement($.users)[0];
             //$.username.resolve
 
-            if ($.getUserPoints(newOpfer) > 500 && !$.list.hasKey(opferList, newOpfer)) {
+            if ($.getUserPoints(newOpfer) > 500 && !hasKey(opferList, newOpfer)) {
                 $.inidb.decr('points', newOpfer.toLowerCase(), 50);
                 $.log.file('pointSystem', 'opferschoki.js : ' + user + ' gets 50 robbed.');
                 opferList.push(newOpfer);
