@@ -16,7 +16,8 @@
      * @return boolean
      */
     function permCheck(username) {
-        return (!modCooldown && $.isMod(username)) || $.isAdmin(username);
+        //return (!modCooldown && $.isMod(username)) || $.isAdmin(username);
+        return 0;
     };
 
     /**
