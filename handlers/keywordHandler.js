@@ -7,6 +7,7 @@
      */
     $.bind('ircChannelMessage', function(event) {
         var message = event.getMessage().toLowerCase(),
+            sender = event.getSender(),
             keys = $.inidb.GetKeyList('keywords', ''),
             keyword,
             key,
