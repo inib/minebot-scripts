@@ -151,19 +151,33 @@
     function replaceTags(line) {
         if (line.indexOf('(caught)') > -1) {
             if (currentAdventure.caught.length > 0) {
-                return line.replace('(caught)', adventureUsersListJoin(currentAdventure.caught));
+                if (currentAdventure.caught.length > 10) {
+                    var lineCaught = '';
+                    lineCaught = adventureUsersListJoin(currentAdventure.caught.slice(0,4)) + ' und ' + (currentAdventure.caught.length - 5) + ' weitere ';
+                    return line.replace('(caught)', lineCaught);
+                }
+                else {
+                    return line.replace('(caught)', adventureUsersListJoin(currentAdventure.caught));
+                }
             } else {
                 return '';
             }
         }
         if (line.indexOf('(survivors)') > -1) {
             if (currentAdventure.survivors.length > 0) {
-                return line.replace('(survivors)', adventureUsersListJoin(currentAdventure.survivors));
+                if (currentAdventure.survivors.length > 10) {
+                    var lineSurv = '';
+                    linelineSurv = adventureUsersListJoin(currentAdventure.survivors.slice(0,4)) + ' und ' + (currentAdventure.caught.length - 5) + ' weitere ';
+                    return line.replace('(caught)', lineSurv);
+                }
+                else {
+                    return line.replace('(survivors)', adventureUsersListJoin(currentAdventure.survivors));
+                }                
             } else {
                 return '';
             }
         }
-        return line
+        return line;
     };
 
     /**
@@ -329,7 +343,7 @@
 
         if (temp.length == 0) {
             $.say($.lang.get('adventuresystem.completed.no.win'));
-        } else if (currentAdventure.survivors.length > 50) {
+        } else if (currentAdventure.survivors.length > 5) {
             $.say($.lang.get('adventuresystem.completed.win.total', currentAdventure.survivors.length, currentAdventure.caught.length)); //in case too many people enter.
         } else {
             $.say($.lang.get('adventuresystem.completed', temp.join(', ')));

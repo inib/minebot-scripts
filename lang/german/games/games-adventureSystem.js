@@ -1,46 +1,39 @@
-$.lang.register('adventuresystem.adventure.cooldown', 'The adventure is still cooling down! $1 to go.');
-$.lang.register('adventuresystem.adventure.usage', 'Usage: !adventure [$1].');
-$.lang.register('adventuresystem.alreadyjoined', 'You have already joined the adventure!');
-$.lang.register('adventuresystem.completed', 'Mission erfolgreich! Unsere Helden: $1.');
+$.lang.register('adventuresystem.adventure.cooldown', 'Die nächste Mission kann erst wieder in $1 gestartet werden.');
+$.lang.register('adventuresystem.adventure.usage', 'Hinweis: !mission [$1].');
+$.lang.register('adventuresystem.alreadyjoined', 'Du bist bereits Teil der Heldentruppe.');
+$.lang.register('adventuresystem.completed', 'Mission erfolgreich! PogChamp // Unsere Helden: $1.');
 $.lang.register('adventuresystem.completed.no.win', 'Mission gescheitert! FailFish Gruss in die ewigen Jagdgründe.');
-$.lang.register('adventuresystem.completed.win.total', 'The adventure ended with $1 survivor(s) and $2 death(s).');
-$.lang.register('adventuresystem.join.bettoohigh', 'You can not join with $1, the maximum is $2.');
-$.lang.register('adventuresystem.join.bettoolow', 'You can not join with $1, the minimum is $2.');
-$.lang.register('adventuresystem.join.needpoints', 'You can not join with $1, you only have $2.');
-$.lang.register('adventuresystem.join.notpossible', 'You can not join now.');
-$.lang.register('adventuresystem.join.success', 'You have joined the adventure with $1!');
-$.lang.register('adventuresystem.loaded', 'Loaded adventure stories (found $1).');
-$.lang.register('adventuresystem.payoutwhisper', 'Adventure completed, $1 + $2 has been added to your balance.');
-$.lang.register('adventuresystem.runstory', 'Starting adventure "$1" with $2 player(s).');
+$.lang.register('adventuresystem.completed.win.total', 'Mission erfolgreich! PogChamp // $1 Helden haben überlebt, $2 habens leider nicht geschafft.');
+$.lang.register('adventuresystem.join.bettoohigh', 'Mit $1 kannst du nicht beitreten, du kannst maximal $2 ausgeben.');
+$.lang.register('adventuresystem.join.bettoolow', 'Mit $1 kannst du nicht beitreten, du musst mindestens $2 aufbringen.');
+$.lang.register('adventuresystem.join.needpoints', 'Mit $1 kannst du nicht beitreten, du hast nur $2.');
+$.lang.register('adventuresystem.join.notpossible', 'Derzeit kannst du keiner Heldengruppe beitreten.');
+$.lang.register('adventuresystem.join.success', 'Du bist der Heldentruppe mit $1 beigetreten!');
+$.lang.register('adventuresystem.loaded', 'Missionen erfolgreich geladen (found $1).');
+$.lang.register('adventuresystem.payoutwhisper', 'Mission erfolgreich, $1 + $2 werden dir für deine Heldentaten ausbezahlt.');
+$.lang.register('adventuresystem.runstory', 'Unsere Mission: "$1" mit $2 Helden.');
 $.lang.register('adventuresystem.set.success', 'Set $1 to $2.');
-$.lang.register('adventuresystem.set.usage', 'Usage: !adventure set [settingname] [value].');
-$.lang.register('adventuresystem.start.success', '$1 is trying get a team together for some serious adventure business! Use "!adventure [$2]" to join in!');
+$.lang.register('adventuresystem.set.usage', 'Hinweis: !adventure set [Option] [Wert].');
+$.lang.register('adventuresystem.start.success', '$1 versucht eine furchtlose Heldentruppe mit genügend Ausrüstung zusammen zu trommeln! "!mission [$2]" um Ausrüstung zu kaufen und beizutreten');
 $.lang.register('adventuresystem.tamagotchijoined', '$1 is also joining the adventure.');
-$.lang.register('adventuresystem.top5', 'The top 5 adventurerers are: $1.');
-$.lang.register('adventuresystem.top5.empty', 'There haven\'t been any adventure winners recorded yet.');
+$.lang.register('adventuresystem.top5', 'Unsere Top 5 Helden sind: $1.');
+$.lang.register('adventuresystem.top5.empty', 'Derzeit haben wir noch keine Helden.');
 
-$.lang.register('adventuresystem.stories.1.title', 'Roshan');
-$.lang.register('adventuresystem.stories.1.chapter.1', 'Your memory is vague, on the table a small laptop is playing a video: "My name is The Architect. The bank of Karabraxos is the most secure bank in the universe. You will rob the bank of Karabraxos!"');
-$.lang.register('adventuresystem.stories.1.chapter.2', 'Unable to leave their minds blank, (caught) slowly feel their mind being drained as The Teller feeds on their thoughts.');
-$.lang.register('adventuresystem.stories.1.chapter.3', 'We find ourselves back in the room we started in as consciousness of (survivors) slowly fades again, only to wake up in our beds like nothing at all has happened.');
+$.lang.register('adventuresystem.stories.1.title', 'Roshan Raubzug');
+$.lang.register('adventuresystem.stories.1.chapter.1', 'Ein lautes Gebrüll ertönt im Chat und die schweren Schritte des Untiers sorgen für Erdbeben! Roshan legt den Chat in Schutt und Asche. Jetzt sind unsere Helden gefragt, das Monster zu vernichten!"');
+$.lang.register('adventuresystem.stories.1.chapter.2', 'Verluste?! In einem epischen Kampf gegen Roshan wurden (caught) getötet. WutFace');
+$.lang.register('adventuresystem.stories.1.chapter.3', 'Das Untier ist tot! (survivors) haben überlebt und konnten sich das Aegis of the Immortal sichern!');
 
 $.lang.register('adventuresystem.stories.2.title', 'Rettet Tinyfin martinTinyfin');
 $.lang.register('adventuresystem.stories.2.chapter.1', 'martinTinyfin : Mrglgl Zu Hilfe Chat! Der grosse, böse FrankerZ ist hinter mir her, mrglgl!');
 $.lang.register('adventuresystem.stories.2.chapter.2', 'FrankerZ : Komm her, kleiner Murloc! Dich gibts heute als Hauptgericht!');
-$.lang.register('adventuresystem.stories.2.chapter.3', 'Die Chatelite macht sich auf den kleinen Tinyfin zu retten. (caught) ist das egal und schauen lieber weiter Martin zu.');
-$.lang.register('adventuresystem.stories.2.chapter.3', 'Dayum, that was a close call for loosing a leg. But you\'ve deserved this (survivors)!');
+$.lang.register('adventuresystem.stories.2.chapter.3', '(caught) ist das egal und schauen lieber weiter Martin zu. OSsloth');
+$.lang.register('adventuresystem.stories.2.chapter.3', 'Bis an die Zähne bewaffnet stellen sich (survivors) FrankerZ entgegen und können martinTinyfin befreien!');
 
-$.lang.register('adventuresystem.stories.3.title', 'Vampires?!');
-$.lang.register('adventuresystem.stories.3.chapter.1', 'Ah, my dear friends! I may have found the adventure of a lifetime. Namely the house of count Dracula is believed to be the bolts master! I\'m for going now!');
-$.lang.register('adventuresystem.stories.3.chapter.2', 'It\'s him! (caught) got slaughtered violently!');
-$.lang.register('adventuresystem.stories.3.chapter.3', 'That was a close call, I don\'t think I\'ve been bitten. you? Ow well, (survivors), here\'s your share! ~Transforms into a bat and flutters off~');
-
-$.lang.register('adventuresystem.stories.4.title', 'Cereal');
-$.lang.register('adventuresystem.stories.4.chapter.1', 'I think we have a much bigger thread on our hands than the cave in... It is half man, half bear, half pig... Don\'t Laugh, I\'M SUPER CEREAL!');
-$.lang.register('adventuresystem.stories.4.chapter.2', '/me As the adventurers work their way through the tunnels they hear a soft noise from behind them...');
-$.lang.register('adventuresystem.stories.4.chapter.3', 'Look out! It\'s ManBearPig! (caught) get dragged of into the darkness.');
-$.lang.register('adventuresystem.stories.4.chapter.4', '(survivors) run away. Let\'s get out of here guys! We can\'t deal with this alone');
-
+$.lang.register('adventuresystem.stories.3.title', 'Spinnen?!');
+$.lang.register('adventuresystem.stories.3.chapter.1', '/╲/╭༼ * ಠ 益 ಠ * ༽╮/╱\\! WutFace Wer hat das Fenster wieder offen gelassen? Eine dicke, fette Spinne kriecht durch den Chat.');
+$.lang.register('adventuresystem.stories.3.chapter.2', '(caught) haben versucht die Spinne in ein Glas zu locken und lebend zu fangen FailFish und wurden dabei tödlich gebissen.');
+$.lang.register('adventuresystem.stories.3.chapter.3', 'Doch (survivors) kennen sich mit Spinnen aus, da gibts nur eins: Drauftreten! *matsch*');
 
 /*
  * Rules on writing your own adventure story:
