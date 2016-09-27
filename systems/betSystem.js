@@ -459,7 +459,7 @@
                         $.inidb.decr('points', sender, betWager); 
                         betPot = (betPot + betWager);
                         $.logEvent('betSystem.js', 367, 'Bet updated for: ' + sender + ' wager: ' + betWager + ' option:' + betOption);
-                        $.say($.whisperPrefix(sender) + $.lang.get('betsystem.bet.updated', sender, betWager, betOption));
+                        $.say($.whisperPrefix(sender) + $.lang.get('betsystem.bet.updated', sender, betWager, betOption, $.getPointsString(betPot)));
                     }
                     else {
                         $.say($.whisperPrefix(sender) + $.lang.get('betsystem.err.voted', betWager, betOption));
