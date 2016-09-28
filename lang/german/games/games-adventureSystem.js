@@ -1,4 +1,4 @@
-$.lang.register('adventuresystem.adventure.cooldown', 'Die nächste Mission kann erst wieder in $1 gestartet werden.');
+$.lang.register('adventuresystem.adventure.cooldown', 'Die nächste Mission kann erst wieder in $1 Minuten gestartet werden.');
 $.lang.register('adventuresystem.adventure.usage', 'Hinweis: !mission [$1].');
 $.lang.register('adventuresystem.alreadyjoined', 'Du bist bereits Teil der Heldentruppe.');
 $.lang.register('adventuresystem.completed', 'Mission erfolgreich! PogChamp // Unsere Helden: $1.');
@@ -7,7 +7,7 @@ $.lang.register('adventuresystem.completed.win.total', 'Mission erfolgreich! Pog
 $.lang.register('adventuresystem.join.bettoohigh', 'Mit $1 kannst du nicht beitreten, du kannst maximal $2 ausgeben.');
 $.lang.register('adventuresystem.join.bettoolow', 'Mit $1 kannst du nicht beitreten, du musst mindestens $2 aufbringen.');
 $.lang.register('adventuresystem.join.needpoints', 'Mit $1 kannst du nicht beitreten, du hast nur $2.');
-$.lang.register('adventuresystem.join.notpossible', 'Derzeit kannst du keiner Heldengruppe beitreten.');
+$.lang.register('adventuresystem.join.notpossible', 'Derzeit kannst du keiner Heldengruppe beitreten oder diese starten.');
 $.lang.register('adventuresystem.join.success', 'Du bist der Heldentruppe mit $1 beigetreten!');
 $.lang.register('adventuresystem.loaded', 'Missionen erfolgreich geladen (found $1).');
 $.lang.register('adventuresystem.payoutwhisper', 'Mission erfolgreich, $1 + $2 werden dir für deine Heldentaten ausbezahlt.');
@@ -24,14 +24,14 @@ $.lang.register('adventuresystem.stories.1.chapter.1', 'Ein lautes Gebrüll ert�
 $.lang.register('adventuresystem.stories.1.chapter.2', 'Verluste?! In einem epischen Kampf gegen Roshan wurden (caught) getötet. WutFace');
 $.lang.register('adventuresystem.stories.1.chapter.3', 'Das Untier ist tot! (survivors) haben überlebt und konnten sich das Aegis of the Immortal sichern!');
 
-$.lang.register('adventuresystem.stories.2.title', 'Rettet Tinyfin martinTinyfin');
+$.lang.register('adventuresystem.stories.2.title', 'Rettet Tinyfin martinTinyfin ');
 $.lang.register('adventuresystem.stories.2.chapter.1', 'martinTinyfin : Mrglgl Zu Hilfe Chat! Der grosse, böse FrankerZ ist hinter mir her, mrglgl!');
 $.lang.register('adventuresystem.stories.2.chapter.2', 'FrankerZ : Komm her, kleiner Murloc! Dich gibts heute als Hauptgericht!');
 $.lang.register('adventuresystem.stories.2.chapter.3', '(caught) ist das egal und schauen lieber weiter Martin zu. OSsloth');
 $.lang.register('adventuresystem.stories.2.chapter.3', 'Bis an die Zähne bewaffnet stellen sich (survivors) FrankerZ entgegen und können martinTinyfin befreien!');
 
 $.lang.register('adventuresystem.stories.3.title', 'Spinnen?!');
-$.lang.register('adventuresystem.stories.3.chapter.1', '/╲/╭༼ * ಠ 益 ಠ * ༽╮/╱\\! WutFace Wer hat das Fenster wieder offen gelassen? Eine dicke, fette Spinne kriecht durch den Chat.');
+$.lang.register('adventuresystem.stories.3.chapter.1', '/╲/╭༼ * ಠ 益 ಠ * ༽╮/╱|! WutFace Wer hat das Fenster wieder offen gelassen? Eine dicke, fette Spinne kriecht durch den Chat.');
 $.lang.register('adventuresystem.stories.3.chapter.2', '(caught) haben versucht die Spinne in ein Glas zu locken und lebend zu fangen FailFish und wurden dabei tödlich gebissen.');
 $.lang.register('adventuresystem.stories.3.chapter.3', 'Doch (survivors) kennen sich mit Spinnen aus, da gibts nur eins: Drauftreten! *matsch*');
 
