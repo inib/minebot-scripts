@@ -28,10 +28,10 @@ $.lang.register('adventuresystem.stories.2.title', 'Rettet Tinyfin martinTinyfin
 $.lang.register('adventuresystem.stories.2.chapter.1', 'martinTinyfin : Mrglgl Zu Hilfe Chat! Der grosse, böse FrankerZ ist hinter mir her, mrglgl!');
 $.lang.register('adventuresystem.stories.2.chapter.2', 'FrankerZ : Komm her, kleiner Murloc! Dich gibts heute als Hauptgericht!');
 $.lang.register('adventuresystem.stories.2.chapter.3', '(caught) ist das egal und schauen lieber weiter Martin zu. OSsloth');
-$.lang.register('adventuresystem.stories.2.chapter.3', 'Bis an die Zähne bewaffnet stellen sich (survivors) FrankerZ entgegen und können martinTinyfin befreien!');
+$.lang.register('adventuresystem.stories.2.chapter.4', 'Bis an die Zähne bewaffnet stellen sich (survivors) FrankerZ entgegen und können martinTinyfin befreien!');
 
 $.lang.register('adventuresystem.stories.3.title', 'Spinnen?!');
-$.lang.register('adventuresystem.stories.3.chapter.1', '/╲/╭༼ * ಠ 益 ಠ * ༽╮/╱|! WutFace Wer hat das Fenster wieder offen gelassen? Eine dicke, fette Spinne kriecht durch den Chat.');
+$.lang.register('adventuresystem.stories.3.chapter.1', '/\\/\\( * o . o * )/\\/\\! WutFace Wer hat das Fenster wieder offen gelassen? Eine dicke, fette Spinne kriecht durch den Chat.');
 $.lang.register('adventuresystem.stories.3.chapter.2', '(caught) haben versucht die Spinne in ein Glas zu locken und lebend zu fangen FailFish und wurden dabei tödlich gebissen.');
 $.lang.register('adventuresystem.stories.3.chapter.3', 'Doch (survivors) kennen sich mit Spinnen aus, da gibts nur eins: Drauftreten! *matsch*');
 

@@ -22,6 +22,7 @@
         stories = [],
         moduleLoaded = false,
         lastStory;
+        coolDownTimer = 0;
 
 
     function reloadAdventure () {
@@ -30,6 +31,7 @@
         gainPercent = $.getIniDbNumber('adventureSettings', 'gainPercent');
         minBet = $.getIniDbNumber('adventureSettings', 'minBet');
         maxBet = $.getIniDbNumber('adventureSettings', 'maxBet');
+        coolDownTimer = 0;
     };
 
     /**
@@ -185,7 +187,6 @@
         var t = setTimeout(function() {
             runStory();
         }, joinTime * 1e3);
-
         $.say($.lang.get('adventuresystem.start.success', $.resolveRank(username), $.pointNameMultiple));
     };
 
@@ -223,12 +224,21 @@
         }
 
         if (currentAdventure.gameState == 0) {
-            
-            if (!($.isOnline || $.isModv3(username))) {
+
+            if (!($.isOnline($.channelName) || $.isModv3(username))) {                
                 $.say($.whisperPrefix(username) + $.lang.get('adventuresystem.join.notpossible'));
                 return;
             }
 
+            var timeNow = $.systemTime();
+
+            if (timeNow < (coolDownTimer + (coolDown * 1000))) {                
+                var nextAdvTime = Math.round((coolDownTimer + (coolDown * 1000) - timeNow) / 60000);
+                $.say($.whisperPrefix(username) + $.lang.get('adventuresystem.adventure.cooldown', nextAdvTime));
+                return;
+            }
+
+            coolDownTimer = timeNow;
             startHeist(username);
         } else {
             $.say($.whisperPrefix(username) + $.lang.get('adventuresystem.join.success', $.getPointsString(bet)));
@@ -285,7 +295,7 @@
                 clearInterval(t);
             }
             progress++;
-        }, 5e3);
+        }, 20e3);
     };
 
     /**
