@@ -31,7 +31,7 @@ $.lang.register('adventuresystem.stories.2.chapter.3', '(caught) ist das egal un
 $.lang.register('adventuresystem.stories.2.chapter.4', 'Bis an die Zähne bewaffnet stellen sich (survivors) FrankerZ entgegen und können martinTinyfin befreien!');
 
 $.lang.register('adventuresystem.stories.3.title', 'Spinnen?!');
-$.lang.register('adventuresystem.stories.3.chapter.1', '/\\/\\( * o . o * )/\\/\\! WutFace Wer hat das Fenster wieder offen gelassen? Eine dicke, fette Spinne kriecht durch den Chat.');
+$.lang.register('adventuresystem.stories.3.chapter.1', 'WutFace /\\/\\( * o . o * )/\\/\\! Wer hat das Fenster wieder offen gelassen? Eine dicke, fette Spinne kriecht durch den Chat.');
 $.lang.register('adventuresystem.stories.3.chapter.2', '(caught) haben versucht die Spinne in ein Glas zu locken und lebend zu fangen FailFish und wurden dabei tödlich gebissen.');
 $.lang.register('adventuresystem.stories.3.chapter.3', 'Doch (survivors) kennen sich mit Spinnen aus, da gibts nur eins: Drauftreten! *matsch*');
 

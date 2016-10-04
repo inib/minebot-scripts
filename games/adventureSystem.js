@@ -282,6 +282,8 @@
             story = $.randElement(temp);
         } while (story == lastStory);
 
+        lastStory = story;
+
         $.say($.lang.get('adventuresystem.runstory', story.title, currentAdventure.users.length));
 
         t = setInterval(function() {
