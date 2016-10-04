@@ -30,7 +30,7 @@
         var diffDays = Math.round(time / 86400000); // days
         var diffHrs = Math.round(time / 3600000); // hours
         var diffMins = Math.round(time / 60000); // minutes
-        
+
         if (diffDays > 0) {
             if (diffDays == 1) {
                 return diffDays + ' Tag';
@@ -184,7 +184,7 @@
                 }
             }
             else {
-                answer = 'Keine neuen Subs in den letzten ' + timeElapsed + ' Minuten.';
+                answer = 'Keine neuen Subs in den letzten ' + getTimeDif(timeElapsed) + '.';
             }
 
             if (sender.equalsIgnoreCase($.channelName)) {
