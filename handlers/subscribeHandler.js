@@ -9,6 +9,9 @@
         subWelcomeToggle = $.getSetIniDbBoolean('subscribeHandler', 'subscriberWelcomeToggle', true),
         reSubWelcomeToggle = $.getSetIniDbBoolean('subscribeHandler', 'reSubscriberWelcomeToggle', true),
         subReward = $.getSetIniDbNumber('subscribeHandler', 'subscribeReward', 0),
+        notifyStreamerToggle = $.getSetIniDbBoolean('subscribeHandler', 'notifyStreamerToggle', true),
+        subList = [],
+        subListTime = $.systemTime(),
         announce = false;
     /**
      * @function updateSubscribeConfig
@@ -19,6 +22,7 @@
         subWelcomeToggle = $.getIniDbBoolean('subscribeHandler', 'subscriberWelcomeToggle');
         reSubWelcomeToggle = $.getIniDbBoolean('subscribeHandler', 'reSubscriberWelcomeToggle');
         subReward = $.getIniDbNumber('subscribeHandler', 'subscribeReward');
+        notifyStreamerToggle = $.getIniDbBoolean('subscribeHandler', 'notifyStreamerToggle');
     }
 
     /**
@@ -71,6 +75,11 @@
         var subscriber = event.getSub(),
             message = subMessage;
 
+        subList.push({
+            username: subscriber,
+            months: 0,
+        });
+
         if (subWelcomeToggle && announce) {
             if (message.match(/\(name\)/g)) {
                 message = $.replace(message, '(name)', $.username.resolve(subscriber));
@@ -82,12 +91,20 @@
             $.addSubUsersList(subscriber);
             $.inidb.set('streamInfo', 'lastSub', $.username.resolve(subscriber));
         }
+        if (notifyStreamerToggle && $.isOnline($.channelName) ) {
+            $.say($.whisperPrefix($.channelName) + 'Neuer Sub: ' + subscriber);
+        }
     });
 
     $.bind('NewReSubscriber', function(event) { // From notice event
         var resubscriber = event.getReSub(),
             months = event.getReSubMonths(),
             message = reSubMessage;
+        
+        subList.push({
+            username: subscriber,
+            months: months,
+        });
 
         if (reSubWelcomeToggle && announce) {
             if (message.match(/\(name\)/g)) {
@@ -99,9 +116,12 @@
             if (message.match(/\(reward\)/g)) {
                 message = $.replace(message, '(reward)', String(subReward));
             }
-            $.say(message);
+            $.say(message);         
             $.restoreSubscriberStatus(resubscriber, true);
             $.inidb.set('streamInfo', 'lastReSub', $.username.resolve(resubscriber));
+        }
+        if (notifyStreamerToggle && $.isOnline($.channelName)) {
+            $.say($.whisperPrefix($.channelName) + 'ReSub: ' + subscriber + ' für ' + months + ' Monate am Stück.');
         }
     });
 
@@ -112,11 +132,59 @@
         var sender = event.getSender(),
             command = event.getCommand(),
             argsString = event.getArguments().trim(),
-            args = event.getArgs();
+            currentTime = $.systemTime(),
+            args = event.getArgs()
+            i = 0;
+
+        if (command.equalsIgnoreCase('getnewsubs')) {
+
+            var timeElapsed = Math.round((currentTime - subListTime) / 60000);
+            var answer = '';
+
+            if (subList.length > 0) {
+                answer = 'Neue Subs in den letzten ' + timeElapsed + 'mins): ';
+                for (i in subList) {
+                    if (subList[i].months === 0) {
+                        answer += subList[i].username + ' (Neu), ';
+                    }
+                    else {
+                        answer += subList[i].username + ' (' + subList[i].months + ' Monate), ';
+                    }
+                }
+            }
+            else {
+                answer = 'Keine neuen Subs in den letzten ' + timeElapsed + ' Minuten.';
+            }
+
+            if (sender.equalsIgnoreCase($.channelName)) {
+                subList = [];
+                subListTime = currentTime;
+            }
+            $.say($.whisperPrefix(sender) + answer);
+        }
 
         /* Do not show command in command list, for the panel only. */
         if (command.equalsIgnoreCase('subscribepanelupdate')) {
             updateSubscribeConfig();
+        }
+
+         /**
+         * @commandpath subwelcometoggle - Enable or disable subscription alerts - Moderator
+         */
+        if (command.equalsIgnoreCase('notifytoggle')) {
+            if (notifyStreamerToggle) {
+                $.inidb.set('subscribeHandler', 'notifyStreamerToggle', false);
+                notifyStreamerToggle = false;
+                $.say($.whisperPrefix(sender) + $.lang.get('subscribehandler.new.sub.toggle.off'));
+                $.log.event(sender + ' disabled streamer notifications');
+                return;
+            } else {
+                $.inidb.set('subscribeHandler', 'notifyStreamerToggle', true);
+                notifyStreamerToggle = true;
+                $.say($.whisperPrefix(sender) + $.lang.get('subscribehandler.new.sub.toggle.on'));
+                $.log.event(sender + ' enabled streamer notifications');
+                return;
+            }
         }
     
         /**
@@ -225,7 +293,7 @@
      */
     $.bind('initReady', function() {
         if ($.bot.isModuleEnabled('./handlers/subscribehandler.js')) {
-            $.registerChatCommand('./handlers/subscribehandler.js', 'subwelcometoggle', 2);
+            $.registerChatCommand('./handlers/subscribehandler.js', 'subwelcometoggle', 2);            
             $.registerChatCommand('./handlers/subscribehandler.js', 'resubwelcometoggle', 2);
             $.registerChatCommand('./handlers/subscribehandler.js', 'subscribereward', 2);
             $.registerChatCommand('./handlers/subscribehandler.js', 'submessage', 2);
@@ -233,6 +301,8 @@
             $.registerChatCommand('./handlers/subscribehandler.js', 'subscribers', 2);
             $.registerChatCommand('./handlers/subscribehandler.js', 'subscribersoff', 2);
             $.registerChatCommand('./handlers/subscribehandler.js', 'subscribepanelupdate', 1);
+            $.registerChatCommand('./handlers/subscribehandler.js', 'getnewsubs', 1);
+            $.registerChatCommand('./handlers/subscribehandler.js', 'notifytoggle', 1);
             announce = true;
         }
     });
