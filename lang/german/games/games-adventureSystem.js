@@ -30,10 +30,23 @@ $.lang.register('adventuresystem.stories.2.chapter.2', 'FrankerZ : Komm her, kle
 $.lang.register('adventuresystem.stories.2.chapter.3', '(caught) ist das egal und schauen lieber weiter Martin zu. OSsloth');
 $.lang.register('adventuresystem.stories.2.chapter.4', 'Bis an die Zähne bewaffnet stellen sich (survivors) FrankerZ entgegen und können martinTinyfin befreien!');
 
-$.lang.register('adventuresystem.stories.3.title', 'Spinnen?!');
+$.lang.register('adventuresystem.stories.3.title', 'Spinnen?! WutFace');
 $.lang.register('adventuresystem.stories.3.chapter.1', 'WutFace /\\/\\( * o . o * )/\\/\\! Wer hat das Fenster wieder offen gelassen? Eine dicke, fette Spinne kriecht durch den Chat.');
 $.lang.register('adventuresystem.stories.3.chapter.2', '(caught) haben versucht die Spinne in ein Glas zu locken und lebend zu fangen FailFish und wurden dabei tödlich gebissen.');
 $.lang.register('adventuresystem.stories.3.chapter.3', 'Doch (survivors) kennen sich mit Spinnen aus, da gibts nur eins: Drauftreten! *matsch*');
+
+$.lang.register('adventuresystem.stories.4.title', 'ChefFrank Kuchen backen');
+$.lang.register('adventuresystem.stories.4.chapter.1', 'NomNom Kuchenzeit! NomNom Der Chat ist hungrig und unser wagemutiges Heldenteam wurde in die Küche geschickt.');
+$.lang.register('adventuresystem.stories.4.chapter.2', 'GivePLZ In dem Kessel mit Strychnin - kochen sie erst Terpentin - darauf ein Narkotikum - einen Schuss Petroleum OpieOP');
+$.lang.register('adventuresystem.stories.4.chapter.3', 'StinkyCheese Ein, zwei Tropfen Jauchensaft - Blut von Fliegen massenhaft - Eingeblasstes Spinnenbein...');
+$.lang.register('adventuresystem.stories.4.chapter.4', '...und in den Kessel fallen rein: (caught). OH NEEEEIN NotLikeThis');
+$.lang.register('adventuresystem.stories.4.chapter.5', '(survivors) habens geschafft! Der Kuchen ist im Ofen und es duftet bereits! DansGame Wer probiert als erstes? panicBasket');
+
+$.lang.register('adventuresystem.stories.5.title', 'MrDestructoid Reparaturauftrag');
+$.lang.register('adventuresystem.stories.5.chapter.1', 'DansGame Der Brawl ist mal wieder manipuliert! Schraubenschlüssel und Hammer eingepackt, geht\'s los! VoHiYo');
+$.lang.register('adventuresystem.stories.5.chapter.2', 'MrDestructoid Irgendjemand hat in der Kneipe für die nächste Prügelei Fallen aufgestellt! Wie Unfair!');
+$.lang.register('adventuresystem.stories.5.chapter.3', '*BOOM* - (caught) stürmen in die Kneipe und haben dabei die erste Sprengfalle direkt "gefunden". EleGiggle');
+$.lang.register('adventuresystem.stories.5.chapter.4', 'RitzMitz - (survivors) sind vorsichtiger und können mehrere grosse Bärenfallen sicher entschärfen, der nächste Brawl ist gerettet! KappaRoss');
 
 /*
  * Rules on writing your own adventure story:
