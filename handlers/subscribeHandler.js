@@ -25,6 +25,32 @@
         notifyStreamerToggle = $.getIniDbBoolean('subscribeHandler', 'notifyStreamerToggle');
     }
 
+    function getTimeDif(time)
+    {
+        var diffDays = Math.round(time / 86400000); // days
+        var diffHrs = Math.round(time / 3600000); // hours
+        var diffMins = Math.round(time / 60000); // minutes
+        
+        if (diffDays > 0) {
+            if (diffDays == 1) {
+                return diffDays + ' Tag';
+            }
+            return diffDays + ' Tagen';
+        }
+        if (diffHrs > 0) {
+            if (diffHrs == 1) {
+                return diffHrs + ' Std';
+            }
+            return diffHrs + ' Std';
+        }
+        if (diffMins > 0) {
+            if (diffMins == 1) {
+                return diffMins + ' Min';
+            }
+            return diffMins + ' Mins';
+        }
+    }
+
     /**
      * @event twitchSubscribeInitialized
      */
@@ -73,10 +99,12 @@
 
     $.bind('NewSubscriber', function(event) { // From twitchnotify
         var subscriber = event.getSub(),
+            currentTime = $.systemTime(),
             message = subMessage;
 
         subList.push({
             username: subscriber,
+            time: currentTime,
             months: 0,
         });
 
@@ -99,10 +127,12 @@
     $.bind('NewReSubscriber', function(event) { // From notice event
         var resubscriber = event.getReSub(),
             months = event.getReSubMonths(),
+            currentTime = $.systemTime(),
             message = reSubMessage;
         
         subList.push({
-            username: subscriber,
+            username: resubscriber,
+            time: currentTime,
             months: months,
         });
 
@@ -121,7 +151,7 @@
             $.inidb.set('streamInfo', 'lastReSub', $.username.resolve(resubscriber));
         }
         if (notifyStreamerToggle && $.isOnline($.channelName)) {
-            $.say($.whisperPrefix($.channelName) + 'ReSub: ' + subscriber + ' für ' + months + ' Monate am Stück.');
+            $.say($.whisperPrefix($.channelName) + 'ReSub: ' + resubscriber + ' für ' + months + ' Monate am Stück.');
         }
     });
 
@@ -138,17 +168,18 @@
 
         if (command.equalsIgnoreCase('getnewsubs')) {
 
-            var timeElapsed = Math.round((currentTime - subListTime) / 60000);
+            var timeElapsed = Math.round(currentTime - subListTime);
             var answer = '';
 
             if (subList.length > 0) {
-                answer = 'Neue Subs in den letzten ' + timeElapsed + 'mins): ';
+                answer = 'Neue Subs in den letzten ' + getTimeDif(timeElapsed) + ': ';
                 for (i in subList) {
+                    var subElapsed = Math.round(currentTime - subList[i].time);
                     if (subList[i].months === 0) {
-                        answer += subList[i].username + ' (Neu), ';
+                        answer += subList[i].username + ' (Neu, vor ' + getTimeDif(subElapsed) + '), ';
                     }
                     else {
-                        answer += subList[i].username + ' (' + subList[i].months + ' Monate), ';
+                        answer += subList[i].username + ' (' + subList[i].months + ' Monate, vor ' + getTimeDif(subElapsed) +'), ';
                     }
                 }
             }
