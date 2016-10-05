@@ -163,23 +163,30 @@
             command = event.getCommand(),
             argsString = event.getArguments().trim(),
             currentTime = $.systemTime(),
-            args = event.getArgs()
-            i = 0;
+            args = event.getArgs();
 
         if (command.equalsIgnoreCase('getnewsubs')) {
 
             var timeElapsed = Math.round(currentTime - subListTime);
+            if (timeElapsed > 172800000) {
+                timeElapsed = 172800000;
+            }
             var answer = '';
 
             if (subList.length > 0) {
                 answer = 'Neue Subs in den letzten ' + getTimeDif(timeElapsed) + ': ';
-                for (i in subList) {
+                for (var i in subList) {
                     var subElapsed = Math.round(currentTime - subList[i].time);
-                    if (subList[i].months === 0) {
-                        answer += subList[i].username + ' (Neu, vor ' + getTimeDif(subElapsed) + '), ';
+                    if (subElapsed > 172800000) {
+                        subList.splice(i,1);
                     }
                     else {
-                        answer += subList[i].username + ' (' + subList[i].months + ' Monate, vor ' + getTimeDif(subElapsed) +'), ';
+                        if (subList[i].months === 0) {
+                            answer += subList[i].username + ' (Neu, vor ' + getTimeDif(subElapsed) + '), ';
+                        }
+                        else {
+                            answer += subList[i].username + ' (' + subList[i].months + ' Monate, vor ' + getTimeDif(subElapsed) + '), ';
+                        }
                     }
                 }
             }
