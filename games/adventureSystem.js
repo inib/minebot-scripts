@@ -164,8 +164,8 @@
             if (currentAdventure.survivors.length > 0) {
                 if (currentAdventure.survivors.length > 10) {
                     var lineSurv = '';
-                    linelineSurv = adventureUsersListJoin(currentAdventure.survivors.slice(0,4)) + ' und ' + (currentAdventure.caught.length - 5) + ' weitere ';
-                    return line.replace('(caught)', lineSurv);
+                    linelineSurv = adventureUsersListJoin(currentAdventure.survivors.slice(0,9)) + ' und ' + (currentAdventure.survivors.length - 9) + ' weitere ';
+                    return line.replace('(survivors)', lineSurv);
                 }
                 else {
                     return line.replace('(survivors)', adventureUsersListJoin(currentAdventure.survivors));
