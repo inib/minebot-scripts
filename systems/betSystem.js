@@ -111,7 +111,7 @@
             $.say($.lang.get('betsystem.closed', closedPot));
         }
         else {
-                $.say($.whisperPrefix(sender) + $.lang.get('betsystem.close'));
+                $.say($.whisperPrefix(sender) + $.lang.get('betsystem.closed.nobet'));
              }
     }
     
