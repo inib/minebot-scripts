@@ -5,6 +5,7 @@ $.lang.register('betsystem.bet.err.more', 'Du kannst nicht mehr als $1 setzen.')
 $.lang.register('betsystem.bet.err.neg', 'Es gibt keine negativen $1, DansGame ');
 $.lang.register('betsystem.bet.updated', 'Wette aktualisiert! $1 setzt jetzt $2 auf $3! Pot $4');
 $.lang.register('betsystem.closed', '[Wettbüro geschlossen] Pot: $1');
+$.lang.register('betsystem.closed.nobet', 'Fehler! Keine Wette vorhanden oder wette bereits geschlossen!');
 $.lang.register('betsystem.command.usage', 'Anleitung: !bet (Option) (Einsatz)');
 $.lang.register('betsystem.default.opened', 'Setz deine Schoki und versuch dein Glück!');
 $.lang.register('betsystem.dotabet.lose', 'niederlage');

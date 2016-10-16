@@ -1,26 +1,12 @@
 /**
- * 20.03. update wager
- * 16.04. cleanup from kanaye
- * 17.04. announce winners implemented => test it
- * 
  * TODO LIST:
- * 
- * - announce winners (==> done 17.04.)
- *   - Top5 winners get a shoutout at the end of a bet
- *   - dismissed idea of whisper every participant => no spamerino, double check twitch limits for whitelisted bots
- * 
- * - announce bets
  * 
  * - advanced DAU control FailFish
  *   - mods
  *   - bet updates
  * 
  * - timed announcements during open bet (60s)
- * 
- * - ALLCAPS bet options for better visablilty?
- *   current string:  [Wettbüro geöffnet] Optionen: sieg - niederlage - !bet (Option) (Einsatz)
- *   to            :  [Wettbüro geöffnet] Optionen: SIEG - NIEDERLAGE - !bet (Option) (Einsatz)
- * 
+ *
  */
 
 (function() {
@@ -90,7 +76,7 @@
         
         $.log.file('betSystem', 'Bet started by ' + event.getSender() + ' ' + betOptions.join(', '));
 
-        $.say($.lang.get('betsystem.opened', betString, betOptions.join(', '), $.pointNameMultiple));
+        $.say($.lang.get('betsystem.opened', betString, betOptions.map(function (x){ return x.toUpperCase();}).join(', '), $.pointNameMultiple));
     }
 
     function resetBet() {
@@ -105,19 +91,27 @@
         
         if (betStatus && !betClosed) {
             
-            var closedPot = 0;
+            var closedPot = betPot;
+            var langString = '';
+            langString += betPot + ' Quoten:';
+            var quotes = calcQuotes();
             betClosed = true;
-            
-            for (var i in betTable) {
-                var bet = betTable[i];
-                closedPot += bet.amount;
+
+            for (var i = 0; i < quotes.length; i++) {
+                var element = quotes[i];
+                langString += element.option.toUpperCase()  + ': ' + element.quote + ' (' + element.bets + ')';
+                if ((i-1) == quotes.length) {
+                    langString += '.';
+                } else {
+                    langString += ' | ';
+                }
             }
 
             $.log.file('betSystem', 'Bet closed by ' + event.getSender() + '.');
             $.say($.lang.get('betsystem.closed', closedPot));
         }
         else {
-                // TODO
+                $.say($.whisperPrefix(sender) + $.lang.get('betsystem.close'));
              }
     }
     
@@ -141,6 +135,33 @@
             statusString = '';           
         }
     }
+
+    function calcQuotes() {
+
+        var response = [];
+
+        if (betStatus && betPot > 0) {
+
+            for (var i = 0; i < betOptions.length; i++) {
+
+                var optionPot = 0;
+                var optionQuote = 0;
+                var option = betOptions[i];
+                var j = 0;
+
+                for (j; j < betTable.length; j++) {
+                    var bet = betTable[j];
+                    optionPot += (bet.option == option) ? bet.amount : 0;                    
+                }
+
+                if (optionPot > 0) {
+                    optionQuote = betPot / optionPot;
+                    response.push({ option: option, quote: optionQuote, bets: j});
+                }
+            }
+        }
+        return response;
+    }   
 
     function betEnd(sender, event, subAction) {
         var args = event.getArgs(),
@@ -201,7 +222,7 @@
         // if winning pot equals zero, nobody won
         // reset bet system
         if (betTotal <= 0) {
-            $.say($.lang.get('betsystem.end.404', betWinning));
+            $.say($.lang.get('betsystem.end.404', betWinning.toUpperCase()));
             $.log.file('betSystem', 'Bet ended by ' + event.getSender() + '. No Winners.');
             resetBet();
             return;
@@ -247,7 +268,7 @@
         }
 
         betWinners.sort( function(a, b) { return b.amount-a.amount; } );
-        betWinShow = (betWinCount > 5 ? 5 : betWinCount);
+        betWinShow = (betWinCount > 8 ? 8 : betWinCount);
         betWinString = 'Wettgewinner: ';
 
         for (i = 0; i < betWinShow; i++) {
@@ -258,7 +279,7 @@
         betWinString += (betWinCount > betWinShow ? 'und ' + (betWinCount - betWinShow) + ' weitere.' : '.');
 
         $.log.file('betSystem', logString);
-        $.say($.lang.get('betsystem.end', betWinning, $.getPointsString(betPot), betPointsWon.toFixed(2)));
+        $.say($.lang.get('betsystem.end', betWinning.toUpperCase(), $.getPointsString(betPot), betPointsWon.toFixed(2)));
         $.say(betWinString);
 
         resetBet();
