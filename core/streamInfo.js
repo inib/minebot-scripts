@@ -7,11 +7,15 @@
     * @event twitchOnline
     */
     $.bind('twitchOnline', function(event) {
-        if (($.systemTime() - $.inidb.get('panelstats', 'playTimeStart')) >= (480 * 6e4)) {
-            var hrs = (getStreamUptimeSeconds($.channelName) / 3600), min = ((getStreamUptimeSeconds($.channelName) % 3600) / 60);
+        if (($.systemTime() - $.inidb.get('panelstats', 'playTimeReset')) >= (480 * 6e4)) {
+            var uptime = getStreamUptimeSeconds($.channelName);
+            $.inidb.set('panelstats', 'gameCount', 1);
+            count = $.inidb.get('panelstats', 'gameCount');
             $.inidb.del('streamInfo', 'gamesPlayed');
             $.inidb.set('panelstats', 'playTimeStart', $.systemTime());
-            $.inidb.set('streamInfo', 'gamesPlayed', (count + ': ' + $.twitchcache.getGameTitle() + ' - ' + hrs + ':' + min + '='));
+            $.inidb.set('panelstats', 'playTimeReset', $.systemTime());
+            $.inidb.set('streamInfo', 'gamesPlayed', (count + ': ' + $.twitchcache.getGameTitle() + ' - ' + (uptime / 3600 < 10 ? '0' : '') + Math.floor(uptime / 3600) + ':' 
+                    + ((uptime % 3600) / 60 < 10 ? '0' : '') + Math.floor((uptime % 3600) / 60) + '='));
         }
     });
 
@@ -19,8 +23,10 @@
     * @event twitchOffline
     */
     $.bind('twitchOffline', function(event) {
-        if (($.systemTime() - $.inidb.get('panelstats', 'playTimeStart')) >= (480 * 6e4)) {
+        if (($.systemTime() - $.inidb.get('panelstats', 'playTimeReset')) >= (480 * 6e4)) {
             $.inidb.set('panelstats', 'playTimeStart', 0);
+            $.inidb.set('panelstats', 'playTimeReset', 0);
+            $.inidb.set('panelstats', 'gameCount', 1);
             $.inidb.del('streamInfo', 'gamesPlayed');
         }
     });
@@ -29,17 +35,21 @@
     * @event twitchGameChange
     */
     $.bind('twitchGameChange', function(event) {
-        var hrs = (getStreamUptimeSeconds($.channelName) / 3600), min = ((getStreamUptimeSeconds($.channelName) % 3600) / 60);
+        var uptime = getStreamUptimeSeconds($.channelName);
 
         if ($.isOnline($.channelName)) {
             $.inidb.set('panelstats', 'playTimeStart', $.systemTime());
             if ($.inidb.exists('streamInfo', 'gamesPlayed')) {
-                count++;
+                $.inidb.incr('panelstats', 'gameCount', 1);
+                count = $.inidb.get('panelstats', 'gameCount');
                 gamesPlayed = $.inidb.get('streamInfo', 'gamesPlayed');
-                gamesPlayed += (count + ': ' + $.twitchcache.getGameTitle() + ' - ' + hrs + ':' + min + '=');
+                gamesPlayed += (count + ': ' + $.twitchcache.getGameTitle() + ' - ' + (uptime / 3600 < 10 ? '0' : '') + Math.floor(uptime / 3600) + ':' 
+                    + ((uptime % 3600) / 60 < 10 ? '0' : '') + Math.floor((uptime % 3600) / 60) + '=');
                 $.inidb.set('streamInfo', 'gamesPlayed', gamesPlayed);
             } else {
-                $.inidb.set('streamInfo', 'gamesPlayed', (count + ': ' + $.twitchcache.getGameTitle() + ' - ' + hrs + ':' + min + '='));
+                count = $.inidb.get('panelstats', 'gameCount');
+                $.inidb.set('streamInfo', 'gamesPlayed', (count + ': ' + $.twitchcache.getGameTitle() + ' - ' + (uptime / 3600 < 10 ? '0' : '') + Math.floor(uptime / 3600) + ':' 
+                    + ((uptime % 3600) / 60 < 10 ? '0' : '') + Math.floor((uptime % 3600) / 60) + '='));
             }
         }
     });
@@ -51,8 +61,8 @@
      */
     function getGamesPlayed() {
         if ($.inidb.exists('streamInfo', 'gamesPlayed')) {
-            var games = $.inidb.get('streamInfo', 'gamesPlayed');
-            var string = games.split('=').join(', ');
+            var games = $.inidb.get('streamInfo', 'gamesPlayed'),
+                string = games.split('=').join(', ');
 
             return string;
         }
@@ -66,6 +76,7 @@
     function getPlayTime() {
         var playTime = parseInt($.inidb.get('panelstats', 'playTimeStart')),
             time;
+
         if (playTime) {
             time = ($.systemTime() - playTime);
             return $.getTimeStringMinutes(time / 1000);
@@ -286,8 +297,14 @@
      * @param channelName
      */
     function getFollowAge(sender, username, channelName) {
-        var user = $.twitch.GetUserFollowsChannel(username, channelName),
-            date = new Date(user.getString('created_at')),
+        var user = $.twitch.GetUserFollowsChannel(username, channelName);
+
+        if (user.getInt('_http') === 404) {
+            $.say($.lang.get('followhandler.follow.age.err.404', $.userPrefix(sender, true), username, channelName));
+            return;
+        }
+
+        var date = new Date(user.getString('created_at')),
             dateFormat = new java.text.SimpleDateFormat("MMMM dd', 'yyyy"),
             dateFinal = dateFormat.format(date),
             days = Math.floor((Math.abs((date.getTime() - $.systemTime()) / 1000)) / 86400);
@@ -305,8 +322,14 @@
      * @param event
      */
     function getChannelAge(event) {
-        var channelData = $.twitch.GetChannel((!event.getArgs()[0] ? event.getSender() : event.getArgs()[0])),
-            date = new Date(channelData.getString('created_at')),
+        var channelData = $.twitch.GetChannel((!event.getArgs()[0] ? event.getSender() : event.getArgs()[0]));
+
+        if (channelData.getInt('_http') === 404) {
+            $.say($.userPrefix(event.getSender(), true) + $.lang.get('channel.age.user.404'));
+            return;
+        }
+
+        var date = new Date(channelData.getString('created_at')),
             dateFormat = new java.text.SimpleDateFormat("MMMM dd', 'yyyy"),
             dateFinal = dateFormat.format(date),
             days = Math.floor((Math.abs((date.getTime() - $.systemTime()) / 1000)) / 86400);
@@ -326,7 +349,7 @@
     function getSubscriberCount() {
         var jsonObject = $.twitch.GetChannelSubscriptions($.channelName.toLowerCase(), 100, 0, true);
 
-        if (jsonObject.getInt('_http') != 200) {
+        if (jsonObject.getInt('_http') !== 200) {
             return 0;
         }
 
@@ -367,12 +390,12 @@
                     $.deathUpdateFile(game);
                 }
             } else {
-                $.say($.whisperPrefix(sender) + 'Failed to change the game. Make sure you have your api oauth code set.');
+                $.say($.whisperPrefix(sender) + 'Failed to change the game. Make sure you have your api oauth code set. https://phantombot.tv/oauth');
                 $.consoleDebug(http.getString('message'));
                 $.log.error(http.getString('message'));
             }
         } else {
-            $.say($.whisperPrefix(sender) + 'Failed to change the game. Make sure you have your api oauth code set.');
+            $.say($.whisperPrefix(sender) + 'Failed to change the game. Make sure you have your api oauth code set. https://phantombot.tv/oauth');
             $.consoleDebug(http.getString('_exception') + ' ' + http.getString('_exceptionMessage'));
             $.log.error(http.getString('_exception') + ' ' + http.getString('_exceptionMessage'));
         }
@@ -398,12 +421,12 @@
                 }
                 $.log.event(sender + ' changed the current status to ' + http.getString('status'));
             } else {
-                $.say($.whisperPrefix(sender) + 'Failed to change the status. Make sure you have your api oauth code set.');
+                $.say($.whisperPrefix(sender) + 'Failed to change the status. Make sure you have your api oauth code set. https://phantombot.tv/oauth');
                 $.consoleDebug(http.getString('message'));
                 $.log.error(http.getString('message'));
             }
         } else {
-            $.say($.whisperPrefix(sender) + 'Failed to change the status. Make sure you have your api oauth code set.');
+            $.say($.whisperPrefix(sender) + 'Failed to change the status. Make sure you have your api oauth code set. https://phantombot.tv/oauth');
             $.consoleDebug(http.getString('_exception') + ' ' + http.getString('_exceptionMessage'));
             $.log.error(http.getString('_exception') + ' ' + http.getString('_exceptionMessage'));
         }

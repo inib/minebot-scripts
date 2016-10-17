@@ -100,7 +100,7 @@
      * @param {string} message
      */
     function say(message) {
-        if ($.channel !== null) {
+        if ($.session !== null) {
             if (message.startsWith('.')) {
                 $.session.say(message);
             }
@@ -160,7 +160,7 @@
         if (min == max) {
             return min;
         }
-        return (rand(max) + min);
+        return (rand(max - min + 1) + min);
     };
 
     /**
