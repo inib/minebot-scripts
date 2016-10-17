@@ -30,5 +30,10 @@ $.lang.register('betsystem.set.max.usage', 'Anleitung: !bet setmaximum (amount)'
 $.lang.register('betsystem.set.min', 'Wettminimum auf $1 geändert.');
 $.lang.register('betsystem.set.min.usage', 'Anleitung: !bet setminimum (amount)');
 $.lang.register('betsystem.status.404', '[Wettbüro] Derzeit läuft keine Wette.');
-$.lang.register('betsystem.status.open', '[Wettannahme offen] $1 - !bet (Option) ($3 Einsatz)');
+$.lang.register('betsystem.status.open', '[Wettannahme offen] $1 - !bet (Option) ($2 Einsatz)');
 $.lang.register('betsystem.status.closed', '[Wettannahme geschlossen] $1 - Viel Glück!');
+$.lang.register('betsystem.status.ind', 'Wettannahme ist $4. Du hast $1 $2 auf $3 gesetzt - Viel Glück!');
+$.lang.register('betsystem.status.ind.404', 'Wettannahme ist $1. Du hast nichts gesetzt - !bet (Option) (Einsatz)');
+$.lang.register('betsystem.helper.opened', 'geöffnet');
+$.lang.register('betsystem.helper.closed', 'geschlossen');
+
