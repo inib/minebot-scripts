@@ -16,12 +16,12 @@
         betClosed = false; // {bool} is bet closed
         betTimerID = 0;
 
-        if (!$.inidb.FileExists(betScores)) { 
-            $.inidb.AddFile(betScores);
+        if (!$.inidb.FileExists('betScores')) { 
+            $.inidb.AddFile('betScores');
         }
 
-        if (!$.inidb.FileExists(betHistory)) { 
-            $.inidb.AddFile(betHistory);
+        if (!$.inidb.FileExists('betHistory')) { 
+            $.inidb.AddFile('betHistory');
         }
 
      /** 
@@ -272,8 +272,13 @@
         // inform chat
         // reset betSystem
 
+        var betObj = { winOption: ''+betWinning, pot: ''+betPot, betOptions: betOptions, bets: []};        
+
         for (i in betTable) {
+            var betItem = {};
             bet = betTable[i];
+            betItem = { username: i, option: ''+bet.option, amount: 1*bet.amount};
+            betObj.bets.push(betItem);
             if (bet.option.equalsIgnoreCase(betWinning)) {
                 betWinPercent = (bet.amount / betTotal);
                 $.inidb.incr('points', i, parseInt(betPot * betWinPercent));
@@ -298,8 +303,9 @@
         $.log.file('betSystem', logString);
         $.say($.lang.get('betsystem.end', betWinning.toUpperCase(), $.getPointsString(betPot), betPointsWon.toFixed(2)));
         $.say(betWinString);
-        var betObj = { winOption: betWinning, pot: betPot, bets: betTable};
-        $.inidb.set('betHistory', $.systemTime(), betObj);
+        var betObjString = '';
+        betObjString = JSON.stringify(betObj);
+        $.inidb.set('betHistory', $.systemTime(), betObjString);
 
         resetBet();
     }
