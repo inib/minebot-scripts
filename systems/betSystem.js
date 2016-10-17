@@ -17,6 +17,7 @@
         betOptions = [], // { string[] } the options to bet on
         betTable = [], // { string[] { amount: {int}, option: {string} } } hold betters and their wager
         betClosed = false; // {bool} is bet closed
+        betTimerID = 0;
 
      /** 
      * @function hasKey
@@ -73,6 +74,8 @@
         }
 
         betStatus = true;
+
+        betTimerID = setInterval(betShowStatus(), 60*1000);
         
         $.log.file('betSystem', 'Bet started by ' + event.getSender() + ' ' + betOptions.join(', '));
 
@@ -92,20 +95,11 @@
         if (betStatus && !betClosed) {
             
             var closedPot = betPot;
-            var langString = '';
-            langString += betPot + ' Quoten:';
+            var langString = betPot;
             var quotes = calcQuotes();
-            betClosed = true;           
-
-            for (var i = 0; i < quotes.length; i++) {
-                var element = quotes[i];                
-                langString += element.option.toUpperCase()  + ': ' + element.quote + ' (' + element.bets + ')';
-                if ((i-1) == quotes.length) {
-                    langString += '.';
-                } else {
-                    langString += ' | ';
-                }
-            }
+            langString += ' ' + getQuoteString(quotes);
+            clearInterval(betTimerID);
+            betClosed = true;
 
             $.log.file('betSystem', 'Bet closed by ' + event.getSender() + '.');
             $.say($.lang.get('betsystem.closed', langString));
@@ -115,24 +109,21 @@
              }
     }
     
-    function betShowStatus(sender, event) {
+    function betShowStatus() {
         
         var statusString = '';
         
-        if (betStatus && !betClosed) {
-            $.say($.whisperPrefix(sender) + $.lang.get('betsystem.err.bet.closed'));
+        if (!betStatus) {
+            $.say($.lang.get('betsystem.status.404'));
             return;
         }
-        
-        for (var i in betOptions) {
-            for (var j in betTable) {
-                var bet = betTable[j];
-                if (betOptions[i] == bet.option) {
-                    statusString += i + ', ';
-                }
-            }
-            $.say($.lang.get('betsystem.show.status'), statusString);
-            statusString = '';           
+
+        statusString = 'Pot: ' + betPot + ' - ' + getQuoteString(calcQuotes());
+
+        if (betClosed) {
+            $.say($.lang.get('betsystem.status.closed'), statusString);            
+        } else {
+            $.say($.lang.get('betsystem.status.open'), statusString);
         }
     }
 
@@ -161,7 +152,25 @@
             }
         }
         return response;
-    }   
+    }
+
+    function getQuoteString(arr) {
+        var response = '';
+
+        response += 'Quoten: ';
+
+        for (var i = 0; i < arr.length; i++) {
+            var element = arr[i];
+            langString += element.option.toUpperCase() + ' ' + element.quote.toFixed(2) + ' (' + element.bets + ')';
+            if ((i + 1) == arr.length) {
+                //langString += '.';
+            } else {
+                langString += ' | ';
+            }
+        }
+
+        return response;
+    }
 
     function betEnd(sender, event, subAction) {
         var args = event.getArgs(),
@@ -313,6 +322,17 @@
 
                 betOpen(event, bet, '');
                 return;
+            /**
+            * @commandpath bet status - Shows bet status. - Moderator
+            */
+            } else if (action.equalsIgnoreCase('status')) {
+                if (!$.isModv3(sender, event.getTags())) {                    
+                    return;
+                }                    
+                
+                betShowStatus();
+                return;
+                
                  
             /**
             * @commandpath bet close - Closes the bet. - Moderator
@@ -515,6 +535,7 @@
             $.registerChatSubcommand('bet', 'abort', 2);
             $.registerChatSubcommand('bet', 'close', 2);
             $.registerChatSubcommand('bet', 'open', 2);
+            $.registerChatSubcommand('bet', 'status', 2);
             $.registerChatSubcommand('bet', 'setminimum', 1);
             $.registerChatSubcommand('bet', 'setmaximum', 1);
         }
