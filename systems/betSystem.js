@@ -95,10 +95,10 @@
             var langString = '';
             langString += betPot + ' Quoten:';
             var quotes = calcQuotes();
-            betClosed = true;
+            betClosed = true;           
 
             for (var i = 0; i < quotes.length; i++) {
-                var element = quotes[i];
+                var element = quotes[i];                
                 langString += element.option.toUpperCase()  + ': ' + element.quote + ' (' + element.bets + ')';
                 if ((i-1) == quotes.length) {
                     langString += '.';
@@ -108,7 +108,7 @@
             }
 
             $.log.file('betSystem', 'Bet closed by ' + event.getSender() + '.');
-            $.say($.lang.get('betsystem.closed', closedPot));
+            $.say($.lang.get('betsystem.closed', langString));
         }
         else {
                 $.say($.whisperPrefix(sender) + $.lang.get('betsystem.closed.nobet'));
@@ -149,9 +149,9 @@
                 var option = betOptions[i];
                 var j = 0;
 
-                for (j; j < betTable.length; j++) {
-                    var bet = betTable[j];
-                    optionPot += (bet.option == option) ? bet.amount : 0;                    
+                for (var bet in betTable) {
+                    optionPot += (betTable[bet].option.equalsIgnoreCase(option) ? betTable[bet].amount : 0);
+                    j++;
                 }
 
                 if (optionPot > 0) {
