@@ -344,4 +344,6 @@
             announce = true;
         }
     });
+    
+        $.updateSubscribeConfig = updateSubscribeConfig;
 })();
