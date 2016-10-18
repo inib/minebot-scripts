@@ -6,8 +6,11 @@
 
 (function() {
 
-	var hypeArray = ["PogChamp martinTinyfin S U B H Y P E martinTinyfin PogChamp", "SwiftRage SUB martinTinyfin HYPE SwiftRage", "【ツ】 SUB martinTinyfin SUB martinTinyfin SUB 【ツ】", 
-				 "✿◕ ‿ ◕✿ SUBHYPE ❀ martinTinyfin ❀ SUBHYPE ❁◕ ‿ ◕❁ ", "twitchRaid Kreygasm martinTinyfin SUB bleedPurple twitchRaid martinTinyfin twitchRaid"];
+	var hypeArray = ["PogChamp martinTinyfin S U B H Y P E martinTinyfin PogChamp",
+					 "SwiftRage SUB martinTinyfin martinDagon HYPE SwiftRage",
+					 "【ツ】 SUB martinTinyfin martinDagon SUB martinDagon martinTinyfin SUB 【ツ】",
+					 "✿◕ ‿ ◕✿ martonDagon SUBHYPE ❀ martinLadies ❀ SUBHYPE martonDagon ❁◕ ‿ ◕❁ ",
+					 "twitchRaid Kreygasm martinDagon martinLadies SUB bleedPurple twitchRaid martinDagon martinLadies twitchRaid"];
 
 	 /**
      * @event command
