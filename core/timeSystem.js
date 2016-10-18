@@ -376,12 +376,12 @@
                 if (!$.isMod(username) && !$.isAdmin(username) && $.inidb.exists('time', username) && Math.floor(parseInt($.inidb.get('time', username)) / 3600) >= hoursForLevelUp &&  parseInt($.getUserGroupId(username)) > regularsGroupId) {
                     if (!$.hasModList(username)) { // Added a second check here to be 100% sure the user is not a mod.
                         $.setUserGroupById(username, regularsGroupId);
-                        $.say($.lang.get(
-                            'timesystem.autolevel.promoted',
-                            $.username.resolve(username),
-                            $.getGroupNameById(regularsGroupId).toLowerCase(),
-                            hoursForLevelUp
-                        )); //No whisper mode needed here.
+                        //$.say($.lang.get(
+                        //    'timesystem.autolevel.promoted',
+                        //    $.username.resolve(username),
+                        //    $.getGroupNameById(regularsGroupId).toLowerCase(),
+                        //    hoursForLevelUp
+                        //)); //No whisper mode needed here.
                     }
                 }
             }
