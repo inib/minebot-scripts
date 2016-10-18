@@ -78,7 +78,7 @@
             }
         }
 
-        betTimerID = setInterval(function() { betShowStatus(); }, 60*1000);
+        betTimerID = setInterval(function() { betShowStatus(); }, 150*1000);
 
         betStatus = true;       
         
@@ -146,8 +146,10 @@
                 var j = 0;
 
                 for (var bet in betTable) {
-                    optionPot += (betTable[bet].option.equalsIgnoreCase(option) ? betTable[bet].amount : 0);
-                    j++;
+                    if (betTable[bet].option.equalsIgnoreCase(option)) {
+                        optionPot += betTable[bet].amount;
+                        j++;
+                    }
                 }
 
                 if (optionPot > 0) {
