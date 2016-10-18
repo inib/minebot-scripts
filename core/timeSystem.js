@@ -349,14 +349,6 @@
                 $.inidb.set('settings', 'timezone', tzData.getID());
             }
         }
-
-        if (command.equalsIgnoreCase('uptime')) {
-            $.say($.userPrefix(sender, true) + ($.getStreamUptime($.channelName) ? $.lang.get('timesystem.uptime', $.channelName, $.getStreamUptime($.channelName)) : $.lang.get('timesystem.uptime.offline', $.channelName)));
-        }
-
-        if (command.equalsIgnoreCase('updatetimesettings')) {
-            updateTimeSettings();
-        }
     });
 
     // Set an interval for increasing all current users logged time
@@ -401,10 +393,8 @@
      */
     $.bind('initReady', function() {
         if ($.bot.isModuleEnabled('./core/timeSystem.js')) {
-            $.registerChatCommand('./core/timeSystem.js', 'streamertime');
-            $.registerChatCommand('./core/timeSystem.js', 'uptime');
-            $.registerChatCommand('./core/timeSystem.js', 'timezone', 1);
-            $.registerChatCommand('./core/timeSystem.js', 'updatetimesettings', 1);
+            $.registerChatCommand('./core/timeSystem.js', 'streamertime');            
+            $.registerChatCommand('./core/timeSystem.js', 'timezone', 1);            
             $.registerChatCommand('./core/timeSystem.js', 'time');
             $.registerChatSubcommand('time', 'add', 1);
             $.registerChatSubcommand('time', 'take', 1);
@@ -423,4 +413,5 @@
     $.getCurLocalTimeString = getCurLocalTimeString;
     $.getLocalTimeString = getLocalTimeString;
     $.getTimeStringMinutes = getTimeStringMinutes;
+    $.updateTimeSettings = updateTimeSettings;
 })();
