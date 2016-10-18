@@ -51,21 +51,27 @@
     $.bind('ircPrivateMessage', function(event) {
         var sender = event.getSender(),
             message = event.getMessage(),
-            arguments = '',
-            command;
+            split = 0,
+            args = '',
+            command = '';
 
         if (!sender.equalsIgnoreCase('jtv') && !sender.equalsIgnoreCase('twitchnotify')) {
             if (message.startsWith('!') && $.isMod(sender) && hasKey($.users, sender, 0)) {
+
+                message = message.substring(1);
+
                 if (message.includes(' ')) {
-                    arguments = message.split(' ');
-                    command = message.substring(0, arguments);
-                    arguments = commandString.substring(arguments + 1);
-                } else {
+                    split = message.split(' ');
+                    command = message.substring(0, split);
+                    args = message.substring(split + 1);
+                }
+                else
+                {
                     command = message;
                 }
 
-                $.command.post(sender, command, arguments);
-                $.log.file('whispers', '' + sender + ': ' + message);
+                $.command.post(sender, command, args);
+                $.log.file('whispers', '' + sender + ': !' + message);
             }
         }
     });
