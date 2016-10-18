@@ -10,19 +10,20 @@
         var command = event.getCommand(),
             sender = event.getSender(),
             args = event.getArgs(),
+            action = args[0],
             hours,
             minutes,
             timestamp,
-            output_msg,
             keys,
             localDate,
+            arr,
             streamUptimeMinutes;
 
         /**
          * @commandpath highlight [description] - Marks a highlight using the given description and with the current date stamp - Moderator
-         * @comamndpath gethighlights - Get a list of current highlights - Moderator
+         * @commandpath gethighlights - Get a list of current highlights - Moderator
          * @commandpath showhighlights - Get a list of current highlights - Moderator
-         * @comamndpath clearhighlights - Clear the current highlights - Administrator
+         * @commandpath clearhighlights - Clear the current highlights - Administrator
          */
         if (command.equalsIgnoreCase("highlight")) {
             if (!$.isOnline($.channelName)) {
@@ -54,13 +55,13 @@
                 return;
             }
 
-            output_msg = "";
             keys = $.inidb.GetKeyList('highlights', '');
+            arr = [];
             for (var i = keys.length - 1; i >= 0; i--) {
-                output_msg = output_msg + "[ " + keys[i] + " > " + $.inidb.get("highlights", keys[i]) + " ] ";
+                arr.push("[" + keys[i] + " > " + $.inidb.get("highlights", keys[i]) + "] ");
             }
-            $.say($.whisperPrefix(sender) + "Highlights: " + output_msg);
-            return;
+
+            $.paginateArray(arr, 'highlightcommand.highlights', ' ', true, sender);
         }
 
         if (command.equalsIgnoreCase("clearhighlights")) {
@@ -75,6 +76,7 @@
     $.bind('initReady', function() {
         if ($.bot.isModuleEnabled('./commands/highlightCommand.js')) {
             $.registerChatCommand('./commands/highlightCommand.js', 'highlight', 2);
+            
             $.registerChatCommand('./commands/highlightCommand.js', 'gethighlights', 2);
             $.registerChatCommand('./commands/highlightCommand.js', 'showhighlights', 2);
             $.registerChatCommand('./commands/highlightCommand.js', 'clearhighlights', 1);

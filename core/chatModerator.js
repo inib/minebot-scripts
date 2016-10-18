@@ -114,6 +114,7 @@
         spamTrackerLastMsg = 0,
         messageTime = 0,
         warning = '',
+        youtubeLinks = new RegExp('(youtube.com|youtu.be)', 'ig'),
         i;
 
     /**
@@ -207,7 +208,7 @@
             Emotes: $.getIniDbNumber('chatModerator', 'warningTimeEmotes'),
             Colors: $.getIniDbNumber('chatModerator', 'warningTimeColors'),
             LongMsg: $.getIniDbNumber('chatModerator', 'warningTimeLongMsg'),
-            SpamTracker: $.getIniDbNumber('chatModerator', 'warningSpamTracker'),
+            SpamTracker: $.getIniDbNumber('chatModerator', 'warningTimeSpamTracker'),
         };
 
         timeoutTime = {
@@ -218,7 +219,7 @@
             Emotes: $.getIniDbNumber('chatModerator', 'timeoutTimeEmotes'),
             Colors: $.getIniDbNumber('chatModerator', 'timeoutTimeColors'),
             LongMsg: $.getIniDbNumber('chatModerator', 'timeoutTimeLongMsg'),
-            SpamTracker: $.getIniDbNumber('chatModerator', 'timeoutSpamTracker'),
+            SpamTracker: $.getIniDbNumber('chatModerator', 'timeoutTimeSpamTracker'),
         };
 
         blacklistTimeoutTime = $.getIniDbNumber('chatModerator', 'blacklistTimeoutTime');
@@ -229,14 +230,14 @@
 
         loadBlackList();
         loadWhiteList();
-    };
+    }
 
     /**
      * @interval
      * Check to see if no one has chatted in 5 minutes. If so clear the array. because this can get big in large channels.
      */
     setInterval(function() {
-        if (spamTracker.length != 0) {
+        if (spamTracker.length !== 0) {
             if (spamTrackerLastMsg - $.systemTime() <= 0) {
                 spamTracker = [];
             }
@@ -248,20 +249,24 @@
      */
     function loadBlackList() {
         var keys = $.inidb.GetKeyList('blackList', '');
-        for (i in keys) {
+        blackList = [];
+
+        for (i = 0; i < keys.length; i++) {
             blackList.push($.inidb.get('blackList', keys[i]));
         }
-    };
+    }
 
     /**
      * @function loadWhiteList
      */
     function loadWhiteList() {
         var keys = $.inidb.GetKeyList('whiteList', '');
-        for (i in keys) {
+        whiteList = [];
+        
+        for (i = 0; i < keys.length; i++) {
             whiteList.push($.inidb.get('whiteList', keys[i]));
         }
-    };
+    }
 
     /**
      * @function timeoutUserFor
@@ -270,78 +275,71 @@
      * @param {number} time
      * @param {string} reason
      */
-    function timeoutUserFor(user, time, reason) {
-        $.say('.timeout ' + user + ' ' + time + ' ' + reason);
+    function timeoutUserFor(username, time, reason) {
+        $.say('.timeout ' + username + ' ' + time + ' ' + reason);
         setTimeout(function() {
-            $.say('.timeout ' + user + ' ' + time + ' ' + reason);
+            $.say('.timeout ' + username + ' ' + time + ' ' + reason);
         }, 1000);
-    };
+    }
 
     /**
      * @function timeout
      *
-     * @param {string} user
+     * @param {string} username
      * @param {number} warningT
      * @param {number} timeoutT
-     * @param {boolean} silent
      * @param {string} reason
      */
-    function timeout(user, warningT, timeoutT, silent, reason) {
-        if (timeouts[user] !== undefined) {
-            var time = timeouts[user] - $.systemTime();
-            if (time > 0) {
-                timeoutUserFor(user, timeoutT, silent, reason);
-                timeouts[user] = resetTime + $.systemTime();
+    function timeout(username, warningT, timeoutT, reason) {
+        if (timeouts[username] !== undefined) {
+            if ((timeouts[username] - $.systemTime()) >= 0) {
+                timeoutUserFor(username, timeoutT, reason);
                 warning = $.lang.get('chatmoderator.timeout');
-                panelLog(user);
             } else {
-                timeoutUserFor(user, warningT, silent, reason);
-                timeouts[user] = resetTime + $.systemTime();
+                timeoutUserFor(username, warningT, reason);
                 warning = $.lang.get('chatmoderator.warning');
-                panelLog(user);
             }
-            return;
+        } else {
+            timeoutUserFor(username, warningT, reason);
+            warning = $.lang.get('chatmoderator.warning');
         }
-        timeoutUserFor(user, warningT, silent, reason);
-        timeouts[user] = resetTime + $.systemTime();
-        warning = $.lang.get('chatmoderator.warning');
-        panelLog(user);
-    };
+        timeouts[username] = (resetTime + $.systemTime());
+        panelLog(username);
+    }
 
     /**
      * @function panelLog
      *
      * @param {string} user
      */
-    function panelLog(user) {
+    function panelLog(username) {
         if ($.bot.isModuleEnabled('./handlers/panelHandler.js')) {
-            $.panelDB.updateModLinesDB(user);
+            $.panelDB.updateModLinesDB(username);
         }
-    };
+    }
 
     /**
      * @function sendMessage
      *
-     * @param {string} user
+     * @param {string} username
      * @param {string} message
      * @param {boolean} filter
      */
-    function sendMessage(user, message, filter) {
-        var messageReset = messageTime - $.systemTime();
-        if (!filter && messageReset <= 0) {
-            $.say($.userPrefix(user, true) + message + ' ' + warning);
-            messageTime = (msgCooldownSec * 1000) + $.systemTime();
+    function sendMessage(username, message, filter) {
+        if (!filter && (messageTime - $.systemTime()) <= 0) {
+            $.say($.userPrefix(username, true) + message + ' ' + warning);
+            messageTime = ((msgCooldownSec * 1000) + $.systemTime());
         } 
-    };
+    }
 
     /**
      * @function permitUser
      *
-     * @param {string} user
+     * @param {string} username
      */
-    function permitUser(user) {
-        permitList[user] = (linkPermitTime * 1000) + $.systemTime();
-    };
+    function permitUser(username) {
+        permitList[username] = ((linkPermitTime * 1000) + $.systemTime());
+    }
 
     /**
      * @function getModerationFilterStatus
@@ -355,22 +353,22 @@
         } else {
             return (filter ? 'not allowed' : 'allowed');
         }
-    };
+    }
 
     /**
      * @function checkPermitList
      *
-     * @param {string} user
+     * @param {string} username
      */
-    function checkPermitList(user) {
-        if (permitList[user] !== undefined) {
-            var time = permitList[user] - $.systemTime();
-            if (time > 0) {
+    function checkPermitList(username) {
+        if (permitList[username] !== undefined) {
+            if ((permitList[username] - $.systemTime()) >= 0) {
+                delete permitList[username];
                 return true;
             }
         }
         return false;
-    };
+    }
 
     /**
      * @function checkBlackList
@@ -380,15 +378,16 @@
      */
     function checkBlackList(sender, message) {
         for (i in blackList) {
-            if (message.includes(blackList[i])) {
+            if (message.includes(blackList[i].toLowerCase())) {
                 timeoutUser(sender, blacklistTimeoutTime, silentTimeout.BlacklistMessage);
                 warning = $.lang.get('chatmoderator.timeout');
                 sendMessage(sender, blacklistMessage, silentTimeout.Blacklist);
                 return true;
             }
         }
+        
         return false;
-    };
+    }
 
     /**
      * @function checkWhiteList
@@ -402,7 +401,7 @@
             }
         }
         return false;
-    };
+    }
 
     /**
      * @function checkYoutubePlayer
@@ -410,20 +409,20 @@
      * @param {string} message
      */
     function checkYoutubePlayer(message) {
-        if ($.youtubePlayerConnected && (message.includes('youtube.com') || message.includes('youtu.be'))) {
+        if ($.youtubePlayerConnected && message.match(youtubeLinks)) {
             return true;
+        } else {
+            return false;
         }
-        return false;
-    };
+    }
 
     /**
      * @function performModeration
      */
     function performModeration(event) {
-        var sender = event.getSender().toLowerCase(),
+        var sender = event.getSender(),
             message = event.getMessage().toLowerCase(),
-            messageLength = message.length(),
-            emotesObject = {};
+            messageLength = message.length();
 
         if (!$.isModv3(sender, event.getTags())) {
             if (linksToggle && $.patternDetector.hasLinks(event)) {
@@ -442,7 +441,7 @@
             }
 
             if (symbolsToggle && messageLength > symbolsTriggerLength) {
-                if ($.patternDetector.getLongestNonLetterSequence(event) > symbolsGroupLimit || ((parseFloat($.patternDetector.getNumberOfNonLetters(event)) / messageLength) * 100) > symbolsLimitPercent) {
+                if ($.patternDetector.getLongestNonLetterSequence(event) > symbolsGroupLimit || (($.patternDetector.getNumberOfNonLetters(event) / messageLength) * 100) > symbolsLimitPercent) {
                     if (!regulars.Symbols && $.isReg(sender) || !subscribers.Symbols && $.isSubv3(sender, event.getTags())) {
                         return;
                     }
@@ -461,7 +460,7 @@
                 return;
             }
 
-            if (colorsToggle && message.startsWith('/me')) {
+            if (colorsToggle && $.patternDetector.getColoredMessage(event)) {
                 if (!regulars.Colors && $.isReg(sender) || !subscribers.Colors && $.isSubv3(sender, event.getTags())) {
                     return;
                 }
@@ -483,9 +482,7 @@
                 return;
             }
 
-            emotesObject = $.patternDetector.getNumberOfEmotes(event);
-
-            if (emotesToggle && emotesObject.matches > emotesLimit) {
+            if (emotesToggle && $.patternDetector.getEmotesCount(event) > emotesLimit) {
                 if (!regulars.Emotes && $.isReg(sender) || !subscribers.Emotes && $.isSubv3(sender, event.getTags())) {
                     return;
                 }
@@ -495,7 +492,7 @@
             }
 
             if (capsToggle && messageLength > capsTriggerLength) {
-                if (((parseFloat($.patternDetector.getNumberOfCaps(event) - (emotesObject.length + emotesObject.matches)) / messageLength) * 100) > capsLimitPercent) {
+                if (((($.patternDetector.getNumberOfCaps(event) - $.patternDetector.getEmotesLength(event)) / messageLength) * 100) > capsLimitPercent) {
                     if (!regulars.Caps && $.isReg(sender) || !subscribers.Caps && $.isSubv3(sender, event.getTags())) {
                         return;
                     }
@@ -514,11 +511,10 @@
                         spamTracker[sender] = {count: 0, time: ($.systemTime() + (spamTrackerTime * 1e3))};
                     }
                     spamTracker[sender].count++;
-                    spamTracker[sender].time = ($.systemTime() + (spamTrackerTime * 1e3));
                 } else {
                     spamTracker[sender] = {count: 1, time: ($.systemTime() + (spamTrackerTime * 1e3))};
                 }
-                if (spamTracker[sender].count > spamTrackerLimit) {
+                if (spamTracker[sender].count >= spamTrackerLimit) {
                     timeout(sender, warningTime.SpamTracker, timeoutTime.SpamTracker, silentTimeout.SpamTrackerMessage);
                     sendMessage(sender, spamTrackerMessage, silentTimeout.SpamTracker);
                     delete spamTracker[sender];
@@ -526,7 +522,7 @@
                 spamTrackerLastMsg = ($.systemTime() + 3e5);
             }
         }
-    };
+    }
 
     /**
      * @function extraCommands
@@ -714,7 +710,7 @@
             }
 
             /**
-             * @commandpath blacklist remove [id] - Removes a word from the blacklist based on ID. - Moderator
+             * @commandpath blacklist remove [id] - Removes a word from the blacklist based on ID. - Administrator
              */
             if (action.equalsIgnoreCase('remove')) {
                 if (!subAction) {
@@ -730,7 +726,7 @@
             }
 
             /**
-             * @commandpath blacklist show [id] - Shows the blacklist word related to the ID. - Moderator
+             * @commandpath blacklist show [id] - Shows the blacklist word related to the ID. - Administrator
              */
             if (action.equalsIgnoreCase('show')) {
                 if (!subAction) {
@@ -745,7 +741,7 @@
         }
 
         /**
-         * @commandpath whitelist - Shows usage of command to manipulate the whitelist links - Moderator
+         * @commandpath whitelist - Shows usage of command to manipulate the whitelist links - Administrator
          */
         if (command.equalsIgnoreCase('whiteList')) {
             if (!action) {
@@ -754,7 +750,7 @@
             }
 
             /**
-             * @commandpath whitelist add [link] - Adds a link to the whitelist - Moderator
+             * @commandpath whitelist add [link] - Adds a link to the whitelist - Administrator
              */
             if (action.equalsIgnoreCase('add')) {
                 if (!subAction) {
@@ -769,7 +765,7 @@
             }
 
             /**
-             * @commandpath whitelist remove [id] - Removes a link from the whitelist based on ID. - Moderator
+             * @commandpath whitelist remove [id] - Removes a link from the whitelist based on ID. - Administrator
              */
             if (action.equalsIgnoreCase('remove')) {
                 if (!subAction) {
@@ -785,7 +781,7 @@
             }
 
             /**
-             * @commandpath whitelist show [id] - Shows a link in the whitelist based on ID. - Moderator
+             * @commandpath whitelist show [id] - Shows a link in the whitelist based on ID. - Administrator
              */
             if (action.equalsIgnoreCase('show')) {
                 if (!subAction) {
@@ -817,14 +813,7 @@
             $.log.event(action + ' was permited by ' + sender);
             return;
         }
-
-        /**
-         * Used by the panel, no commandpath given. 
-         */
-        if (command.equalsIgnoreCase('reloadmod')) {
-            reloadModeration();
-        }
-    };
+    }
 
     /**
      * @event ircClearchat
@@ -1319,7 +1308,7 @@
                         $.inidb.set('chatModerator', 'silentTimeoutLongMsg', silentTimeout.LongMsg);
                         $.inidb.set('chatModerator', 'silentTimeoutColors', silentTimeout.Colors);
                         $.inidb.set('chatModerator', 'silentTimeoutSpamTacker', silentTimeout.SpamTracker);
-                        $.say($.whisperPrefix(sender) + (args[0] ? $.lang.get('chatmoderator.silenttimeout.true') : $.lang.get('chatmoderator.silenttimeout.false')))
+                        $.say($.whisperPrefix(sender) + (args[0] ? $.lang.get('chatmoderator.silenttimeout.true') : $.lang.get('chatmoderator.silenttimeout.false')));
                     }
                 }
             }
@@ -1741,7 +1730,7 @@
             }
 
             /**
-             * @commandpath moderation warningresettime [seconds] - Sets how long a user stays on his first offence for (there are 2 offences). Default is 60 minutes (minimum is 30 minutes)
+             * @commandpath moderation warningresettime [seconds] - Sets how long a user stays on his first offence for (there are 2 offences). Default is 60 minutes (minimum is 30 minutes) - Administrator
              */
             if (action.equalsIgnoreCase('warningresettime')) {
                 if (!subAction) {
@@ -1779,9 +1768,8 @@
             $.registerChatCommand('./core/chatmoderator.js', 'permit', 2);
             $.registerChatCommand('./core/chatmoderator.js', 'moderation', 1);
             $.registerChatCommand('./core/chatmoderator.js', 'mod', 1);
-            $.registerChatCommand('./core/chatmoderator.js', 'blacklist', 2);
-            $.registerChatCommand('./core/chatmoderator.js', 'whitelist', 2);
-            $.registerChatCommand('./core/chatmoderator.js', 'reloadmod', 1); // Used by the panel //
+            $.registerChatCommand('./core/chatmoderator.js', 'blacklist', 1);
+            $.registerChatCommand('./core/chatmoderator.js', 'whitelist', 1);
         }
     });
 
@@ -1789,4 +1777,5 @@
     $.performModeration = performModeration;
     $.timeoutUser = timeoutUserFor;
     $.permitUserLink = permitUser;
+    $.reloadModeration = reloadModeration;
 })();
