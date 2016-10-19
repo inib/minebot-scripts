@@ -9,7 +9,7 @@
 	var hypeArray = ["PogChamp martinTinyfin S U B H Y P E martinTinyfin PogChamp",
 					 "SwiftRage SUB martinTinyfin martinDagon HYPE SwiftRage",
 					 "【ツ】 SUB martinTinyfin martinDagon SUB martinDagon martinTinyfin SUB 【ツ】",
-					 "✿◕ ‿ ◕✿ martonDagon SUBHYPE ❀ martinLadies ❀ SUBHYPE martonDagon ❁◕ ‿ ◕❁ ",
+					 "✿◕ ‿ ◕✿ martinDagon SUBHYPE ❀ martinLadies ❀ SUBHYPE martinDagon ❁◕ ‿ ◕❁ ",
 					 "twitchRaid Kreygasm martinDagon martinLadies SUB bleedPurple twitchRaid martinDagon martinLadies twitchRaid"];
 
 	 /**
