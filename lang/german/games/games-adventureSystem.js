@@ -50,7 +50,7 @@ $.lang.register('adventuresystem.stories.5.chapter.4', ' RitzMitz - (survivors) 
 
 $.lang.register('adventuresystem.stories.6.title', 'Auf zur Pokemon Jagd!');
 $.lang.register('adventuresystem.stories.6.chapter.1', 'Martin hat im Stadtpark ein Relaxo lokalisiert PogChamp - Doch was ist das?');
-$.lang.register('adventuresystem.stories.6.chapter.2', 'Eine Horde Kids hat den Spawn auch schon entdeckt! Los Helden vertriebt die Knirpse! 4Head ');
+$.lang.register('adventuresystem.stories.6.chapter.2', 'Eine Horde Kids hat den Spawn auch schon entdeckt! Los Helden vertreibt die Knirpse! 4Head ');
 $.lang.register('adventuresystem.stories.6.chapter.3', 'SwiftRage ATTACK... ne doch nicht - (caught) bekommen es mit der Angst zu tun und laufen davon. FailFish ');
 $.lang.register('adventuresystem.stories.6.chapter.4', '(survivors) haben ausreichend Wasserbomben eingepackt! *SWOSCH* Heulend und triefnass suchend die Kids das Weite BabyRage - Das Relaxo ist unser!');
 
