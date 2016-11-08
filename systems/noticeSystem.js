@@ -102,7 +102,7 @@
             message = '';
 
         /**
-         * @commandpath notice - Base command for managing notices - Administrator - Administrator
+         * @commandpath notice - Base command for managing notices - Moderator
          */
         if (command.equalsIgnoreCase('notice')) {
             if (args.length == 0) {
@@ -111,7 +111,7 @@
             }
 
             /**
-             * @commandpath notice get [id] - Gets the notice related to the ID - Administrator
+             * @commandpath notice get [id] - Gets the notice related to the ID - Moderator
              */
             if (action.equalsIgnoreCase('get')) {
                 if (args.length < 2) {
@@ -127,7 +127,7 @@
             }
 
             /**
-             * @commandpath notice edit [id] [new message] - Replace the notice at the given ID - Administrator
+             * @commandpath notice edit [id] [new message] - Replace the notice at the given ID - Moderator
              */
             if (action.equalsIgnoreCase('edit')) {
                 if (args.length < 3) {
@@ -164,7 +164,7 @@
 
 
             /**
-             * @commandpath notice remove [id] - Removes the notice related to the given ID - Administrator
+             * @commandpath notice remove [id] - Removes the notice related to the given ID - Moderator
              */
             if (action.equalsIgnoreCase('remove')) {
                 if (args.length < 2) {
@@ -202,7 +202,7 @@
             }
 
             /**
-             * @commandpath notice add [message or command] - Adds a notice, with a custom message, or a command ex: !notice add command:COMMANDS_NAME - Administrator
+             * @commandpath notice add [message or command] - Adds a notice, with a custom message, or a command ex: !notice add command:COMMANDS_NAME - Moderator
              */
             if (action.equalsIgnoreCase('add')) {
                 if (args.length < 2) {
@@ -234,7 +234,7 @@
             }
 
             /**
-             * @commandpath notice interval [minutes] - Sets the notice interval in minutes - Administrator
+             * @commandpath notice interval [minutes] - Sets the notice interval in minutes - Moderator
              */
             if (action.equalsIgnoreCase('interval')) {
                 if (args.length == 0) {
@@ -253,7 +253,7 @@
             }
 
             /**
-             * @commandpath notice req [message count] - Set the number of messages needed to trigger a notice - Administrator
+             * @commandpath notice req [message count] - Set the number of messages needed to trigger a notice - Moderator
              */
             if (action.equalsIgnoreCase('req')) {
                 if (args.length < 2) {
@@ -268,7 +268,7 @@
             }
 
             /**
-             * @commandpath notice config - Shows current notice configuration - Administrator
+             * @commandpath notice config - Shows current notice configuration - Moderator
              */
             if (action.equalsIgnoreCase('config')) {
                 $.say($.whisperPrefix(sender) + $.lang.get('noticehandler.notice-config', noticeToggle, noticeInterval, noticeReqMessages, numberOfNotices, noticeOffline));
@@ -276,7 +276,7 @@
             }
 
             /**
-             * @commandpath notice toggle - Toggles notices on and off - Administrator
+             * @commandpath notice toggle - Toggles notices on and off - Moderator
              */
             if (action.equalsIgnoreCase('toggle')) {
                 if (noticeToggle) {
@@ -291,7 +291,7 @@
             }
 
             /**
-             * @commandpath notice toggleoffline - Toggles on and off if notices can be said in chat if the channel is offline - Administrator
+             * @commandpath notice toggleoffline - Toggles on and off if notices can be said in chat if the channel is offline - Moderator
              */
             if (action.equalsIgnoreCase('toggleoffline')) {
                 if (noticeOffline) {
@@ -324,7 +324,7 @@
      */
     $.bind('initReady', function() {
         if ($.bot.isModuleEnabled('./systems/noticeSystem.js')) {
-            $.registerChatCommand('./systems/noticeSystem.js', 'notice', 1);
+            $.registerChatCommand('./systems/noticeSystem.js', 'notice', 2);
         }
     });
 
