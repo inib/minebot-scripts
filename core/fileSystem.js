@@ -8,6 +8,8 @@
         JFileInputStream = java.io.FileInputStream,
         JFileOutputStream = java.io.FileOutputStream;
 
+    var fileHandles = [];
+
     /**
      * @function readFile
      * @export $
@@ -24,10 +26,10 @@
             }
             fis.close();
         } catch (e) {
-            $.consoleLn('Failed to open \'' + path + '\': ' + e);
+            $.log.error('Failed to open \'' + path + '\': ' + e);
         }
         return lines;
-    }
+    };
 
     /**
      * @function mkDir
@@ -38,7 +40,7 @@
     function mkDir(path) {
         var dir = new JFile(path);
         return dir.mkdir();
-    }
+    };
 
     /**
      * @function moveFile
@@ -51,9 +53,13 @@
             pathO = new JFile(path);
 
         if ((fileO != null && pathO != null) || (file != "" && path != "")) {
-            org.apache.commons.io.FileUtils.moveFileToDirectory(file, path, true);
+            try {
+                org.apache.commons.io.FileUtils.moveFileToDirectory(fileO, pathO, true);
+            } catch (ex) {
+                $.log.error("moveFile(" + file + ", " + path + ") failed: " + ex);
+            }
         }
-    }
+    };
 
     /**
      * @function saveArray
@@ -72,9 +78,21 @@
             }
             fos.close();
         } catch (e) {
-            $.consoleLn('Failed to write to \'' + path + '\': ' + e);
+            $.log.error('Failed to write to \'' + path + '\': ' + e);
         }
-    }
+    };
+
+    /**
+     * @function closeOpenFiles
+     */
+    function closeOpenFiles() {
+        for (var key in fileHandles) {
+            if (fileHandles[key].lastWrite + 36e5 <= $.systemTime()) { 
+                fileHandles[key].fos.close();
+                delete fileHandles[key];
+            }
+        }
+    };
 
     /**
      * @function writeToFile
@@ -84,15 +102,32 @@
      * @param {boolean} append
      */
     function writeToFile(line, path, append) {
-        try {
-            var fos = new JFileOutputStream(path, append);
-            var ps = new java.io.PrintStream(fos);
-            ps.println(line);
-            fos.close();
-        } catch (e) {
-            $.consoleLn('Failed to write to \'' + path + '\': ' + e);
+        var fos,
+            ps;
+
+        closeOpenFiles();
+
+        if (fileHandles[path] !== undefined && append) {
+            fos = fileHandles[path].fos;
+            ps = fileHandles[path].ps;
+            fileHandles[path].lastWrite = $.systemTime();
+        } else {
+            fos = new JFileOutputStream(path, append);
+            ps = new java.io.PrintStream(fos);
+            fileHandles[path] = { 
+                fos: fos,
+                ps: ps,
+                lastWrite: $.systemTime()
+            };
         }
-    }
+    
+        try {
+            ps.println(line);
+            fos.flush();
+        } catch (e) {
+            $.log.error('Failed to write to \'' + path + '\': ' + e);
+        }
+    };
 
     /**
      * @function touchFile
@@ -104,9 +139,9 @@
             var fos = new JFileOutputStream(path, true);
             fos.close();
         } catch (e) {
-            $.consoleLn('Failed to touch \'' + path + '\': ' + e);
+            $.log.error('Failed to touch \'' + path + '\': ' + e);
         }
-    }
+    };
 
     /**
      * @function deleteFile
@@ -123,9 +158,9 @@
                 f.deleteOnExit();
             }
         } catch (e) {
-            $.consoleLn('Failed to delete \'' + path + '\': ' + e)
+            $.log.error('Failed to delete \'' + path + '\': ' + e);
         }
-    }
+    };
 
     /**
      * @function fileExists
@@ -140,7 +175,7 @@
         } catch (e) {
             return false;
         }
-    }
+    };
 
     /**
      * @function findFiles
@@ -163,10 +198,10 @@
                 return ret;
             }
         } catch (e) {
-            $.consoleLn('Failed to search in \'' + directory + '\': ' + e)
+            $.log.error('Failed to search in \'' + directory + '\': ' + e);
         }
         return [];
-    }
+    };
 
     /**
      * @function isDirectory
@@ -181,7 +216,7 @@
         } catch (e) {
             return false;
         }
-    }
+    };
 
     /**
      * @function findSize
@@ -192,7 +227,7 @@
     function findSize(file) {
         var fileO = new JFile(file);
         return fileO.length();
-    }
+    };
 
     /** Export functions to API */
     $.deleteFile = deleteFile;

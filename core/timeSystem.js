@@ -6,27 +6,23 @@
  * Use the $ API
  */
 (function() {
-    var levelWithTime = ($.inidb.exists('timeSettings', 'timeLevel') ? $.getIniDbBoolean('timeSettings', 'timeLevel') : false),
-        keepTimeWhenOffline = ($.inidb.exists('timeSettings', 'keepTimeWhenOffline') ? $.getIniDbBoolean('timeSettings', 'keepTimeWhenOffline') : false),
-        modTimePermToggle = ($.inidb.exists('timeSettings', 'modTimePermToggle') ? $.getIniDbBoolean('timeSettings', 'modTimePermToggle') : false),
-        hoursForLevelUp = ($.inidb.exists('timeSettings', 'timePromoteHours') ? parseInt($.inidb.get('timeSettings', 'timePromoteHours')) : 50),
-        regularsGroupId = 6;
+    var levelWithTime = $.getSetIniDbBoolean('timeSettings', 'timeLevel', false),
+        keepTimeWhenOffline = $.getSetIniDbBoolean('timeSettings', 'keepTimeWhenOffline', false),
+        modTimePermToggle = $.getSetIniDbBoolean('timeSettings', 'modTimePermToggle', false),
+        hoursForLevelUp = $.getSetIniDbNumber('timeSettings', 'timePromoteHours', 50),
+        regularsGroupId = 6, 
+        interval,
+        inter;
 
     /**
-     * @function hasPerm
-     * @param {Object} event
-     * @returns {boolean}
+     * @function updateTimeSettings
      */
-    function hasPerm(event) {
-        if (modTimePermToggle) {
-            if (!$.isModv3(event.getSender().toLowerCase(), event.getTags())) {
-                return false;
-            }
-        } else if (!$.isAdmin(event.getSender().toLowerCase())) {
-            return false;
-        }
-        return true;
-    }
+    function updateTimeSettings () {
+        levelWithTime = $.getIniDbBoolean('timeSettings', 'timeLevel');
+        keepTimeWhenOffline = $.getIniDbBoolean('timeSettings', 'keepTimeWhenOffline');
+        modTimePermToggle = $.getIniDbBoolean('timeSettings', 'modTimePermToggle');
+        hoursForLevelUp = $.getIniDbNumber('timeSettings', 'timePromoteHours');
+    };
 
     /**
      * @function getCurLocalTimeString
@@ -65,7 +61,7 @@
         var dateFormat = new java.text.SimpleDateFormat(format);
         dateFormat.setTimeZone(java.util.TimeZone.getTimeZone(($.inidb.exists('settings', 'timezone') ? $.inidb.get('settings', 'timezone') : "GMT")));
         return dateFormat.format(new java.util.Date());
-    }
+    };
 
     /**
      * @function getLocalTimeString
@@ -78,7 +74,7 @@
         var dateFormat = new java.text.SimpleDateFormat(format);
         dateFormat.setTimeZone(java.util.TimeZone.getTimeZone(($.inidb.exists('settings', 'timezone') ? $.inidb.get('settings', 'timezone') : "GMT")));
         return dateFormat.format(new java.util.Date(utc_secs));
-    }
+    };
 
     /**
      * @function dateToString
@@ -97,9 +93,9 @@
         if (timeOnly) {
             return hours + ':' + minutes;
         } else {
-            return day + '-' + month + '-' + year + ' ' + hours + ':' + minutes;
+            return day + '-' + month + '-' + year + ' @ ' + hours + ':' + minutes;
         }
-    }
+    };
 
     /**
      * @function getTimeString
@@ -114,11 +110,34 @@
             cMins = cHours % 1 * 60;
 
         if (hoursOnly) {
-            return floor(cHours) + 'hrs ';
+            return floor(cHours) + $.lang.get('common.hours3');
         } else {
-            return (time >= 60 ? (floor(cHours) + 'hrs ' + floor(~~cMins) + 'min ').replace(/^0hrs/, '') : floor(cMins % 1 * 60) + 'sec');
+            if (floor(cHours) > 0) {
+                return ((floor(cHours) + $.lang.get('common.hours') + floor(~~cMins) + $.lang.get('common.minutes') + floor(cMins % 1 * 60) + $.lang.get('common.seconds')));
+            } else {
+                return (floor(~~cMins) + $.lang.get('common.minutes') + floor(cMins % 1 * 60) + $.lang.get('common.seconds'));
+            }
         }
-    }
+    };
+
+    /**
+     * @function getTimeStringMinutes
+     * @export $
+     * @param {Number} time
+     * @param {boolean} [hoursOnly]
+     * @returns {string}
+     */
+    function getTimeStringMinutes(time) {
+        var floor = Math.floor,
+            cHours = time / 3600,
+            cMins = cHours % 1 * 60;
+
+        if (cHours == 0 || cHours < 1) {
+            return (floor(~~cMins) + $.lang.get('common.minutes2'));
+        } else {
+            return (floor(cHours) + $.lang.get('common.hours2') + floor(~~cMins) + $.lang.get('common.minutes2'));
+        }
+    };
 
     /**
      * @function getUserTime
@@ -127,8 +146,8 @@
      * @returns {number}
      */
     function getUserTime(username) {
-        return ($.inidb.exists('time', username) ? $.inidb.get('time', username) : 0);
-    }
+        return ($.inidb.exists('time', username.toLowerCase()) ? $.inidb.get('time', username.toLowerCase()) : 0);
+    };
 
     /**
      * @function getUserTimeString
@@ -137,8 +156,17 @@
      * @returns {string}
      */
     function getUserTimeString(username) {
-        return $.getTimeString($.getUserTime(username));
-    }
+        var floor = Math.floor,
+            time = $.getUserTime(username.toLowerCase()),
+            cHours = time / 3600,
+            cMins = cHours % 1 * 60;
+
+        if (floor(cHours) > 0) {
+            return ($.lang.get('user.time.string.hours', floor(cHours), floor(~~cMins)));
+        } else {
+            return ($.lang.get('user.time.string.minutes', floor(~~cMins)));
+        }
+    };
 
     /**
      * @event command
@@ -153,11 +181,13 @@
             timeArg;
 
         /**
-         * @commandpath time - Announce amount of time spent in channel - Viewer
+         * @commandpath time - Announce amount of time spent in channel - Administrator
          */
         if (command.equalsIgnoreCase('time')) {
-            if (!hasPerm(event) || !action) {
-                $.say($.whisperPrefix(sender) + $.lang.get("timesystem.get.other", $.resolveRank(sender), $.getUserTimeString(sender)));
+            if (!action) {
+                $.say($.whisperPrefix(sender) + $.lang.get("timesystem.get.self", $.resolveRank(sender), getUserTimeString(sender)));
+            } else if (action && $.inidb.exists('time', action.toLowerCase())) {
+                $.say($.whisperPrefix(sender) + $.lang.get("timesystem.get.other", $.resolveRank(action), getUserTimeString(action)));
             } else {
                 subject = args[1];
                 timeArg = parseInt(args[2]);
@@ -182,7 +212,7 @@
                     if ($.user.isKnown(subject)) {
                         $.inidb.incr('time', subject, timeArg);
                         $.say($.whisperPrefix(sender) + $.lang.get("timesystem.add.success",
-                            $.getTimeString(timeArg), $.username.resolve(subject), $.getUserTimeString(subject)));
+                            getTimeString(timeArg), $.username.resolve(subject), getUserTimeString(subject)));
                     } else {
                         $.say($.whisperPrefix(sender) + $.lang.get('common.user.404', $.username.resolve(subject)));
                     }
@@ -197,18 +227,19 @@
                         return;
                     }
 
-                    if ($.user.isKnown(sender)) {
-                        $.say($.whisperPrefix(sender) + $.lang.get('common.user.404', username));
+                    subject = subject.toLowerCase();
+                    if (!$.user.isKnown(subject)) {
+                        $.say($.whisperPrefix(sender) + $.lang.get('common.user.404', subject));
                     }
 
-                    if (timeArg > $.getUserTime(sender)) {
-                        $.say($.whisperPrefix(sender) + $.lang.get("timesystem.take.error.toomuch", username));
+                    if (timeArg > $.getUserTime(subject)) {
+                        $.say($.whisperPrefix(sender) + $.lang.get("timesystem.take.error.toomuch", subject));
                         return;
                     }
 
                     $.inidb.decr('time', subject, timeArg);
                     $.say($.whisperPrefix(sender) + $.lang.get('timesystem.take.success',
-                        $.getTimeString(timeArg), $.username.resolve(subject), $.getUserTimeString(sender)));
+                        $.getTimeString(timeArg), $.username.resolve(subject), getUserTimeString(subject)))
                 }
 
                 if (action.equalsIgnoreCase('set')) {
@@ -223,10 +254,11 @@
                     }
 
 
-                    if ($.user.isKnown(subject.toLowerCase())) {
+                    subject = subject.toLowerCase();
+                    if ($.user.isKnown(subject)) {
                         $.inidb.set('time', subject, timeArg);
                         $.say($.whisperPrefix(sender) + $.lang.get('timesystem.settime.success',
-                            $.username.resolve(subject), $.getUserTimeString(subject.toLowerCase())));
+                            $.username.resolve(subject), $.getUserTimeString(subject)));
                     } else {
                         $.say($.whisperPrefix(sender) + $.lang.get('common.user.404', subject));
                     }
@@ -246,13 +278,16 @@
                         return;
                     }
 
-                    $.inidb.set('settings', 'timePromoteHours', args[1]);
-                    hoursForLevelUp = parseInt($.inidb.get('settings', 'timePromoteHours'));
+                    $.inidb.set('timeSettings', 'timePromoteHours', subject);
+                    hoursForLevelUp = parseInt($.inidb.get('timeSettings', 'timePromoteHours'));
 
                     $.say($.whisperPrefix(sender) + $.lang.get("timesystem.set.promotehours.success",
                         $.getGroupNameById(regularsGroupId).toLowerCase(), hoursForLevelUp));
                 }
 
+                /**
+                 * @commandpath time autolevel - Auto levels a user to regular after hitting 50 hours. - Administrator
+                 */
                 if (action.equalsIgnoreCase('autolevel')) {
                     levelWithTime = !levelWithTime;
                     $.setIniDbBoolean('timeSettings', 'timeLevel', levelWithTime);
@@ -268,7 +303,7 @@
 
 
                 /**
-                 * @commandpath time offlinetime - Toggle logging a user's time when the channel is offline - Administrator
+                 * @commandpath time offlinetime - Toggle logging a user's time when the channel is offline
                  */
                 if (action.equalsIgnoreCase('offline') || action.equalsIgnoreCase('offlinetime')) {
                     keepTimeWhenOffline = !keepTimeWhenOffline;
@@ -280,29 +315,16 @@
                         $.say($.whisperPrefix(sender) + $.lang.get('timesystem.offlinetime.disabled'));
                     }
                 }
-
-                /**
-                 * @commandpath time modpermtoggle - Toggle permissions for changing user's logged time between admin/mod - Administrator
-                 */
-                if (action.equalsIgnoreCase('modpermtoggle')) {
-                    modTimePermToggle = !modTimePermToggle;
-                    $.setIniDbBoolean('timeSettings', 'modTimePermToggle', modTimePermToggle);
-                    $.say($.whisperPrefix(sender) + $.lang.get('timesystem.modpermtoggle.success', (modTimePermToggle ? 'Moderator' : 'Administrator')));
-                }
-
-                if (action.equalsIgnoreCase('help')) {
-                    $.say($.whisperPrefix(sender) + $.lang.get('timesystem.help'));
-                }
             }
         }
 
         /**
-         * @commandpath streamertime - Announce the caster's local time - Viewer
+         * @commandpath streamertime - Announce the caster's local time - Administrator
          */
         if (command.equalsIgnoreCase('streamertime')) {
             $.say($.whisperPrefix(sender) + $.lang.get(
                 'timesystem.streamertime',
-                getCurLocalTimeString("MMMM dd', 'yyyy hh:mm:ss zzz '('Z')'"),
+                getCurLocalTimeString("MMMM dd', 'yyyy hh:mm:ss a zzz '('Z')'"),
                 $.username.resolve($.ownerName)
             ));
         }
@@ -330,44 +352,56 @@
     });
 
     // Set an interval for increasing all current users logged time
-    setInterval(function() {
-        var i;
-        if (!$.bot.isModuleEnabled('./core/timeSystem.js')) {
-            return;
-        }
+    interval = setInterval(function() {
+        var username, 
+            i;
 
         if ($.isOnline($.channelName) || keepTimeWhenOffline) {
+            $.inidb.setAutoCommit(false);
             for (i in $.users) {
-                $.inidb.incr('time', $.users[i][0].toLowerCase(), 61);
+                username = $.users[i][0].toLowerCase();
+                $.inidb.incr('time', username, 61);
             }
+            $.inidb.setAutoCommit(true);
         }
+    }, 6e4);
 
+    inter = setInterval(function() {
+        var username, 
+            i;
+            
         if (levelWithTime) {
             for (i in $.users) {
-                var username = $.users[i][0].toLowerCase();
-                if (!$.isMod(username) && !$.isAdmin(username) && $.inidb.exists('time', username) && Math.floor(parseInt($.inidb.get('time', username)) / 3600) >= hoursForLevelUp && parseInt($.getUserGroupId(username)) > regularsGroupId) {
-
-                    $.setUserGroupById(username, regularsGroupId);
-
-                    $.say($.whisperPrefix(username) + $.lang.get(
-                        'timesystem.autolevel.promoted',
-                        $.username.resolve(username),
-                        $.getGroupNameById(regularsGroupId).toLowerCase(),
-                        hoursForLevelUp
-                    ));
+                username = $.users[i][0].toLowerCase();
+                if (!$.isMod(username) && !$.isAdmin(username) && $.inidb.exists('time', username) && Math.floor(parseInt($.inidb.get('time', username)) / 3600) >= hoursForLevelUp &&  parseInt($.getUserGroupId(username)) > regularsGroupId) {
+                    if (!$.hasModList(username)) { // Added a second check here to be 100% sure the user is not a mod.
+                        $.setUserGroupById(username, regularsGroupId);
+                        //$.say($.lang.get(
+                        //    'timesystem.autolevel.promoted',
+                        //    $.username.resolve(username),
+                        //    $.getGroupNameById(regularsGroupId).toLowerCase(),
+                        //    hoursForLevelUp
+                        //)); //No whisper mode needed here.
+                    }
                 }
             }
         }
-    }, 6e4);
+    }, 9e5);
 
     /**
      * @event initReady
      */
     $.bind('initReady', function() {
         if ($.bot.isModuleEnabled('./core/timeSystem.js')) {
-            $.registerChatCommand('./core/timeSystem.js', 'time', 7);
-            $.registerChatCommand('./core/timeSystem.js', 'streamertime', 7);
-            $.registerChatCommand('./core/timeSystem.js', 'timezone', 1);
+            $.registerChatCommand('./core/timeSystem.js', 'streamertime');            
+            $.registerChatCommand('./core/timeSystem.js', 'timezone', 1);            
+            $.registerChatCommand('./core/timeSystem.js', 'time');
+            $.registerChatSubcommand('time', 'add', 1);
+            $.registerChatSubcommand('time', 'take', 1);
+            $.registerChatSubcommand('time', 'set', 1);
+            $.registerChatSubcommand('time', 'autolevel', 1);
+            $.registerChatSubcommand('time', 'promotehours', 1);
+            $.registerChatSubcommand('time', 'timelevel', 1);
         }
     });
 
@@ -378,4 +412,6 @@
     $.getUserTimeString = getUserTimeString;
     $.getCurLocalTimeString = getCurLocalTimeString;
     $.getLocalTimeString = getLocalTimeString;
+    $.getTimeStringMinutes = getTimeStringMinutes;
+    $.updateTimeSettings = updateTimeSettings;
 })();

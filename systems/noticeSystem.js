@@ -5,12 +5,14 @@
  */
 
 (function() {
-    var noticeReqMessages = ($.inidb.exists('noticeSettings', 'reqmessages') ? parseInt($.inidb.get('noticeSettings', 'reqmessages')) : 25),
-        noticeInterval = ($.inidb.exists('noticeSettings', 'interval') ? parseInt($.inidb.get('noticeSettings', 'interval')) : 10),
-        noticeToggle = ($.inidb.exists('noticeSettings', 'noticetoggle') ? $.getIniDbBoolean('noticeSettings', 'noticetoggle') : false),
+    var noticeReqMessages = $.getSetIniDbNumber('noticeSettings', 'reqmessages', 25),
+        noticeInterval = $.getSetIniDbNumber('noticeSettings', 'interval', 10),
+        noticeToggle = $.getSetIniDbBoolean('noticeSettings', 'noticetoggle', false),
         numberOfNotices = (parseInt($.inidb.GetKeyList('notices', '').length) ? parseInt($.inidb.GetKeyList('notices', '').length) : 0),
+        noticeOffline = $.getSetIniDbBoolean('noticeSettings', 'noticeOfflineToggle', false),
         messageCount = 0,
-        RandomNotice = 0;
+        RandomNotice = 0,
+        interval;
 
     /**
      /* @function reloadNotices
@@ -33,7 +35,7 @@
         }
 
         $.inidb.RemoveFile('tempnotices');
-    }
+    };
     /**
      * @function sendNotice
      */
@@ -50,11 +52,36 @@
 
         if (notice.startsWith('command:')) {
             notice = notice.substring(8);
-            EventBus.instance().postCommand(new CommandEvent($.botName, notice, ' '));
+            EventBus.instance().post(new CommandEvent($.botName, notice, ' '));//Don't use postCommand. it got removed.
         } else {
             $.say(notice);
         }
-    }
+    };
+
+    /**
+     * @function reloadNoticeSettings
+     */
+    function reloadNoticeSettings() {
+        noticeReqMessages = $.getIniDbNumber('noticeSettings', 'reqmessages');
+        noticeToggle = $.getIniDbBoolean('noticeSettings', 'noticetoggle');
+        noticeOffline = $.getIniDbBoolean('noticeSettings', 'noticeOfflineToggle');
+
+        // Only update noticeInterval if it changed and then reset the timer.
+        if (noticeInterval != $.getIniDbNumber('noticeSettings', 'interval')) {
+            noticeInterval = $.getIniDbNumber('noticeSettings', 'interval');
+            clearInterval(interval);
+            interval = setInterval(function() {
+                if (noticeToggle && $.bot.isModuleEnabled('./systems/noticeSystem.js') && numberOfNotices > 0) {
+                    if (noticeReqMessages < 0 || messageCount >= noticeReqMessages) {
+                        if ((noticeOffline && !$.isOnline($.channelName)) || $.isOnline($.channelName)) {
+                            sendNotice();
+                            messageCount = 0;
+                        }
+                    }
+                }
+            }, noticeInterval * 6e4);
+        }
+    };
 
     /**
      * @event ircChannelMessage
@@ -75,21 +102,16 @@
             message = '';
 
         /**
-         * @commandpath notice - Base command for managing notices - Administrator
+         * @commandpath notice - Base command for managing notices - Moderator
          */
         if (command.equalsIgnoreCase('notice')) {
-            if (!$.isAdmin(sender)) {
-                //$.say($.whisperPrefix(sender) + $.adminMsg);
-                return;
-            }
-
             if (args.length == 0) {
                 $.say($.whisperPrefix(sender) + $.lang.get('noticehandler.notice-usage'));
                 return;
             }
 
             /**
-             * @commandpath notice get [id] - Gets the notice related to the ID - Administrator
+             * @commandpath notice get [id] - Gets the notice related to the ID - Moderator
              */
             if (action.equalsIgnoreCase('get')) {
                 if (args.length < 2) {
@@ -105,7 +127,7 @@
             }
 
             /**
-             * @commandpath notice edit [id] [new message] - Replace the notice at the given ID - Administrator
+             * @commandpath notice edit [id] [new message] - Replace the notice at the given ID - Moderator
              */
             if (action.equalsIgnoreCase('edit')) {
                 if (args.length < 3) {
@@ -115,7 +137,7 @@
                     $.say($.whisperPrefix(sender) + $.lang.get('noticehandler.notice-error-notice-404'));
                     return;
                 } else {
-                    argsString = argsString.replace(action + '', '').trim();
+                    argsString = argsString.replace(action + ' ' + args[1], '').trim();
                     $.inidb.set('notices', 'message_' + args[1], argsString);
                     $.say($.whisperPrefix(sender) + $.lang.get('noticehandler.notice-edit-success'));
                     return;
@@ -123,7 +145,26 @@
             }
 
             /**
-             * @commandpath notice remove [id] - Removes the notice related to the given ID - Administrator
+             * USED FOR THE PANEL
+             */
+            if (action.equalsIgnoreCase('editsilent')) {
+                if (args.length < 3) {
+                    //$.say($.whisperPrefix(sender) + $.lang.get('noticehandler.notice-edit-usage', numberOfNotices));
+                    return;
+                } else if (!$.inidb.exists('notices', 'message_' + args[1])) {
+                    //$.say($.whisperPrefix(sender) + $.lang.get('noticehandler.notice-error-notice-404'));
+                    return;
+                } else {
+                    argsString = argsString.replace(action + ' ' + args[1], '').trim();
+                    $.inidb.set('notices', 'message_' + args[1], argsString);
+                    //$.say($.whisperPrefix(sender) + $.lang.get('noticehandler.notice-edit-success'));
+                    return;
+                }
+            }
+
+
+            /**
+             * @commandpath notice remove [id] - Removes the notice related to the given ID - Moderator
              */
             if (action.equalsIgnoreCase('remove')) {
                 if (args.length < 2) {
@@ -142,7 +183,26 @@
             }
 
             /**
-             * @commandpath notice add [message or command] - Adds a notice, with a custom message, or a command (command:command) - Administrator
+             * USED BY THE PANEL
+             */
+            if (action.equalsIgnoreCase('removesilent')) {
+                if (args.length < 2) {
+                    //$.say($.whisperPrefix(sender) + $.lang.get('noticehandler.notice-remove-usage', numberOfNotices));
+                    return;
+                } else if (!$.inidb.exists('notices', 'message_' + args[1])) {
+                    //$.say($.whisperPrefix(sender) + $.lang.get('noticehandler.notice-error-notice-404'));
+                    return;
+                } else {
+                    $.inidb.del('notices', 'message_' + args[1]);
+                    numberOfNotices--;
+                    reloadNotices();
+                    //$.say($.whisperPrefix(sender) + $.lang.get('noticehandler.notice-remove-success'));
+                    return;
+                }
+            }
+
+            /**
+             * @commandpath notice add [message or command] - Adds a notice, with a custom message, or a command ex: !notice add command:COMMANDS_NAME - Moderator
              */
             if (action.equalsIgnoreCase('add')) {
                 if (args.length < 2) {
@@ -158,51 +218,65 @@
             }
 
             /**
-             * @commandpath notice interval [minutes] - Sets the notice interval in minutes - Administrator
+             * USED BY THE PANEL
+             */
+            if (action.equalsIgnoreCase('addsilent')) {
+                if (args.length < 2) {
+                    //$.say($.whisperPrefix(sender) + $.lang.get('noticehandler.notice-add-usage'));
+                    return;
+                } else {
+                    argsString = argsString.replace(action + '', '').trim();
+                    $.inidb.set('notices', 'message_' + numberOfNotices, argsString);
+                    numberOfNotices++;
+                    //$.say($.whisperPrefix(sender) + $.lang.get('noticehandler.notice-add-success'));
+                    return;
+                }
+            }
+
+            /**
+             * @commandpath notice interval [minutes] - Sets the notice interval in minutes - Moderator
              */
             if (action.equalsIgnoreCase('interval')) {
-                if (args.length < 2) {
+                if (args.length == 0) {
                     $.say($.whisperPrefix(sender) + $.lang.get('noticehandler.notice-interval-usage'));
                     return;
-                } else if (parseInt(args[1]) < 2) {
+                } else if (parseInt(args[1]) < 5) {
                     $.say($.whisperPrefix(sender) + $.lang.get('noticehandler.notice-interval-404'));
                     return;
                 } else {
                     $.inidb.set('noticeSettings', 'interval', args[1]);
                     noticeInterval = parseInt(args[1]);
                     $.say($.whisperPrefix(sender) + $.lang.get('noticehandler.notice-inteval-success'));
+                    reloadNoticeSettings()
                     return;
                 }
             }
 
             /**
-             * @commandpath notice req [message count] - Set the number of messages needed to trigger a notice - Administrator
+             * @commandpath notice req [message count] - Set the number of messages needed to trigger a notice - Moderator
              */
             if (action.equalsIgnoreCase('req')) {
                 if (args.length < 2) {
                     $.say($.whisperPrefix(sender) + $.lang.get('noticehandler.notice-req-usage'));
                     return;
-                } else if (parseInt(args[1]) < 1) {
-                    $.say($.whisperPrefix(sender) + $.lang.get('noticehandler.notice-req-404'));
-                    return;
-                } else {
-                    $.inidb.set('noticeSettings', 'reqmessages', args[1]);
-                    noticeReqMessages = parseInt(args[1]);
-                    $.say($.whisperPrefix(sender) + $.lang.get('noticehandler.notice-req-success'));
-                    return;
-                }
-            }
+                } 
 
-            /**
-             * @commandpath notice config - Shows current notice configuration - Administrator
-             */
-            if (action.equalsIgnoreCase('config')) {
-                $.say($.whisperPrefix(sender) + $.lang.get('noticehandler.notice-config', noticeToggle, noticeInterval, noticeReqMessages, numberOfNotices));
+                $.inidb.set('noticeSettings', 'reqmessages', args[1]);
+                noticeReqMessages = parseInt(args[1]);
+                $.say($.whisperPrefix(sender) + $.lang.get('noticehandler.notice-req-success'));
                 return;
             }
 
             /**
-             * @commandpath notice toggle - Toggles notices on and off - Administrator
+             * @commandpath notice config - Shows current notice configuration - Moderator
+             */
+            if (action.equalsIgnoreCase('config')) {
+                $.say($.whisperPrefix(sender) + $.lang.get('noticehandler.notice-config', noticeToggle, noticeInterval, noticeReqMessages, numberOfNotices, noticeOffline));
+                return;
+            }
+
+            /**
+             * @commandpath notice toggle - Toggles notices on and off - Moderator
              */
             if (action.equalsIgnoreCase('toggle')) {
                 if (noticeToggle) {
@@ -217,32 +291,42 @@
             }
 
             /**
-             * @commandpath notice reload - Reloads all notices - Administrator
+             * @commandpath notice toggleoffline - Toggles on and off if notices can be said in chat if the channel is offline - Moderator
              */
-            if (action.equalsIgnoreCase('reload')) {
-                reloadNotices();
+            if (action.equalsIgnoreCase('toggleoffline')) {
+                if (noticeOffline) {
+                    noticeOffline = false;
+                    $.inidb.set('noticeSettings', 'noticeOfflineToggle', 'false');
+                    $.say($.whisperPrefix(sender) + $.lang.get('noticehandler.notice-disabled.offline'));
+                } else {
+                    noticeOffline = true;
+                    $.inidb.set('noticeSettings', 'noticeOfflineToggle', 'true');
+                    $.say($.whisperPrefix(sender) + $.lang.get('noticehandler.notice-enabled.offline'));
+                }
             }
         }
     });
 
     // Set the interval to announce
-    setInterval(function() {
-        if (noticeToggle && $.isOnline($.channelName)) {
-            if ($.bot.isModuleEnabled('./systems/noticeSystem.js') && numberOfNotices > 0) {
-                if (messageCount >= noticeReqMessages) {
+    interval = setInterval(function() {
+        if (noticeToggle && $.bot.isModuleEnabled('./systems/noticeSystem.js') && numberOfNotices > 0) {
+            if (noticeReqMessages < 0 || messageCount >= noticeReqMessages) {
+                if ((noticeOffline && !$.isOnline($.channelName)) || $.isOnline($.channelName)) {
                     sendNotice();
                     messageCount = 0;
                 }
             }
         }
-    }, noticeInterval * 60 * 1000);
+    }, noticeInterval * 6e4);
 
     /**
      * @event initReady
      */
     $.bind('initReady', function() {
         if ($.bot.isModuleEnabled('./systems/noticeSystem.js')) {
-            $.registerChatCommand('./systems/noticeSystem.js', 'notice', 1);
+            $.registerChatCommand('./systems/noticeSystem.js', 'notice', 2);
         }
     });
+
+    $.reloadNoticeSettings = reloadNoticeSettings;
 })();

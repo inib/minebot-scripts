@@ -2,28 +2,32 @@
     var currentHostTarget = '';
 
     /**
-     * @function contains
+    ** This function sometimes does not work. So only use it for stuff that people dont use much
+     * @function hasKey
      * @export $.list
      * @param {Array} list
      * @param {*} value
      * @param {Number} [subIndex]
      * @returns {boolean}
      */
-    function contains(list, value, subIndex) {
+    function hasKey(list, value, subIndex) {
         var i;
-        for (i in list) {
-            if (subIndex > -1) {
-                if (list[i][subIndex] == value) {
+
+        if (subIndex > -1) {
+            for (i in list) {
+                if (list[i][subIndex].equalsIgnoreCase(value)) {
                     return true;
                 }
-            } else {
-                if (list[i] == value) {
+            }
+        } else {
+            for (i in list) {
+                if (list[i].equalsIgnoreCase(value)) {
                     return true;
                 }
             }
         }
         return false;
-    }
+    };
 
     /**
      * @function isKnown
@@ -32,8 +36,8 @@
      * @returns {boolean}
      */
     function isKnown(username) {
-        return $.inidb.exists('visited', username);
-    }
+        return $.inidb.exists('visited', username.toLowerCase());
+    };
 
     /**
      * @function isFollower
@@ -43,16 +47,17 @@
      */
     function isFollower(username) {
         var userFollowsCheck;
-        if ($.inidb.exists('followed', username)) {
+
+        if ($.inidb.exists('followed', username.toLowerCase())) {
             return true;
         } else {
-            userFollowsCheck = $.twitch.GetUserFollowsChannel($.username.resolve(username.toLowerCase()), $.channelName);
+            userFollowsCheck = $.twitch.GetUserFollowsChannel(username.toLowerCase(), $.channelName.toLowerCase());
             if (userFollowsCheck.getInt('_http') == 200) {
                 return true;
             }
         }
         return false;
-    }
+    };
 
     /**
      * @function getCurrentHostTarget
@@ -60,8 +65,8 @@
      * @returns {string}
      */
     function getCurrentHostTarget() {
-        return currentHostTarget;
-    }
+        return currentHostTarget.toLowerCase();
+    };
 
     /**
      * @function strlen
@@ -70,7 +75,7 @@
      * @returns {Number}
      */
     function strlen(str) {
-        if (str === null || str === undefined) {
+        if (str == null || str == undefined) {
             return 0;
         }
 
@@ -87,7 +92,7 @@
                 return str.length;
             }
         }
-    }
+    };
 
     /**
      * @function say
@@ -95,22 +100,31 @@
      * @param {string} message
      */
     function say(message) {
-        $.consoleLn('[CHAT] ' + message);
-        if ($.channel) {
-            if (!message.substr(0, 1).equals('.')) {
-                $.channel.say(message);
-                return;
+        if ($.session !== null) {
+            if (message.startsWith('.')) {
+                $.session.say(message);
             }
 
-            if ($.getIniDbBoolean('settings', 'response_@chat')) {
-                if ($.getIniDbBoolean('settings', 'response_action') && !message.substr(0, 2).equals('/w')) {
-                    $.channel.say('/me ' + message.replace(/^\/me/, ''));
+            if (message.startsWith('@') && message.endsWith(',')) {
+                return;
+            }
+    
+            if (!message.startsWith('.')) {
+                if (getIniDbBoolean('settings', 'response_@chat', true) && (!getIniDbBoolean('settings', 'response_action', false) || message.startsWith('/w'))) {
+                    $.session.say(message);
                 } else {
-                    $.channel.say(message);
+                    if (getIniDbBoolean('settings', 'response_@chat', true) && getIniDbBoolean('settings', 'response_action', false)) {
+                        $.session.say('/me ' + message);
+                    }
+                    if (!getIniDbBoolean('settings', 'response_@chat')) {
+                        $.consoleLn('[MUTED] ' + message);
+                    }
                 }
             }
         }
-    }
+
+        $.log.file('chat', '' + $.botName.toLowerCase() + ': ' + message);
+    };
 
     /**
      * @function systemTime
@@ -119,7 +133,7 @@
      */
     function systemTime() {
         return parseInt(java.lang.System.currentTimeMillis());
-    }
+    };
 
     /**
      * @function rand
@@ -128,12 +142,12 @@
      * @returns {Number}
      */
     function rand(max) {
-        if (max === 0) {
+        if (max == 0) {
             return max;
         }
         $.random = new java.security.SecureRandom();
-        return Math.abs($.random.nextInt()) % max;
-    }
+        return (Math.abs($.random.nextInt()) % max);
+    };
 
     /**
      * @function randRange
@@ -146,8 +160,8 @@
         if (min == max) {
             return min;
         }
-        return $.rand(max) + min;
-    }
+        return (rand(max - min + 1) + min);
+    };
 
     /**
      * @function randElement
@@ -156,11 +170,11 @@
      * @returns {*}
      */
     function randElement(array) {
-        if (array === null) {
+        if (array == null) {
             return null;
         }
-        return array[$.randRange(0, array.length - 1)];
-    }
+        return array[randRange(0, array.length - 1)];
+    };
 
     /**
      * @function arrayShuffle
@@ -175,7 +189,7 @@
             array[j] = temp;
         }
         return array;
-    }
+    };
 
     /**
      * @function randInterval
@@ -186,7 +200,7 @@
      */
     function randInterval(min, max) {
         return Math.floor(Math.random() * (max - min + 1) + min);
-    }
+    };
 
     /**
      * @function trueRandRange
@@ -207,7 +221,7 @@
                 json = new JSONObject('{}'),
                 parameters = new JSONObject('{}'),
                 header = new HashMap(1),
-                id = $.rand(65535),
+                id = rand(65535),
                 request;
 
             header.put('Content-Type', 'application/json-rpc');
@@ -244,17 +258,17 @@
                 }
             } else {
                 if (request.httpCode == 0) {
-                    $.logError('misc.js', 478, 'Failed to use random.org: ' + request.exception);
+                    $.log.error('Failed to use random.org: ' + request.exception);
                 } else {
-                    $.logError('misc.js', 480, 'Failed to use random.org: HTTP' + request.httpCode + ' ' + request.content);
+                    $.log.error('Failed to use random.org: HTTP' + request.httpCode + ' ' + request.content);
                 }
             }
         } catch (error) {
-            $.logError('misc.js', 484, 'Failed to use random.org: ' + error);
+            $.log.error('Failed to use random.org: ' + error);
         }
 
-        return $.randRange(min, max);
-    }
+        return randRange(min, max);
+    };
 
     /**
      * @function trueRandElement
@@ -266,8 +280,8 @@
         if (array == null) {
             return null;
         }
-        return array[$.trueRand(array.length - 1)];
-    }
+        return array[trueRand(array.length - 1)];
+    };
 
     /**
      * @function trueRand
@@ -276,8 +290,8 @@
      * @returns {Number}
      */
     function trueRand(max) {
-        return $.trueRandRange(0, max);
-    }
+        return trueRandRange(0, max);
+    };
 
     /**
      * @function outOfRange
@@ -289,7 +303,7 @@
      */
     function outOfRange(number, min, max) {
         return (number < min && number > max);
-    }
+    };
 
     /**
      * @function getOrdinal
@@ -300,8 +314,8 @@
     function getOrdinal(number) {
         var s = ["th", "st", "nd", "rd"],
             v = number % 100;
-        return number + (s[(v - 20) % 10] || s[v] || s[0]);
-    }
+        return (number + (s[(v - 20) % 10] || s[v] || s[0]));
+    };
 
     /**
      * @function getPercentage
@@ -312,7 +326,7 @@
      */
     function getPercentage(current, total) {
         return Math.ceil((current / total) * 100);
-    }
+    };
 
     /**
      * @function getIniDbBoolean
@@ -328,7 +342,25 @@
         } else {
             return (defaultValue);
         }
-    }
+    };
+
+    /**
+     * @function getSetIniDbBoolean
+     * @export $
+     * @param {string} fileName
+     * @param {string|Number} key
+     * @param {boolean} [defaultValue]
+     * @returns {boolean}
+     */
+    function getSetIniDbBoolean(fileName, key, defaultValue) {
+        if ($.inidb.exists(fileName, key)) {
+            return ($.inidb.get(fileName, key) == 'true');
+        } else {
+            $.inidb.set(fileName, key, defaultValue.toString());
+            return (defaultValue);
+        }
+    };
+
 
     /**
      * @function setIniDbBoolean
@@ -339,11 +371,186 @@
      */
     function setIniDbBoolean(fileName, key, state) {
         $.inidb.set(fileName, key, state.toString());
+    };
+
+    /**
+     * @function getIniDbString
+     * @export $
+     * @param {string}
+     * @param {string}
+     * @param {string}
+     */
+    function getIniDbString(fileName, key, defaultValue) {
+        if ($.inidb.exists(fileName, key)) {
+            return ($.inidb.get(fileName, key));
+        } else {
+            return (defaultValue);
+        }
+    };
+
+    /**
+     * @function getSetIniDbString
+     * @export $
+     * @param {string}
+     * @param {string}
+     * @param {string}
+     */
+    function getSetIniDbString(fileName, key, defaultValue) {
+        if ($.inidb.exists(fileName, key)) {
+            return ($.inidb.get(fileName, key));
+        } else {
+            $.inidb.set(fileName, key, defaultValue);
+            return (defaultValue);
+        }
+    };
+
+
+    /**
+     * @function getIniDbNumber
+     * @export $
+     * @param {string}
+     * @param {string}
+     * @param {number}
+     */
+    function getIniDbNumber(fileName, key, defaultValue) {
+        if ($.inidb.exists(fileName, key)) {
+            return parseInt($.inidb.get(fileName, key));
+        } else {
+            return defaultValue;
+        }
     }
+
+    /**
+     * @function getSetIniDbNumber
+     * @export $
+     * @param {string}
+     * @param {string}
+     * @param {number}
+     */
+    function getSetIniDbNumber(fileName, key, defaultValue) {
+        if ($.inidb.exists(fileName, key)) {
+            return parseInt($.inidb.get(fileName, key));
+        } else {
+            $.inidb.set(fileName, key, defaultValue.toString());
+            return defaultValue;
+        }
+    }
+
+    /**
+     * @function getIniDbFloat
+     * @export $
+     * @param {string}
+     * @param {string}
+     * @param {number}
+     */
+    function getIniDbFloat(fileName, key, defaultValue) {
+        if ($.inidb.exists(fileName, key)) {
+            return parseFloat($.inidb.get(fileName, key));
+        } else {
+            return defaultValue;
+        }
+    }
+
+    /**
+     * @function getSetIniDbFloat
+     * @export $
+     * @param {string}
+     * @param {string}
+     * @param {number}
+     */
+    function getSetIniDbFloat(fileName, key, defaultValue) {
+        if ($.inidb.exists(fileName, key)) {
+            return parseFloat($.inidb.get(fileName, key));
+        } else {
+            $.inidb.set(fileName, key, defaultValue.toString());
+            return defaultValue;
+        }
+    }
+
+    /**
+     * @function paginateArray
+     * @export $
+     * @param {Array}   Input array of data to paginate
+     * @param {String}  Key in the $.lang system
+     * @param {String}  Seperator to use between items
+     * @param {boolean} Use $.whisperPrefix(sender) ?
+     * @param {String}  Value of sender for $.whisperPrefix
+     * @param {Number}  Page to display, 0 for ALL
+     * @return {Number} Total number of pages.
+     * 
+     */
+    function paginateArray(array, langKey, sep, whisper, sender, display_page) {
+        var idx,
+            output = '',
+            maxlen,
+            pageCount = 0;
+
+        if (display_page === undefined) {
+            display_page = 0;
+        }
+
+        maxlen = 440 - $.lang.get(langKey).length;
+        for (idx in array) {
+            output += array[idx];
+            if (output.length >= maxlen) {
+                pageCount++;
+                if (display_page === 0 || display_page === pageCount) {
+                    if (whisper) {
+                        $.say($.whisperPrefix(sender) + $.lang.get(langKey, output));
+                    } else {
+                        $.say($.lang.get(langKey, output));
+                    }
+                }
+                output = '';
+            } else {
+                if (idx < array.length - 1) {
+                    output += sep;
+                }
+            }
+        }
+        pageCount++;
+        if (display_page === 0 || display_page === pageCount) {
+            if (whisper) {
+                $.say($.whisperPrefix(sender) + $.lang.get(langKey, output));
+            } else {
+                $.say($.lang.get(langKey, output));
+            }
+        }
+        return pageCount;
+    }
+
+    /**
+     * @function replace
+     * @export $
+     * @param {string}
+     */
+    function replace(string, find, replace) {
+        if (find.equals(replace)) {
+            return string;
+        }
+    
+        while (string.indexOf(find) >= 0) {
+            string = string.replace(find, replace);
+        }
+    
+        return string;
+    };
+
+    /**
+     * @function userPrefix
+     * @export $
+     * @param {username}
+     */
+    function userPrefix(username, comma) {
+        if (!comma) {
+            return '@' + $.username.resolve(username) + ' ';
+        } 
+        return '@' + $.username.resolve(username) + ', ';
+    };
 
     /** Export functions to API */
     $.list = {
-        contains: contains,
+        hasKey: hasKey,
     };
 
     $.user = {
@@ -354,6 +561,13 @@
     $.arrayShuffle = arrayShuffle;
     $.getCurrentHostTarget = getCurrentHostTarget;
     $.getIniDbBoolean = getIniDbBoolean;
+    $.getIniDbString = getIniDbString;
+    $.getIniDbNumber = getIniDbNumber;
+    $.getIniDbFloat = getIniDbFloat;
+    $.getSetIniDbBoolean = getSetIniDbBoolean;
+    $.getSetIniDbString = getSetIniDbString;
+    $.getSetIniDbNumber = getSetIniDbNumber;
+    $.getSetIniDbFloat = getSetIniDbFloat;
     $.getOrdinal = getOrdinal;
     $.getPercentage = getPercentage;
     $.outOfRange = outOfRange;
@@ -368,4 +582,7 @@
     $.trueRand = trueRand;
     $.trueRandElement = trueRandElement;
     $.trueRandRange = trueRandRange;
+    $.paginateArray = paginateArray;
+    $.replace = replace;
+    $.userPrefix = userPrefix;
 })();

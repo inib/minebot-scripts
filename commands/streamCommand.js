@@ -4,75 +4,140 @@
  * This module offers commands to view/alter channel information like current game, title and status
  */
 (function() {
+
+    /**
+     * @function makeTwitchVODTime()
+     * @param  twitchUptime
+     * @return twitchVODTime
+     */
+    function makeTwitchVODTime(twitchUptime) {
+        var hours,
+            minutes,
+            seconds;
+
+        /* Uptime contains hours, run regular expression match as such. */
+        if (twitchUptime.indexOf('hours') !== -1) {
+            match = twitchUptime.match(/(\d+) hours, (\d+) minutes and (\d+) seconds/);
+            return '?t=' + match[1] + 'h' + match[2] + 'm' + match[3] + 's';
+
+        /* Uptime contains minutes, but not hours, run regular expression match as such. */
+        } else if (twitchUptime.indexOf('minutes') !== -1) {
+            match = twitchUptime.match(/(\d+) minutes and (\d+) seconds/);
+            return '?t=' + match[1] + 'm' + match[2] + 's';
+
+        /* Uptime only contains seconds, run regular expression match as such. */
+        } else {
+            match = twitchUptime.match(/(\d+) seconds/);
+            return '?t=' + match[1] + 's';
+        }
+    }
+
     /**
      * @event command
      */
     $.bind('command', function(event) {
         var sender = event.getSender().toLowerCase(),
             command = event.getCommand(),
-            argsString = event.getArguments().trim(),
-            args = event.getArgs();
+            args = event.getArgs(),
+            argsString,
+            action = args[0],
+            uptime,
+            twitchVODtime,
+            vodJsonStr,
+            vodJsonObj = {};
 
         /**
-         * @commandpath online - Tell if the stream is online or not - Viewer
+         * @commandpath game - Give's you the current game, and the playtime if the channel is online. - Moderator
+         * @commandpath title - Give's you the current title, and the channel uptime if the channel is online. - Moderator
+         * @commandpath followage [optional (name)] [optional (channel)] - Tells you how long you have been following the channel. - Moderator
+         * @commandpath playtime - Tells you how long the caster has been playing the current game for. - Moderator
+         * @commandpath uptime - Give's you the current stream uptime. - Moderator
+         * @commandpath age [optional (name)] - Tells you how long you have been on Twitch for. - Moderator
+         * @commandpath setgame [game name] - Set Twitch game title. - Moderator
          */
-        if (command.equalsIgnoreCase('online')) {
+        if (command.equalsIgnoreCase('setgame') || command.equalsIgnoreCase('editgame')) {
+            if (!action) {
+                $.say($.whisperPrefix(sender) + $.lang.get('streamcommand.game.set.usage', $.getGame($.channelName)));
+                return;
+            }
+            argsString = args.splice(0).join(' ');
+            $.updateGame($.channelName, argsString, sender);
+            return;
+        }
+
+        /**
+         * @commandpath settitle [stream title] - Set Twitch stream title.
+         */
+        if (command.equalsIgnoreCase('settitle') || command.equalsIgnoreCase('edittitle')) {
+            if (!action) {
+                $.say($.whisperPrefix(sender) + $.lang.get('streamcommand.title.set.usage', $.getStatus($.channelName)));
+                return;
+            }
+            argsString = args.splice(0).join(' ');
+            $.updateStatus($.channelName, argsString, sender);
+            return;
+        }
+
+
+        /**
+         * @commandpath vod - Displays stream uptime and current VOD or, if offline, the last VOD available. - Viewer
+         */
+        if (command.equalsIgnoreCase('vod')) {
             if ($.isOnline($.channelName)) {
-                $.say($.whisperPrefix(sender) + 'Stream ist online!');
-            } else {
-                $.say($.whisperPrefix(sender) + 'Stream ist offline.');
-            }
-        }
-
-        /**
-         * @commandpath viewers - Announce the current amount of viewers in the chat - Moderator
-         */
-        if (command.equalsIgnoreCase('viewers')) {
-            $.say($.whisperPrefix(sender) + 'Currently ' + $.getViewers($.channelName) + ' viewers are watching ' + $.username.resolve($.channelName) + '!');
-        }
-
-        /**
-         * @commandpath game [game title] - Announce Twitch game title or set the game title. - Viewer [Administrator]
-         */
-        if (command.equalsIgnoreCase('game')) {
-            if (args.length == 0) {
-                $.say('Current Game: ' + $.getGame($.channelName));
-            } else {
-                if (!$.isAdmin(sender)) {
-                    //$.say($.whisperPrefix(sender) + $.casterMsg);
+                vodJsonStr = $.twitch.GetChannelVODs($.channelName, 'current') + '';
+                if (vodJsonStr.length === 0 || vodJsonStr === null) {
+                    $.say($.whisperPrefix(sender) + $.lang.get('streamcommand.vod.404'));
                     return;
                 }
-
-                $.updateGame($.channelName, argsString, sender);
-            }
+                uptime = $.getStreamUptime($.channelName);
+                twitchVODtime = makeTwitchVODTime(uptime);
+                vodJsonObj = JSON.parse(vodJsonStr);
+                $.say($.whisperPrefix(sender) + $.lang.get('streamcommand.vod.online', uptime, vodJsonObj.videos[0].url + twitchVODtime));
+                return;
+            } else {
+                vodJsonStr = $.twitch.GetChannelVODs($.channelName, 'archives') + '';
+                if (vodJsonStr.length === 0 || vodJsonStr === null) {
+                    $.say($.whisperPrefix(sender) + $.lang.get('streamcommand.vod.404'));
+                    return;
+                }
+                vodJsonObj = JSON.parse(vodJsonStr);
+                $.say($.whisperPrefix(sender) + $.lang.get('streamcommand.vod.offline', vodJsonObj.videos[0].url, $.getTimeString(vodJsonObj.videos[0].length)));
+                return;
+            } 
         }
 
         /**
-         * @commandpath title [stream title] - Announce Twitch stream title or set the stream title - Viewer [Administrator]
+         * @commandpath createdat [channel] - Returns when a channel was created in Twitch Timestamp format. - Moderator
+         *
+         * The purpose of this command is for moderators to help identify potential trolls that created a new
+         * account after being banned.
          */
-        if (command.equalsIgnoreCase('title')) {
-            if (args.length == 0) {
-                $.say('Current Status: ' + $.getStatus($.channelName));
-            } else {
-                if (!$.isAdmin(sender)) {
-                    //$.say($.whisperPrefix(sender) + $.casterMsg);
-                    return;
-                }
-
-                $.updateStatus($.channelName, argsString, sender);
+        if (command.equalsIgnoreCase('createdat')) {
+            if (args.length === 0) {
+                $.say($.whisperPrefix(sender) + $.lang.get('streamcommand.createdat.404'));
+                return;
             }
+            var createdAt = $.twitch.getChannelCreatedDate(args[0]);
+            if (createdAt.equals("ERROR")) {
+                $.say($.whisperPrefix(sender) + $.lang.get('streamcommand.createdat.error'));
+            } else {
+                $.say($.whisperPrefix(sender) + $.lang.get('streamcommand.createdat', args[0], createdAt));
+            }
+            return;
         }
     });
-
+    
     /**
      * @event initReady
      */
     $.bind('initReady', function() {
         if ($.bot.isModuleEnabled('./commands/streamCommand.js')) {
-            $.registerChatCommand('./commands/streamCommand.js', 'online', 7);
-            $.registerChatCommand('./commands/streamCommand.js', 'viewers', 2);
-            $.registerChatCommand('./commands/streamCommand.js', 'game', 7);
-            $.registerChatCommand('./commands/streamCommand.js', 'title', 7);
+            $.registerChatCommand('./commands/streamCommand.js', 'setgame', 1);
+            $.registerChatCommand('./commands/streamCommand.js', 'settitle', 1);
+            $.registerChatCommand('./commands/streamCommand.js', 'editgame', 1);
+            $.registerChatCommand('./commands/streamCommand.js', 'edittitle', 1);
+            $.registerChatCommand('./commands/streamCommand.js', 'vod', 7);
+            $.registerChatCommand('./commands/streamCommand.js', 'createdat', 2);
         }
     });
 })();
