@@ -88,6 +88,9 @@
     }
 
     function resetBet() {
+        if (!betClosed) {
+            clearInterval(betTimerID);
+        }
         betPot = 0;
         betOptions = [];
         betTable = [];
