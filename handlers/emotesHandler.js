@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2016-2018 phantombot.tv
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 /**
  * emotesHandler.js
  *
@@ -9,19 +26,16 @@
 
     // Load an existing emote RegExp cache.  Wait to see if there was a problem that needs us to load
     // from cache before doing so.  This saves CPU cycles and memory.
-    setTimeout(function() { 
-        if (emotesRegExpList.length === 0) { 
-            loadEmoteCache(); 
-        } 
-    }, 120e3);
+    setTimeout(function() {
+        if (emotesRegExpList.length === 0) {
+            loadEmoteCache();
+        }
+    }, 3e4, 'scripts::handlers::emotesHandler.js');
 
     /**
      * @event emotesGet
      */
     $.bind('emotesGet', function(event) {
-        if (!$.bot.isModuleEnabled('./handlers/emotesHandler.js')) {
-            return;
-        }
         buildEmotesDB(event.getBttvEmotes(), event.getBttvLocalEmotes(), event.getFfzEmotes(), event.getFfzLocalEmotes());
     });
 
@@ -42,8 +56,8 @@
             emote = jsonArray.getJSONObject(i).getString('code').replace('(', '\\(').replace(')', '\\)').replace('\'', '\\\'').replace('[', '\\[').replace(']', '\\]');
 
             // Check for emote at the beginning, middle and end of a string.
-            emoteRegExp = '(\\b' + emote + '\\b)';
-            newEmotesRegExpList.push(new RegExp(emoteRegExp, 'g'));
+            emoteRegExp = '\\b' + emote + '\\b';
+            newEmotesRegExpList.push(emoteRegExp);
         }
 
         if (bttvLocalEmotes.has('emotes')) {
@@ -52,8 +66,8 @@
                 emote = jsonArray.getJSONObject(i).getString('code').replace('(', '\\(').replace(')', '\\)').replace('\'', '\\\'').replace('[', '\\[').replace(']', '\\]');
 
                 // Check for emote at the beginning, middle and end of a string.
-                emoteRegExp = '(\\b' + emote + '\\b)';
-                newEmotesRegExpList.push(new RegExp(emoteRegExp, 'g'));
+                emoteRegExp = '\\b' + emote + '\\b';
+                newEmotesRegExpList.push(emoteRegExp);
             }
         }
 
@@ -65,8 +79,8 @@
                 emote = jsonArray.getJSONObject(j).getString('name').replace('(', '\\(').replace(')', '\\)').replace('\'', '\\\'').replace('[', '\\[').replace(']', '\\]');
 
                 // Check for emote at the beginning, middle and end of a string.
-                emoteRegExp = '(\\b' + emote + '\\b)';
-                newEmotesRegExpList.push(new RegExp(emoteRegExp, 'g'));
+                emoteRegExp = '\\b' + emote + '\\b';
+                newEmotesRegExpList.push(emoteRegExp);
             }
         }
 
@@ -74,20 +88,20 @@
             currentSet = String(ffzLocalEmotes.getJSONObject('room').getInt('set'));
             jsonArray = ffzLocalEmotes.getJSONObject('sets').getJSONObject(currentSet).getJSONArray('emoticons');
             for (i = 0; i < jsonArray.length(); i++) {
-                emote = jsonArray.getJSONObject(i).getString('code').replace('(', '\\(').replace(')', '\\)').replace('\'', '\\\'').replace('[', '\\[').replace(']', '\\]');
+                emote = jsonArray.getJSONObject(i).getString('name').replace('(', '\\(').replace(')', '\\)').replace('\'', '\\\'').replace('[', '\\[').replace(']', '\\]');
 
                 // Check for emote at the beginning, middle and end of a string.
-                emoteRegExp = '(\\b' + emote + '\\b)';
-                newEmotesRegExpList.push(new RegExp(emoteRegExp, 'g'));
+                emoteRegExp = '\\b' + emote + '\\b';
+                newEmotesRegExpList.push(emoteRegExp);
             }
         }
 
-        emotesRegExpList = newEmotesRegExpList;
-        newEmotesRegExpList = [];
-        $.inidb.set('emotecache', 'regexp_cache', emotesRegExpList.join(','));
+        emotesRegExpList = new RegExp(newEmotesRegExpList.join('|'), 'g');
+        $.inidb.set('emotecache', 'regexp_cache', newEmotesRegExpList.join(','));
 
         loaded = true;
-        $.consoleDebug("Built " + emotesRegExpList.length + " regular expressions for emote handling.");
+        $.consoleDebug("Built " + newEmotesRegExpList.length + " regular expressions for emote handling.");
+        newEmotesRegExpList = [];
     }
 
     /**
@@ -102,14 +116,14 @@
             newEmotesRegExpList = [];
 
         for (var i = 0; i < regExpList.length; i++) {
-            newEmotesRegExpList.push(new RegExp(regExpList[i]));
+            newEmotesRegExpList.push(regExpList[i]);
         }
 
-        emotesRegExpList = newEmotesRegExpList;
-        newEmotesRegExpList = [];
+        emotesRegExpList = new RegExp(newEmotesRegExpList.join('|'), 'g');
 
         loaded = true;
-        $.consoleDebug("Built " + emotesRegExpList.length + " regular expressions for emote handling from cache.");
+        $.consoleDebug("Built " + newEmotesRegExpList.length + " regular expressions for emote handling from cache.");
+        newEmotesRegExpList = [];
     }
 
     /**
@@ -132,18 +146,9 @@
             return 0;
         }
 
-        var total = 0,
-            sequences,
-            i;
+        var matched = message.match(emotesRegExpList);
 
-        for (i in emotesRegExpList) {
-            sequences = message.match(emotesRegExpList[i]);
-            if (sequences !== null) {
-                total += sequences.length;
-            }
-        }
-
-        return total;
+        return (matched !== null ? matched.length : 0);
     }
 
     /**
@@ -151,6 +156,6 @@
      */
     $.emotesHandler = {
         getEmotesRegExp: getEmotesRegExp,
-        getEmotesMatchCount: getEmotesMatchCount,
+        getEmotesMatchCount: getEmotesMatchCount
     };
 })();

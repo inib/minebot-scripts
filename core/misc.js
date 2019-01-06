@@ -1,8 +1,38 @@
+/*
+ * Copyright (C) 2016-2018 phantombot.tv
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 (function() {
-    var currentHostTarget = '';
+    var currentHostTarget = '',
+        respond = getSetIniDbBoolean('settings', 'response_@chat', true),
+        action = getSetIniDbBoolean('settings', 'response_action', false),
+        secureRandom = new java.security.SecureRandom(),
+        reg = new RegExp(/^@\w+,\s?$/),
+        timeout = 0;
+
+    /*
+     * @function reloadMisc
+     */
+    function reloadMisc() {
+        respond = getIniDbBoolean('settings', 'response_@chat');
+        action = getIniDbBoolean('settings', 'response_action');
+    }
 
     /**
-    ** This function sometimes does not work. So only use it for stuff that people dont use much
+     ** This function sometimes does not work. So only use it for stuff that people dont use much
      * @function hasKey
      * @export $.list
      * @param {Array} list
@@ -27,7 +57,14 @@
             }
         }
         return false;
-    };
+    }
+
+    /*
+     * @function getMessageWrites
+     */
+    function getMessageWrites() {
+        return parseInt($.session.getWrites());
+    }
 
     /**
      * @function isKnown
@@ -37,7 +74,17 @@
      */
     function isKnown(username) {
         return $.inidb.exists('visited', username.toLowerCase());
-    };
+    }
+
+    /**
+     * @function sanitize
+     * @export $.user
+     * @param {string} username
+     * @returns {string}
+     */
+    function sanitize(username) {
+        return (username == null ? username : String(username).replace(/\W/g, '').toLowerCase());
+    }
 
     /**
      * @function isFollower
@@ -53,11 +100,12 @@
         } else {
             userFollowsCheck = $.twitch.GetUserFollowsChannel(username.toLowerCase(), $.channelName.toLowerCase());
             if (userFollowsCheck.getInt('_http') == 200) {
+                $.inidb.set('followed', username.toLowerCase(), true);
                 return true;
             }
         }
         return false;
-    };
+    }
 
     /**
      * @function getCurrentHostTarget
@@ -66,7 +114,7 @@
      */
     function getCurrentHostTarget() {
         return currentHostTarget.toLowerCase();
-    };
+    }
 
     /**
      * @function strlen
@@ -75,7 +123,7 @@
      * @returns {Number}
      */
     function strlen(str) {
-        if (str == null || str == undefined) {
+        if (str == null) {
             return 0;
         }
 
@@ -92,7 +140,7 @@
                 return str.length;
             }
         }
-    };
+    }
 
     /**
      * @function say
@@ -100,31 +148,45 @@
      * @param {string} message
      */
     function say(message) {
-        if ($.session !== null) {
-            if (message.startsWith('.')) {
-                $.session.say(message);
-            }
-
-            if (message.startsWith('@') && message.endsWith(',')) {
-                return;
-            }
-    
-            if (!message.startsWith('.')) {
-                if (getIniDbBoolean('settings', 'response_@chat', true) && (!getIniDbBoolean('settings', 'response_action', false) || message.startsWith('/w'))) {
-                    $.session.say(message);
-                } else {
-                    if (getIniDbBoolean('settings', 'response_@chat', true) && getIniDbBoolean('settings', 'response_action', false)) {
-                        $.session.say('/me ' + message);
-                    }
-                    if (!getIniDbBoolean('settings', 'response_@chat')) {
-                        $.consoleLn('[MUTED] ' + message);
-                    }
-                }
-            }
+        if (reg.test(message)) {
+            return;
         }
 
+        if (respond && !action) {
+            $.session.say(message);
+        } else {
+            if (respond && action) {
+                // If the message is a Twitch command, remove the /me.
+                if (message.startsWith('.') || message.startsWith('/')) {
+                    $.session.say(message);
+                } else {
+                    $.session.say('/me ' + message);
+                }
+            }
+            if (!respond) {
+                $.consoleLn('[MUTED] ' + message);
+                $.log.file('chat', '[MUTED] ' + $.botName.toLowerCase() + ': ' + message);
+                return;
+            }
+        }
         $.log.file('chat', '' + $.botName.toLowerCase() + ': ' + message);
-    };
+    }
+
+    /**
+     * @function say
+     * @export $
+     * @param {string} message
+     * @param {boolean} run
+     */
+    function sayWithTimeout(message, run) {
+        if (((timeout + 10000) > systemTime()) || !run) {
+            return;
+        }
+
+        timeout = systemTime();
+
+        say(message);
+    }
 
     /**
      * @function systemTime
@@ -133,7 +195,16 @@
      */
     function systemTime() {
         return parseInt(java.lang.System.currentTimeMillis());
-    };
+    }
+
+    /**
+     * @function systemTimeNano
+     * @export $
+     * @returns {Number}
+     */
+    function systemTimeNano() {
+        return parseInt(java.lang.System.nanoTime());
+    }
 
     /**
      * @function rand
@@ -145,9 +216,8 @@
         if (max == 0) {
             return max;
         }
-        $.random = new java.security.SecureRandom();
-        return (Math.abs($.random.nextInt()) % max);
-    };
+        return (Math.abs(secureRandom.nextInt()) % max);
+    }
 
     /**
      * @function randRange
@@ -160,8 +230,8 @@
         if (min == max) {
             return min;
         }
-        return (rand(max - min + 1) + min);
-    };
+        return parseInt(rand(max - min + 1) + min);
+    }
 
     /**
      * @function randElement
@@ -174,7 +244,7 @@
             return null;
         }
         return array[randRange(0, array.length - 1)];
-    };
+    }
 
     /**
      * @function arrayShuffle
@@ -183,13 +253,13 @@
      */
     function arrayShuffle(array) {
         for (var i = array.length - 1; i > 0; i--) {
-            var j = Math.floor(Math.random() * ( i + 1 ));
+            var j = Math.floor(Math.random() * (i + 1));
             var temp = array[i];
             array[i] = array[j];
             array[j] = temp;
         }
         return array;
-    };
+    }
 
     /**
      * @function randInterval
@@ -200,7 +270,7 @@
      */
     function randInterval(min, max) {
         return Math.floor(Math.random() * (max - min + 1) + min);
-    };
+    }
 
     /**
      * @function trueRandRange
@@ -268,7 +338,7 @@
         }
 
         return randRange(min, max);
-    };
+    }
 
     /**
      * @function trueRandElement
@@ -281,7 +351,7 @@
             return null;
         }
         return array[trueRand(array.length - 1)];
-    };
+    }
 
     /**
      * @function trueRand
@@ -291,7 +361,7 @@
      */
     function trueRand(max) {
         return trueRandRange(0, max);
-    };
+    }
 
     /**
      * @function outOfRange
@@ -303,7 +373,7 @@
      */
     function outOfRange(number, min, max) {
         return (number < min && number > max);
-    };
+    }
 
     /**
      * @function getOrdinal
@@ -315,7 +385,7 @@
         var s = ["th", "st", "nd", "rd"],
             v = number % 100;
         return (number + (s[(v - 20) % 10] || s[v] || s[0]));
-    };
+    }
 
     /**
      * @function getPercentage
@@ -326,7 +396,7 @@
      */
     function getPercentage(current, total) {
         return Math.ceil((current / total) * 100);
-    };
+    }
 
     /**
      * @function getIniDbBoolean
@@ -337,12 +407,12 @@
      * @returns {boolean}
      */
     function getIniDbBoolean(fileName, key, defaultValue) {
-        if ($.inidb.exists(fileName, key)) {
+        if ($.inidb.exists(fileName, key) == true) {
             return ($.inidb.get(fileName, key) == 'true');
         } else {
             return (defaultValue);
         }
-    };
+    }
 
     /**
      * @function getSetIniDbBoolean
@@ -353,13 +423,13 @@
      * @returns {boolean}
      */
     function getSetIniDbBoolean(fileName, key, defaultValue) {
-        if ($.inidb.exists(fileName, key)) {
+        if ($.inidb.exists(fileName, key) == true) {
             return ($.inidb.get(fileName, key) == 'true');
         } else {
             $.inidb.set(fileName, key, defaultValue.toString());
             return (defaultValue);
         }
-    };
+    }
 
 
     /**
@@ -371,7 +441,7 @@
      */
     function setIniDbBoolean(fileName, key, state) {
         $.inidb.set(fileName, key, state.toString());
-    };
+    }
 
     /**
      * @function getIniDbString
@@ -381,12 +451,12 @@
      * @param {string}
      */
     function getIniDbString(fileName, key, defaultValue) {
-        if ($.inidb.exists(fileName, key)) {
-            return ($.inidb.get(fileName, key));
+        if ($.inidb.exists(fileName, key) == true) {
+            return ($.inidb.get(fileName, key) + '');
         } else {
             return (defaultValue);
         }
-    };
+    }
 
     /**
      * @function getSetIniDbString
@@ -396,14 +466,24 @@
      * @param {string}
      */
     function getSetIniDbString(fileName, key, defaultValue) {
-        if ($.inidb.exists(fileName, key)) {
-            return ($.inidb.get(fileName, key));
+        if ($.inidb.exists(fileName, key) == true) {
+            return ($.inidb.get(fileName, key) + '');
         } else {
             $.inidb.set(fileName, key, defaultValue);
             return (defaultValue);
         }
-    };
+    }
 
+    /**
+     * @function setIniDbString
+     * @export $
+     * @param {string}
+     * @param {string}
+     * @param {string}
+     */
+    function setIniDbString(fileName, key, value) {
+        $.inidb.set(fileName, key, value);
+    }
 
     /**
      * @function getIniDbNumber
@@ -413,7 +493,7 @@
      * @param {number}
      */
     function getIniDbNumber(fileName, key, defaultValue) {
-        if ($.inidb.exists(fileName, key)) {
+        if ($.inidb.exists(fileName, key) == true) {
             return parseInt($.inidb.get(fileName, key));
         } else {
             return defaultValue;
@@ -428,12 +508,23 @@
      * @param {number}
      */
     function getSetIniDbNumber(fileName, key, defaultValue) {
-        if ($.inidb.exists(fileName, key)) {
+        if ($.inidb.exists(fileName, key) == true) {
             return parseInt($.inidb.get(fileName, key));
         } else {
             $.inidb.set(fileName, key, defaultValue.toString());
             return defaultValue;
         }
+    }
+
+    /**
+     * @function setIniDbNumber
+     * @export $
+     * @param {string}
+     * @param {string}
+     * @param {number}
+     */
+    function setIniDbNumber(fileName, key, value) {
+        $.inidb.set(fileName, key, value.toString());
     }
 
     /**
@@ -444,7 +535,7 @@
      * @param {number}
      */
     function getIniDbFloat(fileName, key, defaultValue) {
-        if ($.inidb.exists(fileName, key)) {
+        if ($.inidb.exists(fileName, key) == true) {
             return parseFloat($.inidb.get(fileName, key));
         } else {
             return defaultValue;
@@ -459,12 +550,23 @@
      * @param {number}
      */
     function getSetIniDbFloat(fileName, key, defaultValue) {
-        if ($.inidb.exists(fileName, key)) {
+        if ($.inidb.exists(fileName, key) == true) {
             return parseFloat($.inidb.get(fileName, key));
         } else {
             $.inidb.set(fileName, key, defaultValue.toString());
             return defaultValue;
         }
+    }
+
+    /**
+     * @function setIniDbFloat
+     * @export $
+     * @param {string}
+     * @param {string}
+     * @param {number}
+     */
+    function setIniDbFloat(fileName, key, value) {
+        $.inidb.set(fileName, key, value.toString());
     }
 
     /**
@@ -477,28 +579,32 @@
      * @param {String}  Value of sender for $.whisperPrefix
      * @param {Number}  Page to display, 0 for ALL
      * @return {Number} Total number of pages.
-     * 
+     *
      */
     function paginateArray(array, langKey, sep, whisper, sender, display_page) {
         var idx,
             output = '',
             maxlen,
+            hasNoLang = langKey.startsWith('NULL'),
             pageCount = 0;
 
         if (display_page === undefined) {
             display_page = 0;
         }
 
-        maxlen = 440 - $.lang.get(langKey).length;
+        maxlen = 440 - (hasNoLang ? langKey.length : $.lang.get(langKey).length);
+        langKey = langKey.replace('NULL', '');
         for (idx in array) {
             output += array[idx];
             if (output.length >= maxlen) {
                 pageCount++;
                 if (display_page === 0 || display_page === pageCount) {
-                    if (whisper) {
-                        $.say($.whisperPrefix(sender) + $.lang.get(langKey, output));
-                    } else {
-                        $.say($.lang.get(langKey, output));
+                    if (output.length > 0) {
+                        if (whisper) {
+                            $.say($.whisperPrefix(sender) + (hasNoLang ? (langKey + output) : $.lang.get(langKey, output)));
+                        } else {
+                            $.say((hasNoLang ? (langKey + output) : $.lang.get(langKey, output)));
+                        }
                     }
                 }
                 output = '';
@@ -509,11 +615,62 @@
             }
         }
         pageCount++;
-        if (display_page === 0 || display_page === pageCount) {
-            if (whisper) {
-                $.say($.whisperPrefix(sender) + $.lang.get(langKey, output));
+        if (output.length > 0) {
+            if (display_page === 0 || display_page === pageCount) {
+                if (whisper) {
+                    $.say($.whisperPrefix(sender) + (hasNoLang ? (langKey + output) : $.lang.get(langKey, output)));
+                } else {
+                    $.say((hasNoLang ? (langKey + output) : $.lang.get(langKey, output)));
+                }
+            }
+        }
+        return pageCount;
+    }
+
+    /**
+     * @function paginateArrayDiscord
+     * @export $
+     * @param {Array}   Input array of data to paginate
+     * @param {String}  Key in the $.lang system
+     * @param {String}  Seperator to use between items
+     * @param {String}  Value of sender for $.whisperPrefix
+     * @param {Number}  Page to display, 0 for ALL
+     * @return {Number} Total number of pages.
+     *
+     */
+    function paginateArrayDiscord(array, langKey, sep, channel, sender, display_page) {
+        var idx,
+            output = '',
+            maxlen,
+            hasNoLang = langKey.startsWith('NULL'),
+            pageCount = 0;
+
+        if (display_page === undefined) {
+            display_page = 0;
+        }
+
+        maxlen = 1400 - (hasNoLang ? langKey.length : $.lang.get(langKey).length);
+        langKey = langKey.replace('NULL', '');
+        for (idx in array) {
+            output += array[idx];
+            if (output.length >= maxlen) {
+                pageCount++;
+                if (output.length > 0) {
+                    if (display_page === 0 || display_page === pageCount) {
+                        $.discord.say(channel, $.discord.userPrefix(sender) + ' ' + (hasNoLang ? (langKey + output) : $.lang.get(langKey, output)));
+                    }
+                }
+                output = '';
             } else {
-                $.say($.lang.get(langKey, output));
+                if (idx < array.length - 1) {
+                    output += sep;
+                }
+            }
+        }
+        pageCount++;
+        if (output.length > 0) {
+            if (display_page === 0 || display_page === pageCount) {
+                $.discord.say(channel, $.discord.userPrefix(sender) + ' ' + (hasNoLang ? (langKey + output) : $.lang.get(langKey, output)));
             }
         }
         return pageCount;
@@ -528,13 +685,13 @@
         if (find.equals(replace)) {
             return string;
         }
-    
+
         while (string.indexOf(find) >= 0) {
-            string = string.replace(find, replace);
+            string = string.replace(find, (replace + ''));
         }
-    
+
         return string;
-    };
+    }
 
     /**
      * @function userPrefix
@@ -544,18 +701,15 @@
     function userPrefix(username, comma) {
         if (!comma) {
             return '@' + $.username.resolve(username) + ' ';
-        } 
+        }
         return '@' + $.username.resolve(username) + ', ';
-    };
+    }
 
     /** Export functions to API */
-    $.list = {
-        hasKey: hasKey,
-    };
-
     $.user = {
         isKnown: isKnown,
         isFollower: isFollower,
+        sanitize: sanitize
     };
 
     $.arrayShuffle = arrayShuffle;
@@ -568,6 +722,10 @@
     $.getSetIniDbString = getSetIniDbString;
     $.getSetIniDbNumber = getSetIniDbNumber;
     $.getSetIniDbFloat = getSetIniDbFloat;
+    $.setIniDbBoolean = setIniDbBoolean;
+    $.setIniDbString = setIniDbString;
+    $.setIniDbNumber = setIniDbNumber;
+    $.setIniDbFloat = setIniDbFloat;
     $.getOrdinal = getOrdinal;
     $.getPercentage = getPercentage;
     $.outOfRange = outOfRange;
@@ -576,7 +734,6 @@
     $.randInterval = randInterval;
     $.randRange = randRange;
     $.say = say;
-    $.setIniDbBoolean = setIniDbBoolean;
     $.strlen = strlen;
     $.systemTime = systemTime;
     $.trueRand = trueRand;
@@ -585,4 +742,10 @@
     $.paginateArray = paginateArray;
     $.replace = replace;
     $.userPrefix = userPrefix;
+    $.reloadMisc = reloadMisc;
+    $.hasKey = hasKey;
+    $.systemTimeNano = systemTimeNano;
+    $.getMessageWrites = getMessageWrites;
+    $.sayWithTimeout = sayWithTimeout;
+    $.paginateArrayDiscord = paginateArrayDiscord;
 })();

@@ -1,27 +1,59 @@
-(function() {
+/*
+ * Copyright (C) 2016-2018 phantombot.tv
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
+(function() {
     // Pre-build regular expressions.
-    var reCustomAPI = new RegExp(/\(customapi\s([\w\W:\/\$\=\?\&]+)\)/), // URL[1]
-        reCustomAPIJson = new RegExp(/\(customapijson ([\w\.:\/\$=\?\&]+)\s([\w\W]+)\)/), // URL[1], JSONmatch[2..n]
+    var reCustomAPI = new RegExp(/\(customapi\s([\w\W:\/\$\=\?\&\-]+)\)/), // URL[1]
+        reCustomAPIJson = new RegExp(/\(customapijson ([\w\.:\/\$=\?\&\-]+)\s([\w\W]+)\)/), // URL[1], JSONmatch[2..n]
         reCustomAPITextTag = new RegExp(/{([\w\W]+)}/),
         reCommandTag = new RegExp(/\(command\s([\w]+)\)/),
-        tagCheck = new RegExp(/\(age\)|\(sender\)|\(@sender\)|\(baresender\)|\(random\)|\(1\)|\(count\)|\(pointname\)|\(price\)|\(#\)|\(uptime\)|\(follows\)|\(game\)|\(status\)|\(touser\)|\(echo\)|\(alert [,.\w]+\)|\(readfile|\(1=|\(countdown=|\(downtime\)|\(paycom\)|\(onlineonly\)|\(offlineonly\)|\(code=|\(followage\)|\(gameinfo\)|\(titleinfo\)|\(gameonly=|\(playtime\)|\(gamesplayed\)|\(customapi |\(customapijson /);
+        tagCheck = new RegExp(/\(views\)|\(subscribers\)|\(age\)|\(sender\)|\(@sender\)|\(baresender\)|\(random\)|\(1\)|\(2\)|\(3\)|\(count\)|\(pointname\)|\(points\)|\(currenttime|\(price\)|\(#|\(uptime\)|\(follows\)|\(game\)|\(status\)|\(touser\)|\(echo\)|\(alert [,.\w]+\)|\(readfile|\(1=|\(countdown=|\(countup=|\(downtime\)|\(pay\)|\(onlineonly\)|\(offlineonly\)|\(code=|\(followage\)|\(gameinfo\)|\(titleinfo\)|\(gameonly=|\(useronly=|\(playtime\)|\(gamesplayed\)|\(pointtouser\)|\(lasttip\)|\(writefile .+\)|\(runcode .+\)|\(readfilerand|\(team_|\(commandcostlist\)|\(playsound |\(customapi |\(customapijson /),
+        customCommands = [],
+        ScriptEventManager = Packages.tv.phantombot.script.ScriptEventManager,
+        CommandEvent = Packages.tv.phantombot.event.command.CommandEvent;
 
-    /**
+    /*
      * @function getCustomAPIValue
+     *
      * @param {string} url
      * @returns {string}
      */
     function getCustomAPIValue(url) {
-        var HttpResponse = Packages.com.gmt2001.HttpResponse;
-        var HttpRequest = Packages.com.gmt2001.HttpRequest;
-        var HashMap = Packages.java.util.HashMap;
-        var responseData = HttpRequest.getData(HttpRequest.RequestType.GET, url, "", new HashMap());
-        return responseData.content;
-    };
+        return $.customAPI.get(url).content;
+    }
 
-    /**
+    /*
+     * @function runCommand
+     *
+     * @param {string} username
+     * @param {string} command
+     * @param {string} args
+     */
+    function runCommand(username, command, args, tags) {
+        if (tags !== undefined) {
+            ScriptEventManager.instance().onEvent(new CommandEvent(username, command, args, tags));
+        } else {
+            ScriptEventManager.instance().onEvent(new CommandEvent(username, command, args));
+        }
+    }
+
+    /*
      * @function returnCommandCost
+     *
      * @export $
      * @param {string} sender
      * @param {string} command
@@ -29,15 +61,17 @@
     function returnCommandCost(sender, command, isMod) {
         sender = sender.toLowerCase();
         command = command.toLowerCase();
+
         if ($.inidb.exists('pricecom', command) && parseInt($.inidb.get('pricecom', command)) > 0) {
             if ((((isMod && $.getIniDbBoolean('settings', 'pricecomMods', false) && !$.isBot(sender)) || !isMod))) {
                 $.inidb.incr('points', sender, $.inidb.get('pricecom', command));
             }
         }
-    };
+    }
 
-    /**
+    /*
      * @function tags
+     *
      * @param {string} event
      * @param {string} message
      * @return {string}
@@ -49,8 +83,70 @@
             }
         }
 
+        if (message.match(/\(views\)/g)) {
+            message = $.replace(message, '(views)', $.twitchcache.getViews());
+        }
+
+        if (message.match(/\(gameonly=.*\)/g)) {
+            var game = message.match(/\(gameonly=(.*)\)/)[1];
+
+            if (!$.getGame($.channelName).equalsIgnoreCase(game)) {
+                return null;
+            }
+            message = $.replace(message, message.match(/(\(gameonly=.*\))/)[1], '');
+        }
+
+        if (message.match(/\(useronly=.*\)/g)) {
+            var user = message.match(/\(useronly=(.*?)\)/)[1];
+            if (!event.getSender().equalsIgnoreCase(user)) {
+                return null;
+            }
+            message = $.replace(message, message.match(/(\(useronly=.*?\))/)[1], '');
+        }
+
+        if (message.match(/\(readfile/)) {
+            if (message.search(/\((readfile ([^)]+)\))/g) >= 0) {
+                message = $.replace(message, '(' + RegExp.$1, $.readFile('./addons/' + RegExp.$2)[0]);
+            }
+        }
+
+        if (message.match(/\(readfilerand/)) {
+            if (message.search(/\((readfilerand ([^)]+)\))/g) >= 0) {
+                var path = RegExp.$2;
+                var path2 = RegExp.$1;
+                var results = $.arrayShuffle($.readFile('./addons/' + path.trim()));
+                message = $.replace(message, '(' + path2.trim(), $.randElement(results));
+            }
+        }
+
         if (message.match(/\(adminonlyedit\)/)) {
             message = $.replace(message, '(adminonlyedit)', '');
+        }
+
+        if (message.match(/\(runcode/)) {
+            var code = message.match(/\(runcode (.*)\)/)[1];
+
+            try {
+                eval(code);
+            } catch (ex) {
+                $.log.error('Failed to run custom code: ' + ex.message);
+            }
+            return null;
+        }
+
+        if (message.match(/\(pointtouser\)/)) {
+            if (event.getArgs()[0] !== undefined) {
+                message = $.replace(message, '(pointtouser)', (event.getArguments().split(' ')[0] + ' -> '));
+            } else {
+                message = $.replace(message, '(pointtouser)', $.userPrefix(event.getSender(), true));
+            }
+        }
+
+        if (message.match(/\(currenttime/)) {
+            var timezone = message.match(/\(currenttime ([\w\W]+), (.*)\)/)[1],
+                format = message.match(/\(currenttime ([\w\W]+), (.*)\)/)[2];
+
+            message = $.replace(message, message.match(/\(currenttime ([\w\W]+), (.*)\)/)[0], $.getCurrentLocalTimeString(format, timezone));
         }
 
         if (message.match(/\(1\)/g)) {
@@ -63,6 +159,19 @@
             }
         }
 
+        if (message.match(/\(commandcostlist\)/)) {
+            var keys = $.inidb.GetKeyList('pricecom', ''),
+                temp = [],
+                i;
+            for (i in keys) {
+                if (!keys[i].includes(' ')) {
+                    temp.push('!' + keys[i] + ': ' + $.getPointsString($.inidb.get('pricecom', keys[i])));
+                }
+            }
+            $.paginateArray(temp, 'NULL' + message.replace('(commandcostlist)', ''), ', ', true, event.getSender());
+            return null;
+        }
+
         if (message.match(/\(1=[^)]+\)/g)) {
             if (event.getArgs()[0]) {
                 var t = message.match(/\(1=[^)]+\)/)[0];
@@ -72,9 +181,18 @@
         }
 
         if (message.match(/\(countdown=[^)]+\)/g)) {
-            var t = message.match(/\([^)]+\)/)[0], countdown, time;
+            var t = message.match(/\([^)]+\)/)[0],
+                countdown, time;
             countdown = t.replace('(countdown=', '').replace(')', '');
-            time = (Date.parse(countdown) - Date.parse(new Date()));
+            time = (Date.parse(countdown) - Date.parse($.getLocalTime()));
+            message = $.replace(message, t, $.getTimeString(time / 1000));
+        }
+
+        if (message.match(/\(countup=[^)]+\)/g)) {
+            var t = message.match(/\([^)]+\)/)[0],
+                countup, time;
+            countup = t.replace('(countup=', '').replace(')', '');
+            time = (Date.parse($.getLocalTime()) - Date.parse(countup));
             message = $.replace(message, t, $.getTimeString(time / 1000));
         }
 
@@ -83,11 +201,12 @@
         }
 
         if (message.match(/\(channelname\)/g)) {
-            message = $.replace(message, '(channelname)', $.channelName);
+            message = $.replace(message, '(channelname)', $.username.resolve($.channelName));
         }
 
         if (message.match(/\(onlineonly\)/g)) {
             if (!$.isOnline($.channelName)) {
+                returnCommandCost(event.getSender(), event.getCommand(), $.isModv3(event.getSender(), event.getTags()));
                 return null;
             }
             message = $.replace(message, '(onlineonly)', '');
@@ -95,19 +214,10 @@
 
         if (message.match(/\(offlineonly\)/g)) {
             if ($.isOnline($.channelName)) {
+                returnCommandCost(event.getSender(), event.getCommand(), $.isModv3(event.getSender(), event.getTags()));
                 return null;
             }
             message = $.replace(message, '(offlineonly)', '');
-        }
-
-        if (message.match(/\(gameonly=[^)]+\)/g)) {
-            var t = message.match(/\([^)]+\)/)[0],
-                game = t.replace('(gameonly=', '').replace(')', '');
-
-            if (!$.getGame($.channelName).equalsIgnoreCase(game)) {
-                return null;
-            }
-            message = $.replace(message, t, '');
         }
 
         if (message.match(/\(sender\)/g)) {
@@ -139,6 +249,20 @@
             message = $.replace(message, '(count)', $.inidb.get('commandCount', event.getCommand()));
         }
 
+        if (message.match(/\(keywordcount\s(.+)\)/g)) {
+            var input_keyword = message.match(/.*\(keywordcount\s(.+)\).*/)[1],
+                keyword_info = JSON.parse($.inidb.get('keywords', input_keyword));
+
+            if ('count' in keyword_info) {
+                ++keyword_info["count"];
+            } else {
+                keyword_info["count"] = 1;
+            }
+            $.inidb.set('keywords', input_keyword, JSON.stringify(keyword_info));
+
+            message = $.replace(message, '(keywordcount ' + input_keyword + ')', keyword_info["count"]);
+        }
+
         if (message.match(/\(random\)/g)) {
             message = $.replace(message, '(random)', $.username.resolve($.randElement($.users)[0]));
         }
@@ -151,6 +275,10 @@
             message = $.replace(message, '(pointname)', $.pointNameMultiple);
         }
 
+        if (message.match(/\(points\)/g)) {
+            message = $.replace(message, '(points)', $.getUserPoints(event.getSender()));
+        }
+
         if (message.match(/\(price\)/g)) {
             message = $.replace(message, '(price)', String($.inidb.exists('pricecom', event.getCommand()) ? $.getPointsString($.inidb.get('pricecom', event.getCommand())) : $.getPointsString(0)));
         }
@@ -160,7 +288,12 @@
         }
 
         if (message.match(/\(#\)/g)) {
-            message = $.replace(message, '(#)', String($.randRange(1, 100) + ' '));
+            message = $.replace(message, '(#)', String($.randRange(1, 100)));
+        }
+
+        if (message.match(/\(# (\d+),(\d+)\)/g)) {
+            var mat = message.match(/\(# (\d+),(\d+)\)/);
+            message = $.replace(message, mat[0], String($.randRange(parseInt(mat[1]), parseInt(mat[2]))));
         }
 
         if (message.match(/\(viewers\)/g)) {
@@ -176,11 +309,11 @@
         }
 
         if (message.match(/\(touser\)/g)) {
-            message = $.replace(message, '(touser)', (!event.getArgs()[0] ? $.username.resolve(event.getSender()) : $.username.resolve(event.getArgs()[0])));
+            message = $.replace(message, '(touser)', (event.getArgs()[0] === undefined ? $.username.resolve(event.getSender()) : String(event.getArgs()[0]).replace(/[^a-z0-9_@]/ig, '')));
         }
 
         if (message.match(/\(echo\)/g)) {
-            message = $.replace(message, '(echo)', event.getArguments());
+            message = $.replace(message, '(echo)', (event.getArguments() ? event.getArguments() : ''));
         }
 
         if (message.match(/\(gamesplayed\)/g)) {
@@ -194,30 +327,20 @@
         if (message.match(/\(code=/g)) {
             var code = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789',
                 length = message.substr(6).replace(')', '');
-                text = '',
+            text = '',
                 i;
 
             for (i = 0; i < length; i++) {
                 text += code.charAt(Math.floor(Math.random() * code.length));
             }
-            message = $.replace(message, '(code=' + length +')', String(text));
+            message = $.replace(message, '(code=' + length + ')', String(text));
         }
 
-        if (message.match(/\(alert [,.\w]+\)/g)) {
-            var filename = message.match(/\(alert ([,.\w]+)\)/)[1];
+        if (message.match(/\(alert [,.\w\W]+\)/g)) {
+            var filename = message.match(/\(alert ([,.\w\W]+)\)/)[1];
             $.panelsocketserver.alertImage(filename);
-            message = message.replaceFirst('\\(alert [,.\\w]+\\)', '');
+            message = (message + '').replace(/\(alert [,.\w\W]+\)/, '');
             if (message == '') return null;
-        }
-
-        if (message.match(/\(readfile/)) {
-            if (message.search(/\((readfile ([^)]+)\))/g) >= 0) {
-                message = $.replace(message, '(' + RegExp.$1, $.readFile('addons/' + RegExp.$2)[0]);
-            }
-        }
-
-        if (message.match(reCustomAPIJson) || message.match(reCustomAPI) || message.match(reCommandTag)) {
-            message = apiTags(event, message);
         }
 
         if (message.match(/\(gameinfo\)/)) {
@@ -241,10 +364,12 @@
         }
 
         if (message.match(/\(followage\)/g)) {
-            var args = event.getArgs(), channel = $.channelName, sender = event.getSender();
-            
-            if (args.length > 0) sender = args[0];
-            if (args.length > 1) channel = args[1];
+            var args = event.getArgs(),
+                channel = $.channelName,
+                sender = event.getSender();
+
+            if (args.length > 0) sender = args[0].replace('@','');
+            if (args.length > 1) channel = args[1].replace('@','');
 
             $.getFollowAge(event.getSender(), sender, channel);
             return null;
@@ -266,16 +391,181 @@
             message = $.replace(message, '(uptime)', String($.getStreamUptime($.channelName)));
         }
 
+        if (message.match(/\(lasttip\)/g)) {
+            message = $.replace(message, '(lasttip)', ($.inidb.exists('donations', 'last_donation_message') ? $.inidb.get('donations', 'last_donation_message') : 'No donations found.'));
+        }
+
+        if (message.match(/\(playsound\s([a-zA-Z1-9_]+)\)/g)) {
+            if (!$.audioHookExists(message.match(/\(playsound\s([a-zA-Z1-9_]+)\)/)[1])) {
+                $.log.error('Could not play audio hook: Audio hook does not exist.');
+                return null;
+            }
+            $.panelsocketserver.triggerAudioPanel(message.match(/\(playsound\s([a-zA-Z1-9_]+)\)/)[1]);
+            message = $.replace(message, message.match(/\(playsound\s([a-zA-Z1-9_]+)\)/)[0], '');
+            if (message == '') {
+                return null;
+            }
+        }
+
         if (message.match(/\(age\)/g)) {
             $.getChannelAge(event);
             return null;
         }
 
-        return message;
-    };
+        if (message.match(/\(math (.*)\)/)) {
+            var mathStr = message.match(/\(math (.*)\)/)[1].replace(/\s/g, '');
 
-    /**
+            if (mathStr.length === 0) {
+                return null;
+            }
+
+            message = $.replace(message, message.match(/\(math (.*)\)/)[0], String(eval(mathStr)));
+        }
+
+        if (message.match(/\(writefile .+\)/)) {
+            if (message.match(/\(writefile (.+), (.+), (.+)\)/)) {
+                var file = message.match(/\(writefile (.+), (.+), (.+)\)/)[1],
+                    append = (message.match(/\(writefile (.+), (.+), (.+)\)/)[2] == 'true' ? true : false),
+                    string = message.match(/\(writefile (.+), (.+), (.+)\)/)[3];
+                $.writeToFile(string, './addons/' + file, append);
+            }
+            message = $.replace(message, message.match(/\(writefile (.+), (.+), (.+)\)/)[0], '');
+            if (message == '') {
+                return null;
+            }
+        }
+
+        if (message.match(/\(encodeurl ([\w\W]+)\)/)) {
+            var m = message.match(/\(encodeurl ([\w\W]+)\)/);
+            message = $.replace(message, m[0], encodeURI(m[1]));
+        }
+
+        // Variables for Twitch teams.
+        if (message.match(/\(team_.*/)) {
+            message = handleTwitchTeamVariables(message);
+        }
+
+        if (message.match(reCustomAPIJson) || message.match(reCustomAPI) || message.match(reCommandTag)) {
+            message = apiTags(event, message);
+        }
+
+        return message;
+    }
+
+    /*
+     * @function handleTwitchTeamVariables Handles the twitch team tags.
+     *
+     * @return String
+     */
+    function handleTwitchTeamVariables(message) {
+        if (message.match(/\(team_members ([a-zA-Z0-9-_]+)\)/)) {
+            var teamMatch = message.match(/\(team_members ([a-zA-Z0-9-_]+)\)/),
+                teamName = teamMatch[1],
+                teamObj = $.twitchteamscache.getTeam(teamName);
+
+            if (teamObj != null) {
+                message = $.replace(message, teamMatch[0], teamObj.getTotalMembers());
+            } else {
+                message = $.replace(message, teamMatch[0], 'API_ERROR: You\'re not in that team.');
+            }
+        }
+
+        if (message.match(/\(team_url ([a-zA-Z0-9-_]+)\)/)) {
+            var teamMatch = message.match(/\(team_url ([a-zA-Z0-9-_]+)\)/),
+                teamName = teamMatch[1],
+                teamObj = $.twitchteamscache.getTeam(teamName);
+
+            if (teamObj != null) {
+                message = $.replace(message, teamMatch[0], teamObj.getUrl());
+            } else {
+                message = $.replace(message, teamMatch[0], 'API_ERROR: You\'re not in that team.');
+            }
+        }
+
+        if (message.match(/\(team_name ([a-zA-Z0-9-_]+)\)/)) {
+            var teamMatch = message.match(/\(team_name ([a-zA-Z0-9-_]+)\)/),
+                teamName = teamMatch[1],
+                teamObj = $.twitchteamscache.getTeam(teamName);
+
+            if (teamObj != null) {
+                message = $.replace(message, teamMatch[0], teamObj.getName());
+            } else {
+                message = $.replace(message, teamMatch[0], 'API_ERROR: You\'re not in that team.');
+            }
+        }
+
+        if (message.match(/\(team_random_member ([a-zA-Z0-9-_]+)\)/)) {
+            var teamMatch = message.match(/\(team_random_member ([a-zA-Z0-9-_]+)\)/),
+                teamName = teamMatch[1],
+                teamObj = $.twitchteamscache.getTeam(teamName);
+
+            if (teamObj != null) {
+                message = $.replace(message, teamMatch[0], teamObj.getRandomMember());
+            } else {
+                message = $.replace(message, teamMatch[0], 'API_ERROR: You\'re not in that team.');
+            }
+        }
+
+        if (message.match(/\(team_member_game ([a-zA-Z0-9-_]+),\s([a-zA-Z0-9_]+)\)/)) {
+            var teamMatch = message.match(/\(team_member_game ([a-zA-Z0-9-_]+),\s([a-zA-Z0-9_]+)\)/),
+                teamName = teamMatch[1],
+                teamUser = teamMatch[2]
+                teamObj = $.twitchteamscache.getTeam(teamName),
+                teamMember = teamObj.getTeamMember(teamUser);
+
+            if (teamObj != null) {
+                if (teamMember != null) {
+                    message = $.replace(message, teamMatch[0], teamMember.getString('game'));
+                } else {
+                    message = $.replace(message, teamMatch[0], 'API_ERROR: That user is not in the team.');
+                }
+            } else {
+                message = $.replace(message, teamMatch[0], 'API_ERROR: You\'re not in that team.');
+            }
+        }
+
+        if (message.match(/\(team_member_followers ([a-zA-Z0-9-_]+),\s([a-zA-Z0-9_]+)\)/)) {
+            var teamMatch = message.match(/\(team_member_followers ([a-zA-Z0-9-_]+),\s([a-zA-Z0-9_]+)\)/),
+                teamName = teamMatch[1],
+                teamUser = teamMatch[2]
+                teamObj = $.twitchteamscache.getTeam(teamName),
+                teamMember = teamObj.getTeamMember(teamUser);
+
+            if (teamObj != null) {
+                if (teamMember != null) {
+                    message = $.replace(message, teamMatch[0], teamMember.get('followers'));
+                } else {
+                    message = $.replace(message, teamMatch[0], 'API_ERROR: That user is not in the team.');
+                }
+            } else {
+                message = $.replace(message, teamMatch[0], 'API_ERROR: You\'re not in that team.');
+            }
+        }
+
+        if (message.match(/\(team_member_url ([a-zA-Z0-9-_]+),\s([a-zA-Z0-9_]+)\)/)) {
+            var teamMatch = message.match(/\(team_member_url ([a-zA-Z0-9-_]+),\s([a-zA-Z0-9_]+)\)/),
+                teamName = teamMatch[1],
+                teamUser = teamMatch[2]
+                teamObj = $.twitchteamscache.getTeam(teamName),
+                teamMember = teamObj.getTeamMember(teamUser);
+
+            if (teamObj != null) {
+                if (teamMember != null) {
+                    message = $.replace(message, teamMatch[0], teamMember.getString('url'));
+                } else {
+                    message = $.replace(message, teamMatch[0], 'API_ERROR: That user is not in the team.');
+                }
+            } else {
+                message = $.replace(message, teamMatch[0], 'API_ERROR: You\'re not in that team.');
+            }
+        }
+
+        return message;
+    }
+
+    /*
      * @function apiTags
+     *
      * @export $
      * @param {string} message
      * @param {Object} event
@@ -283,6 +573,7 @@
      */
     function apiTags(event, message) {
         var JSONObject = Packages.org.json.JSONObject,
+            JSONArray = Packages.org.json.JSONArray,
             command = event.getCommand(),
             args = event.getArgs(),
             origCustomAPIResponse = '',
@@ -346,41 +637,44 @@
                     jsonCheckList = jsonItems[j].split('.');
                     if (jsonCheckList.length == 1) {
                         try {
-                            customAPIResponse = new JSONObject(origCustomAPIResponse).getString(jsonCheckList[0]);
+                            customAPIResponse = new JSONObject(origCustomAPIResponse).get(jsonCheckList[0]);
                         } catch (ex) {
-                            if (ex.message.indexOf('not a string') != -1) {
-                                try {
-                                    customAPIResponse = new JSONObject(origCustomAPIResponse).getInt(jsonCheckList[0]);
-                                } catch (ex) {
-                                    return $.lang.get('customcommands.customapijson.err', command);
-                                }
-                            } else {
-                                return $.lang.get('customcommands.customapijson.err', command);
-                            }
+                            $.log.error('Failed to get data from API: ' + ex.message);
+                            return $.lang.get('customcommands.customapijson.err', command);
                         }
-                        customAPIReturnString += " " + customAPIResponse;
+                        customAPIReturnString += customAPIResponse;
                     } else {
                         for (var i = 0; i < jsonCheckList.length - 1; i++) {
                             if (i == 0) {
-                                jsonObject = new JSONObject(origCustomAPIResponse).getJSONObject(jsonCheckList[i]);
-                            } else {
-                                jsonObject = jsonObject.getJSONObject(jsonCheckList[i]);
-                            }
-                        }
-                        try {
-                            customAPIResponse = jsonObject.getString(jsonCheckList[i]);
-                        } catch (ex) {
-                            if (ex.message.indexOf('not a string') != -1) {
                                 try {
-                                    customAPIResponse = jsonObject.getInt(jsonCheckList[i]);
+                                    jsonObject = new JSONObject(origCustomAPIResponse).get(jsonCheckList[i]);
                                 } catch (ex) {
+                                    $.log.error('Failed to get data from API: ' + ex.message);
+                                    return $.lang.get('customcommands.customapijson.err', command);
+                                }
+                            } else if (!isNaN(jsonCheckList[i + 1])) {
+                                try {
+                                    jsonObject = jsonObject.get(jsonCheckList[i]);
+                                } catch (ex) {
+                                    $.log.error('Failed to get data from API: ' + ex.message);
                                     return $.lang.get('customcommands.customapijson.err', command);
                                 }
                             } else {
-                                return $.lang.get('customcommands.customapijson.err', command);
+                                try {
+                                    jsonObject = jsonObject.get(jsonCheckList[i]);
+                                } catch (ex) {
+                                    $.log.error('Failed to get data from API: ' + ex.message);
+                                    return $.lang.get('customcommands.customapijson.err', command);
+                                }
                             }
                         }
-                        customAPIReturnString += " " + customAPIResponse;
+                        try {
+                            customAPIResponse = jsonObject.get(jsonCheckList[i]);
+                        } catch (ex) {
+                            $.log.error('Failed to get data from API: ' + ex.message);
+                            return $.lang.get('customcommands.customapijson.err', command);
+                        }
+                        customAPIReturnString += customAPIResponse;
                     }
                 }
             }
@@ -389,18 +683,19 @@
         if (message.match(reCommandTag)) {
             commandToExec = message.match(reCommandTag)[1];
             if (commandToExec.length > 0) {
-                var EventBus = Packages.me.mast3rplan.phantombot.event.EventBus;
-                var CommandEvent = Packages.me.mast3rplan.phantombot.event.command.CommandEvent;
-                EventBus.instance().post(new CommandEvent(event.getSender(), commandToExec, message.replace(reCommandTag, '')));//Don't use postCommand. it got removed.
+                var EventBus = Packages.tv.phantombot.event.EventBus;
+                var CommandEvent = Packages.tv.phantombot.event.command.CommandEvent;
+                EventBus.instance().post(new CommandEvent(event.getSender(), commandToExec, message.replace(reCommandTag, '').substring(1)));
                 return null;
             }
         }
 
         return message.replace(reCustomAPI, customAPIReturnString).replace(reCustomAPIJson, customAPIReturnString);
-    };
+    }
 
-    /**
+    /*
      * @function permCom
+     *
      * @export $
      * @param {string} username
      * @param {string} command
@@ -408,26 +703,57 @@
      * @returns 0 = good, 1 = command perm bad, 2 = subcommand perm bad
      */
     function permCom(username, command, subcommand) {
-        username = username.toLowerCase();
-        if ($.isAdmin(username)) {
-            return 0;
-        }
-        if (subcommand == '') {
+        if (subcommand === '') {
             if ($.getCommandGroup(command) >= $.getUserGroupId(username)) {
                 return 0;
             } else {
                 return 1;
             }
-        }
-        if ($.getSubcommandGroup(command, subcommand) >= $.getUserGroupId(username)) {
-            return 0;
         } else {
-            return 2;
+            if ($.getSubcommandGroup(command, subcommand) >= $.getUserGroupId(username)) {
+                return 0;
+            } else {
+                return 2;
+            }
         }
-    };
+    }
 
-    /**
+    /*
+     * @function priceCom
+     *
+     * @export $
+     * @param {string} username
+     * @param {string} command
+     * @param {sub} subcommand
+     * @param {bool} isMod
+     * @returns 1 | 0 - Not a boolean
+     */
+    function priceCom(username, command, subCommand, isMod) {
+        if ((subCommand !== '' && $.inidb.exists('pricecom', command + ' ' + subCommand)) || $.inidb.exists('pricecom', command)) {
+            if ((((isMod && $.getIniDbBoolean('settings', 'pricecomMods', false) && !$.isBot(username)) || !isMod)) && $.bot.isModuleEnabled('./systems/pointSystem.js')) {
+                if ($.getUserPoints(username) < getCommandPrice(command, subCommand, '')) {
+                    return 1;
+                }
+                return 0;
+            }
+        }
+        return -1;
+    }
+
+    /*
+     * @function payCom
+     *
+     * @export $
+     * @param {string} command
+     * @returns 1 | 0 - Not a boolean
+     */
+    function payCom(command) {
+        return ($.inidb.exists('paycom', command) ? 0 : 1);
+    }
+
+    /*
      * @function getCommandPrice
+     *
      * @export $
      * @param {string} command
      * @param {string} subCommand
@@ -439,14 +765,25 @@
         subCommand = subCommand.toLowerCase();
         subCommandAction = subCommandAction.toLowerCase();
         return parseInt($.inidb.exists('pricecom', command + ' ' + subCommand + ' ' + subCommandAction) ?
-                            $.inidb.get('pricecom', command + ' ' + subCommand + ' ' + subCommandAction) :
-                                $.inidb.exists('pricecom', command + ' ' + subCommand) ?
-                                    $.inidb.get('pricecom', command + ' ' + subCommand) :
-                                        $.inidb.exists('pricecom', command) ?
-                                            $.inidb.get('pricecom', command) : 0);
-    };
+            $.inidb.get('pricecom', command + ' ' + subCommand + ' ' + subCommandAction) :
+            $.inidb.exists('pricecom', command + ' ' + subCommand) ?
+            $.inidb.get('pricecom', command + ' ' + subCommand) :
+            $.inidb.exists('pricecom', command) ?
+            $.inidb.get('pricecom', command) : 0);
+    }
 
-    /**
+    /*
+     * @function getCommandPay
+     *
+     * @export $
+     * @param {string} command
+     * @returns {Number}
+     */
+    function getCommandPay(command) {
+        return ($.inidb.exists('paycom', command) ? $.inidb.get('paycom', command) : 0);
+    }
+
+    /*
      * @function addComRegisterCommands
      */
     function addComRegisterCommands() {
@@ -455,15 +792,14 @@
                 i;
             for (i in commands) {
                 if (!$.commandExists(commands[i])) {
+                    customCommands[commands[i]] = $.inidb.get('command', commands[i]);
                     $.registerChatCommand('./commands/customCommands.js', commands[i], 7);
-                } else {
-                    $.log.error('Cannot add custom command, command already exists: ' + commands[i]);
                 }
             }
         }
-    };
+    }
 
-    /**
+    /*
      * @function addComRegisterAliases
      */
     function addComRegisterAliases() {
@@ -474,86 +810,87 @@
                 if (!$.commandExists(aliases[i])) {
                     $.registerChatCommand('./commands/customCommands.js', aliases[i], $.getIniDbNumber('permcom', aliases[i], 7));
                     $.registerChatAlias(aliases[i]);
-                } else {
-                    $.log.error('Cannot add alias, command already exists: ' + aliases[i]);
                 }
             }
         }
     }
 
-    /**
+    /*
      * @event command
      */
     $.bind('command', function(event) {
         var sender = event.getSender(),
             command = event.getCommand(),
-            argString = event.getArguments(),
+            argsString = event.getArguments(),
             args = event.getArgs(),
             action = args[0],
-            subAction = args[1],
-            aliasArgs;
+            subAction = args[1];
 
-        /** Used for custom commands */
-        if ($.inidb.exists('command', command)) {
-            var tag = tags(event, $.inidb.get('command', command), true);
+        /*
+         * This handles custom commands, no command path is needed.
+         */
+        if (customCommands[command] !== undefined) {
+            var tag = tags(event, customCommands[command], true);
             if (tag !== null) {
                 $.say(tag);
             }
             return;
         }
 
-        /**
-         * @commandpath addcom [command] [command text] - Add a custom command (see !listtags) - Moderator
+        /*
+         * @commandpath addcom [command] [command response] - Adds a custom command
          */
         if (command.equalsIgnoreCase('addcom')) {
-            if (!action || !subAction) {
+            if (action === undefined || subAction === undefined) {
                 $.say($.whisperPrefix(sender) + $.lang.get('customcommands.add.usage'));
                 return;
             }
 
-            action = args[0].replace('!', '').toLowerCase();
-            argString = argString.substring(argString.indexOf(args[0]) + args[0].length() + 1);
+            action = action.replace('!', '').toLowerCase();
+            argsString = args.slice(1).join(' ');
 
             if ($.commandExists(action)) {
                 $.say($.whisperPrefix(sender) + $.lang.get('customcommands.add.error'));
                 return;
-            }
-
-            if ($.inidb.exists('disabledCommands', action)) {
+            } else if ($.inidb.exists('disabledCommands', action)) {
                 $.say($.whisperPrefix(sender) + $.lang.get('customcommands.add.disabled'));
                 return;
-            }
-
-            if (argString.indexOf('(command ') !== -1) {
-                if (argString.indexOf('(command ') !== 0) {
+            } else if (argsString.indexOf('(command ') !== -1) {
+                if (argsString.indexOf('(command ') !== 0) {
                     $.say($.whisperPrefix(sender) + $.lang.get('customcommands.add.commandtag.notfirst'));
                     return;
                 } else {
-                    var checkCmd = argString.match(reCommandTag)[1];
-                    if (!$.commandExists(checkCmd)) {
-                        $.say($.whisperPrefix(sender) + $.lang.get('customcommands.add.commandtag.invalid', checkCmd));
+                    if (!$.commandExists(argsString.match(reCommandTag)[1])) {
+                        $.say($.whisperPrefix(sender) + $.lang.get('customcommands.add.commandtag.invalid', argsString.match(reCommandTag)[1]));
                         return;
                     }
                 }
             }
 
             $.say($.whisperPrefix(sender) + $.lang.get('customcommands.add.success', action));
-            $.inidb.set('command', action.toLowerCase(), argString);
+            $.logCustomCommand({
+                'add.command': '!' + action,
+                'add.response': argsString,
+                'sender': sender,
+            });
             $.registerChatCommand('./commands/customCommands.js', action);
-            $.log.event(sender + ' added command !' + action + ' with the message "' + argString + '"');
+            $.inidb.set('command', action, argsString);
+            customCommands[action] = argsString;
+            return;
         }
 
-        /**
-         * @commandpath editcom [command] [command text] - Replaces the given custom command - Moderator
+        /*
+         * @commandpath editcom [command] [command response] - Edits the current response of that command
          */
         if (command.equalsIgnoreCase('editcom')) {
-            if (!action || !subAction) {
+            if (action === undefined || subAction === undefined) {
                 $.say($.whisperPrefix(sender) + $.lang.get('customcommands.edit.usage'));
                 return;
-            } 
+            }
 
-            action = args[0].replace('!', '').toLowerCase();
-            
+            action = action.replace('!', '').toLowerCase();
+            argsString = args.slice(1).join(' ');
+
             if (!$.commandExists(action)) {
                 $.say($.whisperPrefix(sender) + $.lang.get('cmd.404', action));
                 return;
@@ -567,128 +904,138 @@
                 return;
             }
 
-            argString = argString.substring(argString.indexOf(args[0]) + args[0].length() + 1);
-
             $.say($.whisperPrefix(sender) + $.lang.get('customcommands.edit.success', action));
-            $.inidb.set('command', action.toLowerCase(), argString);
-            $.registerChatCommand('./commands/customCommands.js', action);
-            $.log.event(sender + ' edited the command !' + action + ' with the message "' + argString + '"');
+            $.logCustomCommand({
+                'edit.command': '!' + action,
+                'edit.response': argsString,
+                'sender': sender,
+            });
+            $.registerChatCommand('./commands/customCommands.js', action, 7);
+            $.inidb.set('command', action, argsString);
+            customCommands[action] = argsString;
+            return;
         }
 
-        /**
-         * @commandpath delcom [command] - Delete a custom command - Moderator
+        /*
+         * @commandpath delcom [command] - Delete that custom command
          */
         if (command.equalsIgnoreCase('delcom')) {
-            if (!args[0]) {
+            if (action === undefined) {
                 $.say($.whisperPrefix(sender) + $.lang.get('customcommands.delete.usage'));
                 return;
             }
 
-            action = args[0].replace('!', '').toLowerCase();
+            action = action.replace('!', '').toLowerCase();
 
-            if (!action) {
-                $.say($.whisperPrefix(sender) + $.lang.get('customcommands.delete.usage'));
-                return;
-            } else if (!$.inidb.exists('command', action)) {
+            if (!$.inidb.exists('command', action)) {
                 $.say($.whisperPrefix(sender) + $.lang.get('cmd.404', action));
                 return;
             }
 
             $.say($.whisperPrefix(sender) + $.lang.get('customcommands.delete.success', action));
+            $.logCustomCommand({
+                'delete.command': '!' + action,
+                'sender': sender,
+            });
             $.inidb.del('command', action);
             $.inidb.del('permcom', action);
             $.inidb.del('pricecom', action);
             $.inidb.del('aliases', action);
             $.unregisterChatCommand(action);
-            $.log.event(sender + ' deleted the command !' + action);
+            delete customCommands[action];
+            return;
         }
 
-        /**
-         * @commandpath aliascom [alias] [existing command] [parameters] - Create an alias to any command, optionally with parameters - Moderator
+        /*
+         * @commandpath aliascom [alias name] [existing command] - Create an alias to any command
          */
         if (command.equalsIgnoreCase('aliascom')) {
-            if (!action || !subAction) {
+            if (action === undefined || subAction === undefined) {
                 $.say($.whisperPrefix(sender) + $.lang.get('customcommands.alias.usage'));
                 return;
             }
 
-            action = args[1].replace('!', '').toLowerCase();
-            subAction = args[0].replace('!', '').toLowerCase();
-            if (args.length >= 2) {
-                aliasArgs = ' ' + args.splice(2).join(' ');
-                aliasArgs = aliasArgs.replace('; ', ';').replace(';\!', ';');
-            } else {
-                aliasArgs = '';
-            }
+            action = action.replace('!', '').toLowerCase();
+            subAction = args.slice(1).join(' ').replace('!', '').toLowerCase();
 
-            if (!$.commandExists(action)) {
+            if ($.commandExists(action)) {
+                $.say($.whisperPrefix(sender) + $.lang.get('customcommands.alias.error.exists'));
+                return;
+            } else if (!$.commandExists(subAction.split(' ')[0])) {
                 $.say($.whisperPrefix(sender) + $.lang.get('customcommands.alias.error.target404'));
-                return
-            }
-
-            if ($.inidb.exists('aliases', subAction)) {
-                $.say($.whisperPrefix(sender) + $.lang.get('customcommands.alias.error', subAction));
+                return;
+            } else if ($.inidb.exists('aliases', action)) {
+                $.say($.whisperPrefix(sender) + $.lang.get('customcommands.alias.error', action));
                 return;
             }
 
-            if ($.commandExists(subAction.split(' ')[0])) {
-                $.say($.whisperPrefix(sender) + $.lang.get('customcommands.alias.usage'));
-                return;
-            }
-
-            $.say($.whisperPrefix(sender) + $.lang.get('customcommands.alias.success', action + aliasArgs, subAction));
-            $.inidb.set('aliases', subAction, action + aliasArgs);
-            $.registerChatCommand('./commands/customCommands.js', subAction);
-            $.registerChatAlias(subAction);
-            $.log.event(sender + ' added alias "!' + subAction + '" for "!' + action + aliasArgs + '"');
+            $.say($.whisperPrefix(sender) + $.lang.get('customcommands.alias.success', subAction, action));
+            $.logCustomCommand({
+                'alias.command': '!' + action,
+                'alias.target': '!' + subAction,
+                'sender': sender,
+            });
+            $.registerChatCommand('./commands/customCommands.js', action);
+            $.inidb.set('aliases', action, subAction);
+            $.registerChatAlias(action);
+            return;
         }
 
-        /**
-         * @commandpath delalias [alias] - Delete an alias - Moderator
+        /*
+         * @commandpath delalias [alias] - Delete that alias
          */
         if (command.equalsIgnoreCase('delalias')) {
-            if (!action) {
+            if (action === undefined) {
                 $.say($.whisperPrefix(sender) + $.lang.get('customcommands.alias.delete.usage'));
                 return;
             }
 
-            action = args[0].replace('!', '').toLowerCase();
+            action = action.replace('!', '').toLowerCase();
+
             if (!$.inidb.exists('aliases', action)) {
                 $.say($.whisperPrefix(sender) + $.lang.get('customcommands.alias.delete.error.alias.404', action));
                 return;
             }
 
-            $.say($.whisperPrefix(sender) + $.lang.get("customcommands.alias.delete.success", action));
-            $.unregisterChatCommand(action.toLowerCase());
-            $.inidb.del('aliases', action.toLowerCase());
-            $.log.event(sender + ' deleted alias !' + action);
+            $.say($.whisperPrefix(sender) + $.lang.get('customcommands.alias.delete.success', action));
+            $.logCustomCommand({
+                'alias.delete.command': '!' + action,
+                'sender': sender,
+            });
+            $.unregisterChatCommand(action);
+            $.inidb.del('aliases', action);
+            return;
         }
 
-        /**
-         * @commandpath permcom [command] [groupId] - Set the permissions for a command - Administrator
-         * @commandpath permcom [command] [subcommand] [groupId] - Set the permissions for a subcommand - Administrator
+        /*
+         * @commandpath permcom [command] [groupId] - Set the permissions for any command
          */
         if (command.equalsIgnoreCase('permcom')) {
-            if (!action || !subAction) {
+            if (action === undefined || subAction === undefined) {
                 $.say($.whisperPrefix(sender) + $.lang.get('customcommands.set.perm.usage'));
                 return;
             }
 
-            action = args[0].replace('!', '').toLowerCase();
+            action = action.replace('!', '').toLowerCase();
+            var group = 7;
 
-            if (args.length == 2) {
-                var group = args[1];
-
-                if (isNaN(parseInt(group))) {
-                    group = $.getGroupIdByName(group);
-                }
+            if (args.length === 2) {
+                group = args[1];
 
                 if (!$.commandExists(action)) {
                     $.say($.whisperPrefix(sender) + $.lang.get('customcommands.set.perm.404', action));
                     return;
+                } else if (isNaN(parseInt(group))) {
+                    group = $.getGroupIdByName(group);
                 }
 
                 $.say($.whisperPrefix(sender) + $.lang.get('customcommands.set.perm.success', action, $.getGroupNameById(group)));
+                $.logCustomCommand({
+                    'set.perm.command': '!' + action,
+                    'set.perm.group': $.getGroupNameById(group),
+                    'sender': sender,
+                });
+
                 var list = $.inidb.GetKeyList('aliases', ''),
                     i;
 
@@ -696,118 +1043,117 @@
                     if (list[i].equalsIgnoreCase(action)) {
                         $.inidb.set('permcom', $.inidb.get('aliases', list[i]), group);
                         $.updateCommandGroup($.inidb.get('aliases', list[i]), group);
-                    } 
+                    }
                 }
+
                 $.inidb.set('permcom', action, group);
-                $.log.event(sender + ' set permission on command !' + action + ' to group ' + group);
                 $.updateCommandGroup(action, group);
-                return;
+            } else {
+                group = args[2];
+
+                if (!$.subCommandExists(action, subAction)) {
+                    $.say($.whisperPrefix(sender) + $.lang.get('customcommands.set.perm.404', action + ' ' + subAction));
+                    return;
+                } else if (isNaN(parseInt(group))) {
+                    group = $.getGroupIdByName(group);
+                }
+
+                $.say($.whisperPrefix(sender) + $.lang.get('customcommands.set.perm.success', action + ' ' + subAction, $.getGroupNameById(group)));
+                $.logCustomCommand({
+                    'set.perm.command': '!' + action + ' ' + subAction,
+                    'set.perm.group': $.getGroupNameById(group),
+                    'sender': sender,
+                });
+                $.inidb.set('permcom', action + ' ' + subAction, group);
+                $.updateSubcommandGroup(action, subAction, group);
             }
-
-            var subcommand = args[1];
-            var group = args[2];
-
-            if (isNaN(parseInt(group))) {
-                group = $.getGroupIdByName(group);
-            }
-
-            if (!$.subCommandExists(action, subcommand)) {
-                $.say($.whisperPrefix(sender) + $.lang.get('customcommands.set.perm.404', action + " " + subcommand));
-                return;
-            }
-
-            $.say($.whisperPrefix(sender) + $.lang.get('customcommands.set.perm.success', action + " " + subcommand, $.getGroupNameById(group)));
-            $.inidb.set('permcom', action + " " + subcommand, group);
-            $.log.event(sender + ' set permission on sub command !' + action + ' ' + subcommand + ' to group ' + group);
-            $.updateSubcommandGroup(action, subcommand, group);
+            return;
         }
 
-        /**
-         * @commandpath pricecom [command] [amount] - Set the amount of points a command should cost - Administrator
-         * @commandpath pricecom [command] [subcommand] [amount] - Set the amount of points a command should cost - Administrator
-         * @commandpath pricecom [command] [subcommand] [subaction] [amount] - Set the amount of points a command should cost - Administrator
+        /*
+         * @commandpath pricecom [command] [amount] - Set the amount of points a command should cost
          */
         if (command.equalsIgnoreCase('pricecom')) {
-            if (!action || !subAction || args.length > 4) {
+            if (action === undefined || subAction === undefined) {
                 $.say($.whisperPrefix(sender) + $.lang.get('customcommands.set.price.usage'));
                 return;
             }
 
-            /* Traditional !pricecom. Set a price to a command and handle any aliases. */
-            if (args.length == 2) {
-                action = args[0].replace('!', '').toLowerCase();
-                if (!$.commandExists(action)) {
-                    $.say($.whisperPrefix(sender) + $.lang.get('customcommands.set.price.error.404'));
-                    return;
-                } else if (isNaN(parseInt(subAction)) || parseInt(subAction) < 0) {
-                    $.say($.whisperPrefix(sender) + $.lang.get('customcommands.set.price.error.invalid'));
-                    return;
-                }
-    
-                $.say($.whisperPrefix(sender) + $.lang.get('customcommands.set.price.success', action, subAction, $.pointNameMultiple));
-                $.inidb.set('pricecom', action, subAction);
-                var list = $.inidb.GetKeyList('aliases', ''),
-                    i;
-    
-                for (i in list) {
-                    if (list[i].equalsIgnoreCase(action)) {
-                        $.inidb.set('pricecom', $.inidb.get('aliases', list[i]), parseInt(subAction));
-                    } 
-                    if ($.inidb.get('aliases', list[i]).includes(action)) {
-                        $.inidb.set('pricecom', list[i], parseInt(subAction));
-                    }
-                }
-                $.log.event(sender + ' set price on command !' + action + ' to ' + subAction + ' ' + $.pointNameMultiple);
-                return;
-            }
+            action = action.replace('!', '').toLowerCase();
 
-            /**
-             * Enhanced !pricecom that supports a subcommand and subaction.  Note that we do not check to ensure that the subcommand
-             * or subaction are valid, only the root of the command.
-             */
-            action = args[0].replace('!', '').toLowerCase();
             if (!$.commandExists(action)) {
                 $.say($.whisperPrefix(sender) + $.lang.get('customcommands.set.price.error.404'));
                 return;
             }
 
-            /* Handle subcommand with price. */
-            if (args.length == 3) {
-                if (isNaN(args[2]) || parseInt(args[2]) < 0) {
+            if (args.length === 2) {
+                if (isNaN(parseInt(subAction)) || parseInt(subAction) < 0) {
+                    $.say($.whisperPrefix(sender) + $.lang.get('customcommands.set.price.error.invalid'));
+                    return;
+                }
+
+                $.say($.whisperPrefix(sender) + $.lang.get('customcommands.set.price.success', action, subAction, $.pointNameMultiple));
+                $.logCustomCommand({
+                    'set.price.command': '!' + action,
+                    'set.price.amount': subAction,
+                    'sender': sender,
+                });
+                $.inidb.set('pricecom', action, subAction);
+
+                var list = $.inidb.GetKeyList('aliases', ''),
+                    i;
+
+                for (i in list) {
+                    if (list[i].equalsIgnoreCase(action)) {
+                        $.inidb.set('pricecom', $.inidb.get('aliases', list[i]), parseInt(subAction));
+                    }
+                    if ($.inidb.get('aliases', list[i]).includes(action)) {
+                        $.inidb.set('pricecom', list[i], parseInt(subAction));
+                    }
+                }
+            } else if (args.length === 3) {
+                if (isNaN(parseInt(args[2])) || parseInt(args[2]) < 0) {
                     $.say($.whisperPrefix(sender) + $.lang.get('customcommands.set.price.error.invalid'));
                     return;
                 }
 
                 $.say($.whisperPrefix(sender) + $.lang.get('customcommands.set.price.success', action + ' ' + subAction, args[2], $.pointNameMultiple));
+                $.logCustomCommand({
+                    'set.price.command': '!' + action + ' ' + subAction,
+                    'set.price.amount': args[2],
+                    'sender': sender,
+                });
                 $.inidb.set('pricecom', action + ' ' + subAction, args[2]);
-                $.log.event(sender + ' set price on command !' + action + ' ' + subAction + ' to ' + args[2] + ' ' + $.pointNameMultiple);
-                return;
-            }
+            } else {
+                if (args.length === 4) {
+                    if (isNaN(parseInt(args[3])) || parseInt(args[3]) < 0) {
+                        $.say($.whisperPrefix(sender) + $.lang.get('customcommands.set.price.error.invalid'));
+                        return;
+                    }
 
-            /* Handle subcommand with subaction with price. */
-            if (args.length == 4) {
-                if (isNaN(args[3]) || parseInt(args[3]) < 0) {
-                    $.say($.whisperPrefix(sender) + $.lang.get('customcommands.set.price.error.invalid'));
-                    return;
+                    $.say($.whisperPrefix(sender) + $.lang.get('customcommands.set.price.success', action + ' ' + subAction + ' ' + args[2], args[3], $.pointNameMultiple));
+                    $.logCustomCommand({
+                        'set.price.command': '!' + action + ' ' + subAction + ' ' + args[2],
+                        'set.price.amount': args[3],
+                        'sender': sender,
+                    });
+                    $.inidb.set('pricecom', action + ' ' + subAction + ' ' + args[2], args[3]);
                 }
-
-                $.say($.whisperPrefix(sender) + $.lang.get('customcommands.set.price.success', action + ' ' + subAction + ' ' + args[2], args[3], $.pointNameMultiple));
-                $.inidb.set('pricecom', action + ' ' + subAction +  ' ' + args[2], args[3]);
-                $.log.event(sender + ' set price on command !' + action + ' ' + subAction + ' to ' + args[2] + ' ' + $.pointNameMultiple);
-                return;
             }
+            return;
         }
 
-        /**
-         * @commandpath paycom [command] [amount] - Set the amount of points a command should pay a viewer - Administrator
+        /*
+         * @commandpath paycom [command] [amount] - Set the amount of points a command should reward a viewer
          */
         if (command.equalsIgnoreCase('paycom')) {
-            if (!action || !subAction) {
+            if (action === undefined || subAction === undefined) {
                 $.say($.whisperPrefix(sender) + $.lang.get('customcommands.set.pay.usage'));
                 return;
             }
 
-            action = args[0].replace('!', '').toLowerCase();
+            action = action.replace('!', '').toLowerCase();
+
             if (!$.commandExists(action)) {
                 $.say($.whisperPrefix(sender) + $.lang.get('customcommands.set.pay.error.404'));
                 return;
@@ -817,30 +1163,29 @@
             }
 
             $.say($.whisperPrefix(sender) + $.lang.get('customcommands.set.pay.success', action, subAction, $.pointNameMultiple));
+            $.logCustomCommand({
+                'set.pay.command': '!' + action,
+                'set.pay.amount': subAction,
+                'sender': sender,
+            });
             $.inidb.set('paycom', action, subAction);
+
             var list = $.inidb.GetKeyList('aliases', ''),
                 i;
 
             for (i in list) {
                 if (list[i].equalsIgnoreCase(action)) {
-                    $.inidb.set('paycom', $.inidb.get('aliases', list[i]), parseInt(subAction));
+                    $.inidb.set('paycom', $.inidb.get('aliases', list[i]), subAction);
                 }
                 if ($.inidb.get('aliases', list[i]).includes(action)) {
-                    $.inidb.set('paycom', list[i], parseInt(subAction));
+                    $.inidb.set('paycom', list[i], subAction);
                 }
             }
-            $.log.event(sender + ' set payment on command !' + action + ' to ' + subAction + ' ' + $.pointNameMultiple);
+            return;
         }
 
-        /**
-         * @commandpath listtags - Displays a list of tags that may be used in custom commands - Moderator
-         */
-        if (command.equalsIgnoreCase('listtags')) {
-            $.say($.whisperPrefix(sender) + 'Command tags: (sender), (@sender), (baresender), (random), (#), (uptime), (game), (status), (follows), (count), (touser), (price), (viewers), (pointname), (customapi), (echo), (customjsonapi), (age), (command command_name). (command command_name) must be the first item if used. Do not include the !');
-        }
-
-        /**
-         * @commandpath commands - Provides a list of all available custom commands. - disabled
+        /*
+         * @commandpath commands - Provides a list of all available custom commands.
          */
         if (command.equalsIgnoreCase('commands')) {
             var cmds = $.inidb.GetKeyList('command', ''),
@@ -856,21 +1201,21 @@
             }
 
             for (idx in aliases) {
-                //if (!$.inidb.exists('disabledCommands', $.inidb.get('aliases', aliases[idx]))) { Did not add it here in case someone disables a command to only use the alias.
-                    if (permCom(sender, $.inidb.get('aliases', aliases[idx]), '') === 0) {
-                        cmdList.push('!' + aliases[idx]);
-                    }
-                //}
+                if (permCom(sender, $.inidb.get('aliases', aliases[idx]), '') === 0) {
+                    cmdList.push('!' + aliases[idx]);
+                }
             }
+
             if (cmdList.length > 0) {
                 $.paginateArray(cmdList, 'customcommands.cmds', ', ', true, sender);
             } else {
                 $.say($.whisperPrefix(sender) + $.lang.get('customcommands.404.no.commands'));
             }
+            return;
         }
 
-        /**
-         * @commandpath botcommands - Will show you all of the bots commands - disabled
+        /*
+         * @commandpath botcommands - Will show you all of the bots commands
          */
         if (command.equalsIgnoreCase('botcommands')) {
             var cmds = $.inidb.GetKeyList('permcom', ''),
@@ -891,89 +1236,163 @@
                 totalPages = $.paginateArray(cmdList, 'customcommands.botcommands', ', ', true, sender, 1);
                 $.say($.whisperPrefix(sender) + $.lang.get('customcommands.botcommands.total', totalPages));
                 return;
-            } 
-            if (!isNaN(action)) {
+            } else if (!isNaN(action)) {
                 totalPages = $.paginateArray(cmdList, 'customcommands.botcommands', ', ', true, sender, parseInt(action));
                 return;
-            } 
+            }
             $.say($.whisperPrefix(sender) + $.lang.get('customcommands.botcommands.error'));
+            return;
         }
 
-        /**
-         * @commandpath disablecom [command] - Disable a command from being used in chat - Administrator
+        /*
+         * @commandpath disablecom [command] - Disable a command from being used in chat
          */
         if (command.equalsIgnoreCase('disablecom')) {
-            if (!action) {
+            if (action === undefined) {
                 $.say($.whisperPrefix(sender) + $.lang.get('customcommands.disable.usage'));
                 return;
             }
 
-            action = action.toLowerCase();
+            action = action.replace('!', '').toLowerCase();
+
             if (!$.commandExists(action)) {
                 $.say($.whisperPrefix(sender) + $.lang.get('customcommands.disable.404'));
                 return;
-            }
-
-            if ($.inidb.exists('disabledCommands', action)) {
+            } else if ($.inidb.exists('disabledCommands', action)) {
                 $.say($.whisperPrefix(sender) + $.lang.get('customcommands.disable.err'));
                 return;
             }
 
-            $.inidb.set('disabledCommands', action, true);
             $.say($.whisperPrefix(sender) + $.lang.get('customcommands.disable.success', action));
-            $.tempUnRegisterChatCommand(action.toLowerCase());
-            $.log.event(sender + ' disabled command !' + command);
+            $.logCustomCommand({
+                'disable.command': '!' + action,
+                'sender': sender,
+            });
+            $.inidb.set('disabledCommands', action, true);
+            $.tempUnRegisterChatCommand(action);
+            return;
         }
 
-        /**
-         * @commandpath enablecom [command] - Enable a command thats been disabled from being used in chat - Administrator
+        /*
+         * @commandpath enablecom [command] - Enable a command thats been disabled from being used in chat
          */
         if (command.equalsIgnoreCase('enablecom')) {
-            if (!action) {
+            if (action === undefined) {
                 $.say($.whisperPrefix(sender) + $.lang.get('customcommands.enable.usage'));
                 return;
             }
 
-            action = action.toLowerCase();
+            action = action.replace('!', '').toLowerCase();
 
             if (!$.inidb.exists('disabledCommands', action)) {
                 $.say($.whisperPrefix(sender) + $.lang.get('customcommands.enable.err'));
                 return;
             }
 
-            $.inidb.del('disabledCommands', action);
             $.say($.whisperPrefix(sender) + $.lang.get('customcommands.enable.success', action));
-            $.registerChatCommand('./commands/customCommands.js', action.toLowerCase());
-            $.log.event(sender + ' re-enabled command !' + command);
+            $.logCustomCommand({
+                'enable.command': '!' + action,
+                'sender': sender,
+            });
+            $.inidb.del('disabledCommands', action);
+            $.registerChatCommand(($.inidb.exists('tempDisabledCommandScript', action) ? $.inidb.get('tempDisabledCommandScript', action) : './commands/customCommands.js'), action);
+            return;
+        }
+
+        /*
+         * @commandpath resetcom [command] [count] - Resets the counter to zero, for a command that uses the (count) tag or optionally set to a specific value.
+         */
+        if (command.equalsIgnoreCase('resetcom')) {
+            if (action === undefined) {
+                $.say($.whisperPrefix(sender) + $.lang.get('customcommands.reset.usage'));
+                return;
+            }
+
+            action = action.replace('!', '').toLowerCase();
+
+            if (args.length === 1) {
+                $.say($.whisperPrefix(sender) + $.lang.get('customcommands.reset.success', action));
+                $.logCustomCommand({
+                    'reset.command': '!' + action,
+                    'reset.count': 0,
+                    'sender': sender,
+                });
+                $.inidb.del('commandCount', action);
+            } else {
+                if (isNaN(subAction)) {
+                    $.say($.whisperPrefix(sender) + $.lang.get('customcommands.reset.change.fail', subAction));
+                } else {
+                    $.inidb.set('commandCount', action, subAction);
+                    $.say($.whisperPrefix(sender) + $.lang.get('customcommands.reset.change.success', action, subAction));
+                    $.logCustomCommand({
+                        'reset.command': '!' + action,
+                        'reset.count': subAction,
+                        'sender': sender,
+                    });
+                }
+            }
+            return;
         }
     });
 
-    /**
+    /*
      * @event initReady
      */
     $.bind('initReady', function() {
-        if ($.bot.isModuleEnabled('./commands/customCommands.js')) {
-            $.registerChatCommand('./commands/customCommands.js', 'addcom', 2);
-            $.registerChatCommand('./commands/customCommands.js', 'pricecom', 1);
-            $.registerChatCommand('./commands/customCommands.js', 'paycom', 1);
-            $.registerChatCommand('./commands/customCommands.js', 'aliascom', 2);
-            $.registerChatCommand('./commands/customCommands.js', 'delalias', 2);
-            $.registerChatCommand('./commands/customCommands.js', 'delcom', 2);
-            $.registerChatCommand('./commands/customCommands.js', 'editcom', 2);
-            $.registerChatCommand('./commands/customCommands.js', 'permcom', 1);
-            $.registerChatCommand('./commands/customCommands.js', 'listtags', 2);
-            $.registerChatCommand('./commands/customCommands.js', 'commands', 1);
-            $.registerChatCommand('./commands/customCommands.js', 'disablecom', 1);
-            $.registerChatCommand('./commands/customCommands.js', 'enablecom', 1);
-            $.registerChatCommand('./commands/customCommands.js', 'botcommands', 1);
+        $.registerChatCommand('./commands/customCommands.js', 'addcom', 2);
+        $.registerChatCommand('./commands/customCommands.js', 'pricecom', 2);
+        $.registerChatCommand('./commands/customCommands.js', 'paycom', 2);
+        $.registerChatCommand('./commands/customCommands.js', 'aliascom', 2);
+        $.registerChatCommand('./commands/customCommands.js', 'delalias', 2);
+        $.registerChatCommand('./commands/customCommands.js', 'delcom', 2);
+        $.registerChatCommand('./commands/customCommands.js', 'editcom', 2);
+        $.registerChatCommand('./commands/customCommands.js', 'permcom', 1);
+        $.registerChatCommand('./commands/customCommands.js', 'commands', 7);
+        $.registerChatCommand('./commands/customCommands.js', 'disablecom', 1);
+        $.registerChatCommand('./commands/customCommands.js', 'enablecom', 1);
+        $.registerChatCommand('./commands/customCommands.js', 'botcommands', 2);
+        $.registerChatCommand('./commands/customCommands.js', 'resetcom', 2);
+    });
+
+    /*
+     * @event webPanelSocketUpdate
+     */
+    $.bind('webPanelSocketUpdate', function(event) {
+        if (event.getScript().equalsIgnoreCase('./commands/customCommands.js')) {
+            if (event.getArgs()[0] == 'remove') {
+                if (customCommands[event.getArgs()[1].toLowerCase()] !== undefined) {
+                    delete customCommands[event.getArgs()[1].toLowerCase()];
+                    $.unregisterChatCommand(event.getArgs()[1].toLowerCase());
+                    $.coolDown.remove(event.getArgs()[1].toLowerCase());
+                }
+            } else if (event.getArgs()[0] == 'add') {
+                customCommands[event.getArgs()[1].toLowerCase()] = event.getArgs()[2];
+                $.registerChatCommand('./commands/customCommands.js', event.getArgs()[1].toLowerCase());
+                if (event.getArgs()[3] != null && event.getArgs()[3].equalsIgnoreCase('cooldown')) {
+                    $.coolDown.add(event.getArgs()[1].toLowerCase(), parseInt(event.getArgs()[4]), event.getArgs()[5].equals('true'));
+                }
+            } else if (event.getArgs()[0] == 'edit') {
+                customCommands[event.getArgs()[1].toLowerCase()] = event.getArgs()[2];
+                if (event.getArgs()[3] != null && event.getArgs()[3].equalsIgnoreCase('cooldown')) {
+                    $.coolDown.add(event.getArgs()[1].toLowerCase(), parseInt(event.getArgs()[4]), event.getArgs()[5].equals('true'));
+                }
+            }
         }
     });
 
-    /** Export functions to API */
+    /*
+     * Export functions to API
+     */
     $.addComRegisterCommands = addComRegisterCommands;
     $.addComRegisterAliases = addComRegisterAliases;
     $.returnCommandCost = returnCommandCost;
     $.permCom = permCom;
+    $.priceCom = priceCom;
     $.getCommandPrice = getCommandPrice;
     $.tags = tags;
+    $.getCommandPay = getCommandPay;
+    $.payCom = payCom;
+    $.command = {
+        run: runCommand
+    };
 })();

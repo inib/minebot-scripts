@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2016-2018 phantombot.tv
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 /**
  * fileSystem.js
  *
@@ -6,9 +23,8 @@
 (function() {
     var JFile = java.io.File,
         JFileInputStream = java.io.FileInputStream,
-        JFileOutputStream = java.io.FileOutputStream;
-
-    var fileHandles = [];
+        JFileOutputStream = java.io.FileOutputStream,
+        fileHandles = [];
 
     /**
      * @function readFile
@@ -18,6 +34,11 @@
      */
     function readFile(path) {
         var lines = [];
+
+        if (!fileExists(path)) {
+            return lines;
+        }
+
         try {
             var fis = new JFileInputStream(path),
                 scan = new java.util.Scanner(fis);
@@ -29,7 +50,7 @@
             $.log.error('Failed to open \'' + path + '\': ' + e);
         }
         return lines;
-    };
+    }
 
     /**
      * @function mkDir
@@ -40,7 +61,7 @@
     function mkDir(path) {
         var dir = new JFile(path);
         return dir.mkdir();
-    };
+    }
 
     /**
      * @function moveFile
@@ -59,7 +80,7 @@
                 $.log.error("moveFile(" + file + ", " + path + ") failed: " + ex);
             }
         }
-    };
+    }
 
     /**
      * @function saveArray
@@ -80,19 +101,22 @@
         } catch (e) {
             $.log.error('Failed to write to \'' + path + '\': ' + e);
         }
-    };
+    }
 
     /**
      * @function closeOpenFiles
      */
     function closeOpenFiles() {
+        var dateFormat = new java.text.SimpleDateFormat('MM-dd-yyyy'),
+            date = dateFormat.format(new java.util.Date());
+
         for (var key in fileHandles) {
-            if (fileHandles[key].lastWrite + 36e5 <= $.systemTime()) { 
+            if (!fileHandles[key].startDate.equals(date)) {
                 fileHandles[key].fos.close();
                 delete fileHandles[key];
             }
         }
-    };
+    }
 
     /**
      * @function writeToFile
@@ -102,7 +126,9 @@
      * @param {boolean} append
      */
     function writeToFile(line, path, append) {
-        var fos,
+        var dateFormat = new java.text.SimpleDateFormat('MM-dd-yyyy'),
+            date = dateFormat.format(new java.util.Date()),
+            fos,
             ps;
 
         closeOpenFiles();
@@ -110,24 +136,23 @@
         if (fileHandles[path] !== undefined && append) {
             fos = fileHandles[path].fos;
             ps = fileHandles[path].ps;
-            fileHandles[path].lastWrite = $.systemTime();
         } else {
             fos = new JFileOutputStream(path, append);
             ps = new java.io.PrintStream(fos);
-            fileHandles[path] = { 
+            fileHandles[path] = {
                 fos: fos,
                 ps: ps,
-                lastWrite: $.systemTime()
+                startDate: date
             };
         }
-    
+
         try {
             ps.println(line);
             fos.flush();
         } catch (e) {
             $.log.error('Failed to write to \'' + path + '\': ' + e);
         }
-    };
+    }
 
     /**
      * @function touchFile
@@ -141,7 +166,7 @@
         } catch (e) {
             $.log.error('Failed to touch \'' + path + '\': ' + e);
         }
-    };
+    }
 
     /**
      * @function deleteFile
@@ -160,7 +185,7 @@
         } catch (e) {
             $.log.error('Failed to delete \'' + path + '\': ' + e);
         }
-    };
+    }
 
     /**
      * @function fileExists
@@ -175,7 +200,7 @@
         } catch (e) {
             return false;
         }
-    };
+    }
 
     /**
      * @function findFiles
@@ -201,7 +226,7 @@
             $.log.error('Failed to search in \'' + directory + '\': ' + e);
         }
         return [];
-    };
+    }
 
     /**
      * @function isDirectory
@@ -216,7 +241,7 @@
         } catch (e) {
             return false;
         }
-    };
+    }
 
     /**
      * @function findSize
@@ -227,7 +252,7 @@
     function findSize(file) {
         var fileO = new JFile(file);
         return fileO.length();
-    };
+    }
 
     /** Export functions to API */
     $.deleteFile = deleteFile;

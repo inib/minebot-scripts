@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2016-2018 phantombot.tv
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 /**
  * commandPause.js
  *
@@ -58,8 +75,8 @@
             args = event.getArgs();
 
         /**
-         * @commandpath pausecommands [seconds] - Pause all command usage for the given amount of time. If [seconds] is not present, uses a default value - Moderator
-         * @commandpath pausecommands clear - Unpause commands - Moderator
+         * @commandpath pausecommands [seconds] - Pause all command usage for the given amount of time. If [seconds] is not present, uses a default value
+         * @commandpath pausecommands clear - Unpause commands 
          */
         if (command.equalsIgnoreCase('pausecommands')) {
             if (args[0] != undefined || args[0] != null) {

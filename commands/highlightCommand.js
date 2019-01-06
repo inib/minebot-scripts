@@ -1,4 +1,21 @@
 /*
+ * Copyright (C) 2016-2018 phantombot.tv
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/*
  * highlightCommand.js
  *
  * Creates timestamps for highlights to revisit later to make creating highlights a bit
@@ -6,80 +23,91 @@
  */
 (function() {
 
+    /*
+     * @event command
+     */
     $.bind('command', function(event) {
         var command = event.getCommand(),
             sender = event.getSender(),
             args = event.getArgs(),
             action = args[0],
-            hours,
-            minutes,
-            timestamp,
-            keys,
-            localDate,
-            arr,
-            streamUptimeMinutes;
+            vodJsonStr,
+            uptime,
+            vodJsonObj,
+            vodURL,
+            twitchVODtime;
 
-        /**
-         * @commandpath highlight [description] - Marks a highlight using the given description and with the current date stamp - Moderator
-         * @commandpath gethighlights - Get a list of current highlights - Moderator
-         * @commandpath showhighlights - Get a list of current highlights - Moderator
-         * @commandpath clearhighlights - Clear the current highlights - Administrator
+        /*
+         * @commandpath highlight [description] - Marks a highlight using the given description and with the current date stamp
          */
-        if (command.equalsIgnoreCase("highlight")) {
+        if (command.equalsIgnoreCase('highlight')) {
             if (!$.isOnline($.channelName)) {
                 $.say($.whisperPrefix(sender) + $.lang.get('highlightcommand.highlight.offline'));
                 return;
-            }
-
-            if (args.length == 0) {
-                $.say($.whisperPrefix(sender) + $.lang.get('highlightcommand.highlight.usage', $.inidb.exists('settings', 'timezone') ? $.inidb.get('settings', 'timezone') : "GMT"));
+            } else if (args.length === 0) {
+                $.say($.whisperPrefix(sender) + $.lang.get('highlightcommand.highlight.usage', $.inidb.exists('settings', 'timezone') ? $.inidb.get('settings', 'timezone') : 'GMT'));
                 return;
             }
 
-            streamUptimeMinutes = parseInt(getStreamUptimeSeconds($.channelName) / 60);
-            hours = parseInt(streamUptimeMinutes / 60);
-            minutes = parseInt(streamUptimeMinutes % 60);
-            if (minutes < 10) {
-                minutes = "0" + minutes;
+            vodJsonStr = $.twitch.GetChannelVODs($.channelName, 'current') + '';
+            if (vodJsonStr.length === 0 || vodJsonStr === null) {
+                $.say($.whisperPrefix(sender) + $.lang.get('streamcommand.vod.404'));
+                return;
             }
-            timestamp = hours + ":" + minutes;
-            localDate = getCurLocalTimeString("'['dd-MM-yyyy']'");
-            $.inidb.set('highlights', timestamp, localDate + ' ' + args.splice(0).join(' '));
+
+            uptime = $.getStreamUptime($.channelName);
+            twitchVODtime = $.makeTwitchVODTime(uptime);
+            vodJsonObj = JSON.parse(vodJsonStr);
+            vodURL = vodJsonObj.videos[0].url + twitchVODtime;
+
+            var streamUptimeMinutes = parseInt($.getStreamUptimeSeconds($.channelName) / 60),
+                hours = parseInt(streamUptimeMinutes / 60),
+                minutes = (parseInt(streamUptimeMinutes % 60) < 10 ? '0' + parseInt(streamUptimeMinutes % 60) : parseInt(streamUptimeMinutes % 60)),
+                timestamp = hours + ':' + minutes,
+                localDate = $.getCurLocalTimeString('dd-MM-yyyy hh:mm');
+
             $.say($.whisperPrefix(sender) + $.lang.get('highlightcommand.highlight.success', timestamp));
-            $.log.event(sender + ' added a highlight at ' + timestamp);
+            $.inidb.set('highlights', localDate, vodURL + ' : ' + args.join(' '));
+            return;
         }
 
-        if (command.equalsIgnoreCase("gethighlights") || command.equalsIgnoreCase("showhighlights")) {
+        /*
+         * @commandpath showhighlights - Get a list of current highlights
+         */
+        if (command.equalsIgnoreCase('gethighlights') || command.equalsIgnoreCase('showhighlights')) {
             if (!$.inidb.FileExists('highlights')) {
                 $.say($.whisperPrefix(sender) + $.lang.get('highlightcommand.gethighlights.no-highlights'));
                 return;
             }
 
-            keys = $.inidb.GetKeyList('highlights', '');
-            arr = [];
-            for (var i = keys.length - 1; i >= 0; i--) {
-                arr.push("[" + keys[i] + " > " + $.inidb.get("highlights", keys[i]) + "] ");
+            var keys = $.inidb.GetKeyList('highlights', ''),
+                temp = [];
+
+            for (var i in keys) {
+                temp.push('[' + keys[i] + ': ' + $.inidb.get('highlights', keys[i]) + '] ');
             }
 
-            $.paginateArray(arr, 'highlightcommand.highlights', ' ', true, sender);
+            $.paginateArray(temp, 'highlightcommand.highlights', ' ', true, sender);
+            return;
         }
 
-        if (command.equalsIgnoreCase("clearhighlights")) {
-            $.inidb.RemoveFile("highlights");
-            $.inidb.ReloadFile("highlights");
+        /*
+         * @commandpath clearhighlights - Clear the current highlights
+         */
+        if (command.equalsIgnoreCase('clearhighlights')) {
             $.say($.whisperPrefix(sender) + $.lang.get('highlightcommand.clearhighlights.success'));
-            $.log.event(sender + ' cleared highlights');
+            $.inidb.RemoveFile('highlights');
             return;
         }
     });
 
+    /*
+     * @event initReady
+     */
     $.bind('initReady', function() {
-        if ($.bot.isModuleEnabled('./commands/highlightCommand.js')) {
-            $.registerChatCommand('./commands/highlightCommand.js', 'highlight', 2);
-            
-            $.registerChatCommand('./commands/highlightCommand.js', 'gethighlights', 2);
-            $.registerChatCommand('./commands/highlightCommand.js', 'showhighlights', 2);
-            $.registerChatCommand('./commands/highlightCommand.js', 'clearhighlights', 1);
-        }
+        $.registerChatCommand('./commands/highlightCommand.js', 'highlight', 2);
+        $.registerChatCommand('./commands/highlightCommand.js', 'gethighlights', 2);
+        $.registerChatCommand('./commands/highlightCommand.js', 'showhighlights', 2);
+        $.registerChatCommand('./commands/highlightCommand.js', 'clearhighlights', 1);
     });
 })();

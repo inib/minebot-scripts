@@ -1,15 +1,31 @@
+/*
+ * Copyright (C) 2016-2018 phantombot.tv
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 /**
  * Provides for a configurable rank system with various different configurable ranks
  * based on time spent in the channel. This is just aesthetic but could, in theory,
- * be used for other purposes if really desired. 
+ * be used for other purposes if really desired.
  */
 
 (function() {
 
-    rankEligableTime = $.getSetIniDbNumber('settings', 'rankEligableTime', 50),
-    rankEligableCost = $.getSetIniDbNumber('settings', 'rankEligableCost', 200);
-
-    var ranksTimeTable;
+    var rankEligableTime = $.getSetIniDbNumber('settings', 'rankEligableTime', 50),
+        rankEligableCost = $.getSetIniDbNumber('settings', 'rankEligableCost', 200),
+        ranksTimeTable;
 
     /**
      * @function sortCompare
@@ -120,10 +136,11 @@
      * @function resolveRank
      * @export $
      * @param {string} username
+     * @param {boolean} resolveName
      * @returns {string}
      */
     function resolveRank(username) {
-        return (getRank(username.toLowerCase()) + ' ' + $.username.resolve(username)).trim();
+        return (getRank(username.toLowerCase()) + ' ' + ($.username.hasUser(username) == true ? $.username.get(username) : username)).trim();
     }
 
     /**
@@ -137,6 +154,8 @@
             levelTime,
             levelName,
             userTime = parseInt(parseInt($.inidb.get('time', sender)) / 3600),
+            rankEligableTime = $.getIniDbNumber('settings', 'rankEligableTime', 50),
+            rankEligableCost = $.getIniDbNumber('settings', 'rankEligableCost', 200),
             userLevel,
             timeUntilNextRank,
             nextLevel,
@@ -148,21 +167,14 @@
             userTime = 0;
         }
 
-        /* commandpath not provided as this is an internal Panel command. */
-        if (command.equalsIgnoreCase('rankreloadtable')) {
-            $.consoleDebug('Reloading Ranks Table after Panel Modification');
-            loadRanksTimeTable();
-            return;
-        }
-
         /*
-         * @commandpath rankedit - Displays the usage of rankedit. - Administrator
-         * @commandpath rankedit add [time] [rankname] - Add a new rank. Time is in hours. - Administrator
-         * @commandpath rankedit del [time] - Deletes the rank associated with the given time - Administrator
-         * @commandpath rankedit custom [user] [rankname] - Add a custom rank to a user. - Administrator
-         * @commandpath rankedit customdel [user] - Remove a custom rank from a user. - Administrator
-         * @commandpath rankedit settime [time] - Number of minimum hours before user can choose custom rank. - Administrator
-         * @commandpath rankedit setcost [points] - Cost of custom rank. - Administrator
+         * @commandpath rankedit - Displays the usage of rankedit.
+         * @commandpath rankedit add [time] [rankname] - Add a new rank. Time is in hours.
+         * @commandpath rankedit del [time] - Deletes the rank associated with the given time
+         * @commandpath rankedit custom [user] [rankname] - Add a custom rank to a user.
+         * @commandpath rankedit customdel [user] - Remove a custom rank from a user.
+         * @commandpath rankedit settime [time] - Number of minimum hours before user can choose custom rank.
+         * @commandpath rankedit setcost [points] - Cost of custom rank.
          */
         if (command.equalsIgnoreCase('rankedit')) {
             if (!args[0]) {
@@ -286,19 +298,12 @@
         }
 
         /**
-         * @commandpath rank - Display current rank. - Viewer
-         * @commandpath rank set [rankname] - Set rank for self if enough hours and points, if applicable, available in chat. - Viewer
-         * @commandpath rank del - Deletes customized rank. - Viewer
+         * @commandpath rank - Display current rank.
+         * @commandpath rank set [rankname] - Set rank for self if enough hours and points, if applicable, available in chat.
+         * @commandpath rank del - Deletes customized rank.
          */
         if (command.equalsIgnoreCase('rank')) {
-
             if (args[0]) {
-
-                if (args[0].equalsIgnoreCase('help')) {
-                    $.say($.whisperPrefix(sender) + $.lang.get('ranks.set.usage', rankEligableTime, rankEligableCost, $.pointNameMultiple));
-                    return;
-                }
-
                 if (args[0].equalsIgnoreCase('del')) {
                     if (inidb.exists('viewerRanks', sender.toLowerCase())) {
                         $.say($.whisperPrefix(sender) + $.lang.get('ranks.delself.success'));
@@ -322,8 +327,8 @@
                     customRank = args.splice(1).join(' ');
 
                     if (userTime >= rankEligableTime &&
-                        ($.bot.isModuleEnabled('./systems/pointSystem.js') && getUserPoints(sender) > rankEligableCost) || !$.bot.isModuleEnabled('./systems/pointSystem.js')) {
-                        $.say($.lang.get('ranks.set.success', username, customRank));
+                        ($.bot.isModuleEnabled('./systems/pointSystem.js') && $.getUserPoints(sender) > rankEligableCost) || !$.bot.isModuleEnabled('./systems/pointSystem.js')) {
+                        $.say($.whisperPrefix(sender) + $.lang.get('ranks.set.success', customRank));
                         $.inidb.set('viewerRanks', sender.toLowerCase(), customRank);
                         if ($.bot.isModuleEnabled('./systems/pointSystem.js')) {
                             $.inidb.decr('points', sender.toLowerCase(), rankEligableCost);
@@ -338,6 +343,11 @@
                     }
                     return;
                 }
+            }
+
+            if ($.inidb.exists('viewerRanks', username.toLowerCase())) {
+                $.say($.lang.get('ranks.rank.customsuccess', username, $.inidb.get('viewerRanks', username.toLowerCase())));
+                return;
             }
 
             if (ranksTimeTable === undefined) {
@@ -357,21 +367,16 @@
                 }
             }
 
-            if ($.inidb.exists('viewerRanks', username.toLowerCase())) {
-                $.say($.lang.get('ranks.rank.customsuccess', username, $.inidb.get('viewerRanks', username.toLowerCase())));
-                return;
-            }
-
             if (userLevel <= ranksTimeTable.length - 2) {
                 nextLevel = parseInt(userLevel) + 1;
                 timeUntilNextRank = parseInt(ranksTimeTable[nextLevel]) - userTime;
                 if (userLevel == -1) {
-                    $.say($.whisperPrefix(sender) + $.lang.get('ranks.rank.norank.success', username, timeUntilNextRank, $.inidb.get('ranksMapping', ranksTimeTable[nextLevel].toString())));
+                    $.say($.lang.get('ranks.rank.norank.success', username, timeUntilNextRank, $.inidb.get('ranksMapping', ranksTimeTable[nextLevel].toString())));
                 } else {
-                    $.say($.whisperPrefix(sender) + $.lang.get('ranks.rank.success', username, $.inidb.get('ranksMapping', ranksTimeTable[userLevel].toString()), timeUntilNextRank, $.inidb.get('ranksMapping', ranksTimeTable[nextLevel].toString())));
+                    $.say($.lang.get('ranks.rank.success', username, $.inidb.get('ranksMapping', ranksTimeTable[userLevel].toString()), timeUntilNextRank, $.inidb.get('ranksMapping', ranksTimeTable[nextLevel].toString())));
                 }
             } else {
-                $.say($.whisperPrefix(sender) + $.lang.get('ranks.rank.maxsuccess', username, $.inidb.get('ranksMapping', ranksTimeTable[userLevel].toString())));
+                $.say($.lang.get('ranks.rank.maxsuccess', username, $.inidb.get('ranksMapping', ranksTimeTable[userLevel].toString())));
             }
             return;
         }
@@ -383,16 +388,16 @@
      *
      */
     $.bind('initReady', function() {
-        if ($.bot.isModuleEnabled('./systems/ranksSystem.js')) {
-            $.registerChatCommand('./systems/ranksSystem.js', 'rank', 7);
-            $.registerChatCommand('./systems/ranksSystem.js', 'rankedit', 1);
-            $.registerChatCommand('./systems/ranksSystem.js', 'rankreloadtable', 1);
+        $.registerChatCommand('./systems/ranksSystem.js', 'rank', 7);
+        $.registerChatCommand('./systems/ranksSystem.js', 'rankedit', 1);
 
-            $.registerChatSubcommand('rankedit', 'add', 1);
-            $.registerChatSubcommand('rankedit', 'del', 1);
-            $.registerChatSubcommand('rankedit', 'custom', 1);
-            $.registerChatSubcommand('rankedit', 'customdel', 1);
-        }
+        $.registerChatSubcommand('rankedit', 'add', 1);
+        $.registerChatSubcommand('rankedit', 'del', 1);
+        $.registerChatSubcommand('rankedit', 'custom', 1);
+        $.registerChatSubcommand('rankedit', 'customdel', 1);
+
+        $.registerChatSubcommand('rank', 'set', 7);
+        $.registerChatSubcommand('rank', 'del', 7);
     });
 
     /**
@@ -401,4 +406,5 @@
     $.resolveRank = resolveRank;
     $.getRank = getRank;
     $.hasRank = hasRank;
+    $.loadRanksTimeTable = loadRanksTimeTable;
 })();

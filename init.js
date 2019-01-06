@@ -1,712 +1,351 @@
-/**
+/*
+ * Copyright (C) 2016-2018 phantombot.tv
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/*
  * init.js
- *
- * Initialize the bot (loadscripts, register commands and modules etc.)
- * Use the $ API
- * Use the $.bot API
- *
- * use "$.bind('initReady', FUNCTION);" to execute code after loading all scripts (like registering commands)
+ * This scripts handles all events and most things for the scripts.
  */
 (function() {
-    var connected = false,
-        modeO = false,
+    var isReady = false,
         modules = [],
-        hooks = [],
-        lastRecon = 0,
-        pricecomMods = ($.inidb.exists('settings', 'pricecomMods') ? $.inidb.get('settings', 'pricecomMods') : false),
-        coolDownMsgEnabled = ($.inidb.exists('settings', 'coolDownMsgEnabled') ? $.inidb.get('settings', 'coolDownMsgEnabled') : false),
-        permComMsgEnabled = ($.inidb.exists('settings', 'permComMsgEnabled') ? $.inidb.get('settings', 'permComMsgEnabled') : true);
+        hooks = [];
 
-    /**
-     * @class
-     * @param {string} scriptFile
-     * @param {string} script
-     * @param {string} enabled
+    /*
+     * @class Module
+     *
+     * @param {String}  scriptName
+     * @param {Object}  script
+     * @param {Boolean} isEnabled
      */
-    function Module(scriptFile, script, enabled) {
-        this.scriptFile = scriptFile;
+    function Module(scriptName, script, isEnabled) {
+        this.scriptName = scriptName;
+        this.isEnabled = isEnabled;
         this.script = script;
-        this.enabled = enabled;
-
-        if (scriptFile.indexOf('./core/') > -1) {
-            this.enabled = true;
-        }
 
         this.getModuleName = function() {
-            return this.scriptFile.replace(/([a-z]+)\.js$/i, '$1');
+            return this.scriptName.match(/((\w+)\.js)$/)[2];
         }
     }
 
-    /**
-     * @class
-     * @param {string} scriptFile
-     * @param {string} hook
+    /*
+     * @class Hook
+     *
+     * @param {String}   scriptName
+     * @param {String}   hookName
      * @param {Function} handler
      */
-    function Hook(scriptFile, hook, handler) {
-        this.scriptFile = scriptFile;
-        this.hook = hook;
+    function Hook(scriptName, hookName, handler) {
+        this.scriptName = scriptName;
+        this.hookName = hookName;
         this.handler = handler;
     }
 
-    /**
+    /*
+     * @class HookHandler
+     *
+     * @param {String} hookName
+     */
+    function HookHandler(hookName) {
+        this.hookName = hookName;
+        this.handlers = [];
+    }
+
+    /*
      * @function consoleLn
-     * @export $
-     * @param {string} message
+     *
+     * @param {String} message
      */
     function consoleLn(message) {
         Packages.com.gmt2001.Console.out.println(java.util.Objects.toString(message));
-    };
+    }
 
-    /**
+    /*
      * @function consoleDebug
-     * @export $
-     * @param {string} message
+     *
+     * @param {String} message
      */
     function consoleDebug(message) {
-        if (Packages.me.mast3rplan.phantombot.PhantomBot.enableDebugging) {
+        if (Packages.tv.phantombot.PhantomBot.enableDebugging) {
             try {
-                throw new Error('debug');
-            } catch (e) {
-                var stackData = e.stack.split('\n')[1];
-                Packages.com.gmt2001.Console.debug.printlnRhino(java.util.Objects.toString('[' + stackData + '] ' + message));
+                throw new Error();
+            } catch (ex) {
+                Packages.com.gmt2001.Console.debug.printlnRhino(java.util.Objects.toString('[' + ex.stack.split('\n')[1].trim() + '] ' + message));
             }
         }
-    };
+    }
 
-    /**
+    /*
      * @function generateJavaTrampolines
      */
     function generateJavaTrampolines() {
         var name,
             isJavaProperty = function(name) {
-                var blacklist = ['getClass', 'equals', 'notify', 'class', 'hashCode', 'toString', 'wait', 'notifyAll'],
-                    i;
-                for (i in blacklist) {
-                    if (blacklist[i] == name) {
-                        return true;
-                    }
-                }
-                return false;
+                var blacklist = ['getClass', 'equals', 'notify', 'class', 'hashCode', 'toString', 'wait', 'notifyAll'];
+
+                return (blacklist[name] !== undefined);
             },
             generateTrampoline = function(obj, name) {
                 return function() {
                     var args = [$script];
+
                     for (var i = 0; i < arguments.length; i++) {
                         args.push(arguments[i]);
                     }
+
                     obj[name].save(obj, args);
                 };
             };
 
         for (name in $api) {
-            if (isJavaProperty(name)) {
-                continue;
-            }
-            if (typeof $api[name] == 'function') {
-                $[name] = generateTrampoline($api, name);
-            } else {
-                $[name] = $api[name];
+            if (!isJavaProperty(name)) {
+                if (typeof $api[name] === 'function') {
+                    $[name] = generateTrampoline($api, name);
+                } else {
+                    $[name] = $api[name];
+                }
             }
         }
     }
 
-    /**
+    /*
      * @function loadScript
-     * @export $.bot
-     * @param {string} scriptFile
-     * @param {boolean} [force]
-     * @param {boolean} [silent]
+     *
+     * @param {String}  scriptName
+     * @param {Boolean} force
+     * @param {Boolean} silent
      */
-    function loadScript(scriptFile, force, silent) {
-        if (!isModuleLoaded(scriptFile) || force) {
+    function loadScript(scriptName, force, silent) {
+        if (!isModuleLoaded(scriptName) || force) {
+            if (scriptName.endsWith('.js')) {
+                try {
+                    var enabled,
+                        script;
 
-            if (!scriptFile.endsWith(".js")) {
-                return;
-            }
+                    if ($api.getScript($script, scriptName) != null) {
+                        script = $api.reloadScriptR($script, scriptName);
+                    } else {
+                        script = $api.loadScriptR($script, scriptName);
+                    }
 
-            try {
-                var script = $api.loadScriptR($script, scriptFile),
-                    enabled;
+                    enabled = $.getSetIniDbBoolean('modules', scriptName, true);
 
-                if (!$.inidb.exists('modules', scriptFile)) {
-                    enabled = true;
-                    $.setIniDbBoolean('modules', scriptFile, enabled);
-                } else {
-                    enabled = $.getIniDbBoolean('modules', scriptFile);
-                }
+                    modules[scriptName] = new Module(scriptName, script, enabled);
 
-                modules.push(new Module(scriptFile, script, enabled));
-                if (!silent) {
-                    consoleLn('Loaded module: ' + scriptFile.replace(/\.\//g, '') + ' (' + (enabled ? 'Enabled' : 'Disabled') + ')');
-                }
-            } catch (e) {
-                consoleLn('Failed loading "' + scriptFile + '": ' + e);
-                if (isModuleLoaded('./core/logging.js')) {
-                    $.log.error('(loadScript, ' + scriptFile + ') ' + e);
+                    if (!silent) {
+                        consoleLn('Loaded module: ' + scriptName.replace(/\.\//g, '') + ' (' + (enabled ? 'Enabled' : 'Disabled') + ')');
+                    }
+                } catch (ex) {
+                    consoleLn('Failed loading "' + scriptName + '": ' + ex);
                 }
             }
         }
-    };
+    }
 
-    /**
+    /*
      * @function loadScriptRecursive
-     * @export $.bot
-     * @param {string} path
-     * @param {boolean} [silent]
+     *
+     * @param {String}  path
+     * @param {Boolean} silent
+     * @param {Boolean} force
      */
-    function loadScriptRecursive(path, silent) {
-        if (path.substring($.strlen(path) - 1).equalsIgnoreCase('/')) {
-            path = path.substring(0, $.strlen(path) - 1);
-        }
-        var list = $.findFiles('./scripts/' + path, ''),
+    function loadScriptRecursive(path, silent, force) {
+        var files = $.findFiles('./scripts/' + path, ''),
             i;
-        for (i = 0; i < list.length; i++) {
-            if (path.equalsIgnoreCase('.')) {
-                if (list[i].equalsIgnoreCase('util') || list[i].equalsIgnoreCase('lang') || list[i].equalsIgnoreCase('init.js') || list[i].equalsIgnoreCase('dev')) {
+
+        for (i in files) {
+            if (path === '.') {
+                if (files[i] == 'core' || files[i] == 'lang' || files[i] == 'discord' || files[i] == 'init.js') {
+                    continue;
+                }
+            } else if (path === './discord') {
+                if (files[i] == 'core') {
                     continue;
                 }
             }
-            if ($.isDirectory('./scripts/' + path + '/' + list[i])) {
-                loadScriptRecursive(path + '/' + list[i], silent);
+
+            if ($.isDirectory('./scripts/' + path + '/' + files[i])) {
+                loadScriptRecursive(path + '/' + files[i], silent, (force ? force : false));
             } else {
-                loadScript(path + '/' + list[i], false, silent);
+                loadScript(path + '/' + files[i], (force ? force : false), silent);
             }
-        }
-    };
-
-    /**
-     * @function getModuleIndex
-     * @param {string} scriptFile
-     * @returns {Number}
-     */
-    function getModuleIndex(scriptFile) {
-        var i;
-        for (i in modules) {
-            if (modules[i].scriptFile.equalsIgnoreCase(scriptFile)) {
-                return i;
-            }
-        }
-        return -1;
-    };
-
-    /**
-     * @function isModuleEnabled
-     * @export $.bot
-     * @param {string} scriptFile
-     * @returns {boolean}
-     */
-    function isModuleEnabled(scriptFile) {
-        var i = getModuleIndex(scriptFile);
-        if (i > -1) {
-            return modules[i].enabled;
-        }
-        return false;
-    };
-
-    /**
-     * @function isModuleLoaded
-     * @export $.bot
-     * @param {string} scriptFile
-     * @returns {boolean}
-     */
-    function isModuleLoaded(scriptFile) {
-        return (getModuleIndex(scriptFile) > -1);
-    };
-
-    /**
-     * @function getModule
-     * @param {string} scriptFile
-     * @returns {Module}
-     */
-    function getModule(scriptFile) {
-        var i = getModuleIndex(scriptFile);
-        if (i > -1) {
-            return modules[i];
-        }
-        return null;
-    };
-
-    /**
-     * @function getHookIndex
-     * @param {string} scriptFile
-     * @param {string} hook
-     * @returns {Number}
-     */
-    function getHookIndex(scriptFile, hook) {
-        var i;
-        for (i in hooks) {
-            if (hooks[i].scriptFile.equalsIgnoreCase(scriptFile) && hooks[i].hook.equalsIgnoreCase(hook)) {
-                return i;
-            }
-        }
-        return -1;
-    };
-
-    /**
-     * @function addHook
-     * @export $ as bind
-     * @param {string} hook
-     * @param {Function} handler
-     */
-    function addHook(hook, handler) {
-        var scriptFile = $script.getPath().replace('\\', '/').replace('./scripts/', ''),
-            i = getHookIndex(scriptFile, hook);
-        if (i > -1) {
-            hooks[i].handler = handler;
-        } else {
-            hooks.push(new Hook(scriptFile, hook, handler));
-        }
-    };
-
-    /**
-     * @function removeHook
-     * @export $ as unbind
-     * @param {string} hook
-     */
-    function removeHook(hook) {
-        var scriptFile = $script.getPath().replace('\\', '/').replace('./scripts/', ''),
-            i = getHookIndex(scriptFile, hook);
-        if (i > -1) {
-            hooks.splice(i, 1);
-        }
-    };
-
-    /**
-     * @function callHook
-     * @param {string} hook
-     * @param {Object} event
-     * @param {boolean} [alwaysRun]
-     */
-    function callHook(hook, event, alwaysRun) {
-        var i;
-
-        // Lookup the JS file that contains the command, this removes the need to cycle through all files.
-        if (hook == 'command') {
-            var i = getHookIndex(getCommandScript(event.getCommand()), hook);
-            if (i == -1) // Do not handle init.js commands here.
-                return;
-            if (isModuleEnabled(hooks[i].scriptFile) || alwaysRun) {
-                try {
-                    hooks[i].handler(event);
-                } catch (e) {
-                    $.log.error('(hook.call, ' + hook + ', ' + hooks[i].scriptFile + ') ' + e);
-                }
-            }
-        } else {
-            for (i in hooks) {
-                if (hooks[i].hook.equalsIgnoreCase(hook) && (isModuleEnabled(hooks[i].scriptFile) || alwaysRun)) {
-                    try {
-                        hooks[i].handler(event);
-                    } catch (e) {
-                        $.log.error('(hook.call, ' + hook + ', ' + hooks[i].scriptFile + ') ' + e);
-                    }
-                }
-            }
-        }
-    };
-
-
-    /**
-     * @function handleInitCommands
-     * @param event
-     */
-    function handleInitCommands(event) {
-        var sender = event.getSender().toLowerCase(),
-            username = $.username.resolve(sender, event.getTags()),
-            command = event.getCommand(),
-            argsString = event.getArguments().trim(),
-            args = event.getArgs(),
-            action = args[0],
-            subAction = args[1],
-            actionArgs = args[2],
-            pointsRelatedModules = [],
-            temp,
-            index;
-
-        /**
-         * @commandpath YourBotName rejoin - Reconnects to the channel
-         * @commandpath YourBotName disconnect - Removes the bot from chat
-         * @commandpath YourBotName connectmessage [message] - Sets a message that will be said when the bot joins the channel
-         * @commandpath YourBotName removeconnectmessage - Removes the connect message if one has been set
-         * @commandpath YourBotName blacklist [add / remove] [username] - Adds or Removes a user from the bot blacklist
-         * @commandpath YourBotName togglepricecommods - Toggles if mods pay for commands
-         * @commandpath YourBotName togglepermcommessage - Toggles the no permission message
-         * @commandpath YourBotName togglecooldownmessage - Toggles the on command cooldown message
-         */
-
-         if (command.equalsIgnoreCase($.botName.toLowerCase())) {
-            if (!action) {
-                $.say($.whisperPrefix(sender) + $.lang.get('init.usage', $.botName.toLowerCase()));
-                return;
-            }
-
-            if (action.equalsIgnoreCase('rejoin') || action.equalsIgnoreCase('reconnect')) {
-                /* Added a cooldown to this so people can spam it and cause errors. */
-                if (lastRecon + 10000 >= $.systemTime()) {
-                    $.consoleLn('[ERROR] Already trying to reconnect.');
-                    return;
-                }
-                lastRecon = $.systemTime();
-                $.say($.whisperPrefix(sender) + $.lang.get('init.reconnect', 'irc-ws.chat.twitch.tv'));
-                $.log.event(username + ' requested a reconnect!');
-                setTimeout(function () { $.session.close(); }, 100);
-                setTimeout(function () { $.say($.getIniDbString('settings', 'connectedMsg', $.botName + ' successfully rejoined!')); }, 5000);
-                return;
-            }
-
-            if (action.equalsIgnoreCase('disconnect') || action.equalsIgnoreCase('remove')) {
-                $.say($.lang.get('init.disconnect', 'irc-ws.chat.twitch.tv'));
-                $.log.event(username + ' removed the bot from chat!');
-                setTimeout(function () { java.lang.System.exit(0); }, 100);
-                return;
-            }
-
-            if (action.equalsIgnoreCase('connectmessage') || action.equalsIgnoreCase('setconnectmessage')) {
-                if (!args[1]) {
-                    $.say($.whisperPrefix(sender) + $.lang.get('init.connected.msg.usage', $.botName.toLowerCase()));
-                    return;
-                }
-
-                var msg = argsString.replace(action, '').trim();
-                $.inidb.set('settings', 'connectedMsg', msg);
-                $.say($.whisperPrefix(sender) + $.lang.get('init.connected.msg', msg));
-                $.log.event(sender + ' set a connect message!');
-                return;
-            }
-
-            if (action.equalsIgnoreCase('removeconnectmessage')) {
-                $.inidb.del('settings', 'connectedMsg');
-                $.say($.whisperPrefix(sender) + $.lang.get('init.connected.msg.removed'));
-                $.log.event(sender + ' removed the connect message!');
-                return;
-            }
-
-            if (action.equalsIgnoreCase('blacklist')) {
-                if (!subAction) {
-                    $.say($.whisperPrefix(sender) + $.lang.get('init.blacklist.usage', $.botName.toLowerCase()));
-                    return;
-                }
-
-                if (subAction.equalsIgnoreCase('add')) {
-                    if (!actionArgs) {
-                        $.say($.whisperPrefix(sender) + $.lang.get('init.blacklist.add.usage', $.botName.toLowerCase()));
-                        return;
-                    }
-
-                    $.inidb.set('botBlackList', actionArgs.toLowerCase(), 'true');
-                    $.say($.whisperPrefix(sender) + $.lang.get('init.blacklist.added', actionArgs));
-                    $.log.event(sender + ' added ' + actionArgs + ' to the bot blacklist.');
-                }
-
-                if (subAction.equalsIgnoreCase('remove')) {
-                    if (!actionArgs) {
-                        $.say($.whisperPrefix(sender) + $.lang.get('init.blacklist.remove.usage', $.botName.toLowerCase()));
-                        return;
-                    } else if (!$.inidb.exists('botBlackList', actionArgs.toLowerCase())) {
-                        $.say($.whisperPrefix(sender) + $.lang.get('init.blacklist.err'));
-                        return;
-                    }
-
-                    $.inidb.del('botBlackList', actionArgs.toLowerCase());
-                    $.say($.whisperPrefix(sender) + $.lang.get('init.blacklist.removed', actionArgs));
-                    $.log.event(sender + ' removed ' + actionArgs + ' to the bot blacklist.');
-                }
-            }
-
-            if (action.equalsIgnoreCase('togglepricecommods')) {
-                if (pricecomMods) {
-                    pricecomMods = false;
-                    $.inidb.set('settings', 'pricecomMods', false);
-                    $.say($.whisperPrefix(sender) + $.lang.get('init.mod.toggle.off.pay'));
-                } else {
-                    pricecomMods = true;
-                    $.inidb.set('settings', 'pricecomMods', true);
-                    $.say($.whisperPrefix(sender) + $.lang.get('init.mod.toggle.on.pay'));
-                }
-            }
-
-            if (action.equalsIgnoreCase('togglepermcommessage')) {
-                if (permComMsgEnabled) {
-                    permComMsgEnabled = false;
-                    $.inidb.set('settings', 'permComMsgEnabled', false);
-                    $.say($.whisperPrefix(sender) + $.lang.get('init.mod.toggle.perm.msg.off'));
-                } else {
-                    permComMsgEnabled = true;
-                    $.inidb.set('settings', 'permComMsgEnabled', true);
-                    $.say($.whisperPrefix(sender) + $.lang.get('init.mod.toggle.perm.msg.on'));
-                }
-            }
-
-            if (action.equalsIgnoreCase('togglecooldownmessage')) {
-                if (coolDownMsgEnabled) {
-                    coolDownMsgEnabled = false;
-                    $.inidb.set('settings', 'coolDownMsgEnabled', false);
-                    $.say($.whisperPrefix(sender) + $.lang.get('init.toggle.cooldown.msg.off'));
-                } else {
-                    coolDownMsgEnabled = true;
-                    $.inidb.set('settings', 'coolDownMsgEnabled', true);
-                    $.say($.whisperPrefix(sender) + $.lang.get('init.toggle.cooldown.msg.on'));
-                }
-            }
-        }
-
-        /* Used for the panel, no command path needed*/
-        if (command.equalsIgnoreCase('reconnect')) {
-            if (!$.isBot(sender)) {
-                return;
-            }
-            if (lastRecon + 10000 >= $.systemTime()) {
-                $.consoleLn('[ERROR] Already trying to reconnect.');
-                return;
-            }
-            lastRecon = $.systemTime();
-            $.log.event(username + ' requested a reconnect!');
-            $.session.close();
-        }
-
-        /* Used for the panel, no command path needed*/
-        if (command.equalsIgnoreCase('disconnect')) {
-            if (!$.isBot(sender)) {
-                return;
-            }
-            $.log.event(username + ' removed the bot from chat!');
-            java.lang.System.exit(0);
-        }
-
-        /**
-         * @commandpath module - Display the usage for !module
-         */
-        if (command.equalsIgnoreCase('module')) {
-            if (!action) {
-                $.say($.whisperPrefix(sender) + $.lang.get('init.module.usage'));
-                return;
-            }
-
-            if (!action) {
-                $.say($.whisperPrefix(sender) + $.lang.get('init.module.usage'));
-                return;
-            }
-
-            /**
-             * @commandpath module list - List all known modules
-             */
-            if (action.equalsIgnoreCase('list')) {
-                var lstr = '',
-                    modulesList = [],
-                    totalPages;
-
-                for (index in modules) {
-                    if (modules[index].scriptFile.indexOf('./core/') != -1 || modules[index].scriptFile.indexOf('./lang/') != -1) {
-                        continue;
-                    }
-                    modulesList.push(modules[index].scriptFile + (modules[index].enabled ? '' : ' (*)'));
-                }
-                if (args[1] === undefined) {
-                    totalPages = $.paginateArray(modulesList, 'init.module.list', ', ', true, sender, 1);
-                    $.say($.whisperPrefix(sender) + $.lang.get('init.module.list.total', totalPages));
-                    return;
-                }
-                if (!isNaN(args[1])) {
-                    totalPages = $.paginateArray(modulesList, 'init.module.list', ', ', true, sender, parseInt(args[1]));
-                    return;
-                }
-            }
-
-            /**
-             * @commandpath module enable [./path/module] - Enable a module using the path and name of the module
-             */
-            if (action.equalsIgnoreCase('enable')) {
-                temp = args[1];
-
-                if (!temp) {
-                    $.say($.whisperPrefix(sender) + $.lang.get('init.module.usage'));
-                    return;
-                }
-
-                if (temp.indexOf('./core/') > -1 || temp.indexOf('./lang/') > -1) {
-                    return;
-                }
-
-                index = getModuleIndex(temp);
-
-                if (index > -1) {
-                    $.log.event(username + ' enabled module "' + modules[index].scriptFile + '"');
-                    modules[index].enabled = true;
-                    $.setIniDbBoolean('modules', modules[index].scriptFile, true);
-                    loadScript(modules[index].scriptFile);
-
-                    var hookIdx = getHookIndex(modules[index].scriptFile, 'initReady');
-                    try {
-                        if (hookIdx !== -1) {
-                            hooks[hookIdx].handler(null);
-                        }
-                        $.say($.whisperPrefix(sender) + $.lang.get('init.module.enabled', modules[index].getModuleName()));
-                    } catch (e) {
-                        $.log.error('Unable to call initReady for enabled module (' + modules[index].scriptFile +'): ' + e);
-                        $.say($.whisperPrefix(sender) + $.lang.get('init.module.error', modules[index].getModuleName()));
-                    }
-                } else {
-                    $.say($.whisperPrefix(sender) + $.lang.get('init.module.404'));
-                }
-            }
-
-            /** Used for the panel */
-            if (action.equalsIgnoreCase('enablesilent')) {
-                temp = args[1];
-
-                if (temp.indexOf('./core/') > -1 || temp.indexOf('./lang/') > -1) {
-                    return;
-                }
-
-                index = getModuleIndex(temp);
-
-                if (index > -1) {
-                    $.log.event(username + ' enabled module "' + modules[index].scriptFile + '"');
-                    modules[index].enabled = true;
-                    $.setIniDbBoolean('modules', modules[index].scriptFile, true);
-                    loadScript(modules[index].scriptFile);
-
-                    var hookIdx = getHookIndex(modules[index].scriptFile, 'initReady');
-                    try {
-                        if (hookIdx !== -1) {
-                            hooks[hookIdx].handler(null);
-                        }
-                    } catch (e) {
-                        $.log.error('Unable to call initReady for enabled module (' + modules[index].scriptFile +'): ' + e);
-                    }
-                }
-            }
-
-            /**
-             * @commandpath module disable [./path/module] - Disable a module using the path and name of the module
-             */
-            if (action.equalsIgnoreCase('disable')) {
-                temp = args[1];
-
-                if (!temp) {
-                    $.say($.whisperPrefix(sender) + $.lang.get('init.module.usage'));
-                    return;
-                }
-
-                if (temp.indexOf('./core/') > -1 || temp.indexOf('./lang/') > -1) {
-                    return;
-                }
-
-                index = getModuleIndex(temp);
-
-                if (index > -1) {
-                    $.log.event(username + ' disabled module "' + modules[index].scriptFile + '"');
-                    modules[index].enabled = false;
-                    $.setIniDbBoolean('modules', modules[index].scriptFile, false);
-                    $.say($.whisperPrefix(sender) + $.lang.get('init.module.disabled', modules[index].getModuleName()));
-
-                    if (modules[index].scriptFile == './systems/pointSystem.js') {
-                        pointsRelatedModules.push('./games/adventureSystem.js');
-                        pointsRelatedModules.push('./games/roll.js');
-                        pointsRelatedModules.push('./games/slotMachine.js');
-                        pointsRelatedModules.push('./systems/ticketRaffleSystem.js');
-                        pointsRelatedModules.push('./systems/raffleSystem.js');
-
-                        for (var i = 0; i < pointsRelatedModules.length; i++) {
-                            index = getModuleIndex(pointsRelatedModules[i]);
-                            if (index > -1) {
-                                $.log.event(username + ' auto-disabled module "' + modules[index].scriptFile + '"');
-                                modules[index].enabled = false;
-                                $.setIniDbBoolean('modules', modules[index].scriptFile, false);
-                            }
-                        }
-                        $.say($.whisperPrefix(sender) + $.lang.get('init.module.auto-disabled'));
-                    }
-                } else {
-                    $.say($.whisperPrefix(sender) + $.lang.get('init.module.404'));
-                }
-            }
-
-            /** Used for the panel */
-            if (action.equalsIgnoreCase('disablesilent')) {
-                temp = args[1];
-
-                if (temp.indexOf('./core/') > -1 || temp.indexOf('./lang/') > -1) {
-                    return;
-                }
-
-                index = getModuleIndex(temp);
-
-                if (index > -1) {
-                    $.log.event(username + ' disabled module "' + modules[index].scriptFile + '"');
-                    modules[index].enabled = false;
-                    $.setIniDbBoolean('modules', modules[index].scriptFile, false);
-
-                    if (modules[index].scriptFile == './systems/pointSystem.js') {
-                        pointsRelatedModules.push('./games/adventureSystem.js');
-                        pointsRelatedModules.push('./games/roll.js');
-                        pointsRelatedModules.push('./games/slotMachine.js');
-                        pointsRelatedModules.push('./systems/ticketRaffleSystem.js');
-                        pointsRelatedModules.push('./systems/raffleSystem.js');
-
-                        for (var i = 0; i < pointsRelatedModules.length; i++) {
-                            index = getModuleIndex(pointsRelatedModules[i]);
-                            if (index > -1) {
-                                $.log.event(username + ' auto-disabled module "' + modules[index].scriptFile + '"');
-                                modules[index].enabled = false;
-                                $.setIniDbBoolean('modules', modules[index].scriptFile, false);
-                            }
-                        }
-                    }
-                }
-            }
-
-            /**
-             * @commandpath module status [./path/module] - Retrieve the current status (enabled/disabled) of the given module
-             */
-            if (action.equalsIgnoreCase('status')) {
-                temp = args[1];
-
-                if (!temp) {
-                    $.say($.whisperPrefix(sender) + $.lang.get('init.module.usage'));
-                    return;
-                }
-
-                index = getModuleIndex(temp);
-
-                if (index > 1) {
-                    if (modules[index].enabled) {
-                        $.say($.whisperPrefix(sender) + $.lang.get('init.module.check.enabled', modules[index].getModuleName()))
-                    } else {
-                        $.say($.whisperPrefix(sender) + $.lang.get('init.module.check.disabled', modules[index].getModuleName()))
-                    }
-                } else {
-                    $.say($.whisperPrefix(sender) + $.lang.get('init.module.404'));
-                }
-            }
-        }
-
-        /**
-         * @commandpath chat [message] - In the console, can be used to chat as the bot. Also used by the webpanel to communicate with chat
-         * @commandpath echo [message] - In the console, can be used to chat as the bot. Also used by the webpanel to communicate with chat
-         */
-        if (command.equalsIgnoreCase('chat') || command.equalsIgnoreCase('echo')) {
-            $.say(event.getArguments());
         }
     }
 
-
-    /**
-     * Load her up!
+    /*
+     * @function getModuleIndex
+     *
+     * @param  {String} scriptName
+     * @return {Number}
      */
+    function getModuleIndex(scriptName) {
+        return modules.indexOf(scriptName);
+    }
 
-    function startInit() {
-        // Generate JavaScript trampolines for Java functions
+    /*
+     * @function isModuleEnabled
+     *
+     * @param  {String} scriptName
+     * @return {Boolean}
+     */
+    function isModuleEnabled(scriptName) {
+        return (modules[scriptName] !== undefined ? modules[scriptName].isEnabled : false);
+    }
+
+    /*
+     * @function isModuleLoaded
+     *
+     * @param  {String} scriptName
+     * @return {Boolean}
+     */
+    function isModuleLoaded(scriptName) {
+        return (modules[scriptName] !== undefined);
+    }
+
+    /*
+     * @function getModule
+     *
+     * @param  {String} scriptName
+     * @return {Object}
+     */
+    function getModule(scriptName) {
+        return modules[scriptName];
+    }
+
+    /*
+     * @function getHook
+     *
+     * @param  {String} scriptName
+     * @param  {String} hookName
+     * @return {Object}
+     */
+    function getHook(scriptName, hookName) {
+        return (hooks[hookName] !== undefined ? hooks[hookName].handlers[getHookIndex(scriptName, hookName)] : null);
+    }
+
+    /*
+     * @function getHookIndex
+     *
+     * @param  {String} scriptName
+     * @param  {String} hookName
+     * @return {Number}
+     */
+    function getHookIndex(scriptName, hookName) {
+        var hook = hooks[hookName],
+            i;
+
+        if (hook !== undefined) {
+            for (i in hook.handlers) {
+                if (hook.handlers[i].scriptName.equalsIgnoreCase(scriptName)) {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
+
+    /*
+     * @function addHook
+     *
+     * @param {String}   hookName
+     * @param {Function} handler
+     */
+    function addHook(hookName, handler) {
+        var scriptName = $script.getPath().replace('\\', '/').replace('./scripts/', ''),
+            i = getHookIndex(scriptName, hookName);
+
+        if (hookName !== 'initReady' && $api.exists(hookName) == false) {
+            Packages.com.gmt2001.Console.err.printlnRhino('[addHook()@init.js:254] Failed to register hook "' + hookName + '" since there is no such event.');
+        } else if (i !== -1) {
+            hooks[hookName].handlers[i].handler = handler;
+        } else {
+            if (hooks[hookName] === undefined) {
+                hooks[hookName] = new HookHandler(hookName);
+            }
+            hooks[hookName].handlers.push(new Hook(scriptName, hookName, handler));
+        }
+    }
+
+    /*
+     * @function hookName
+     *
+     * @param {String} hookName
+     */
+    function removeHook(hookName) {
+        var scriptName = $script.getPath().replace('\\', '/').replace('./scripts/', ''),
+            i = getHookIndex(scriptName, hookName);
+
+        if (hooks[hookName] !== undefined) {
+            hooks[hookName].handlers.splice(i, 1);
+        }
+    }
+
+    /*
+     * @function callHook
+     *
+     * @param {String}  hookName
+     * @param {Object}  event
+     * @param {Boolean} force
+     */
+    function callHook(hookName, event, force) {
+        var hook = hooks[hookName],
+            i;
+
+        if (hook === undefined) {
+            return;
+        }
+
+        if (hookName === 'command') {
+            i = getHookIndex($.getCommandScript(event.getCommand()), hookName);
+
+            try {
+                hook.handlers[i].handler(event);
+            } catch (ex) {
+                $.log.error('(hook.call, ' + hookName + ', ' + hook.handlers[i].scriptName + ') ' + ex);
+            }
+        } else {
+            for (i in hook.handlers) {
+                if (isModuleEnabled(hook.handlers[i].scriptName) || force) {
+                    try {
+                        hook.handlers[i].handler(event);
+                    } catch (ex) {
+                        $.log.error('(hook.call, ' + hookName + ', ' + hook.handlers[i].scriptName + ') ' + ex);
+                    }
+                }
+            }
+        }
+    }
+
+    /*
+     * @function init - Loads everything for the scripts.
+     */
+    function init() {
+        // Generate JavaScript trampolines for Java functions.
         generateJavaTrampolines();
+        // Register events.
+        events();
 
-        // Load core scripts
+        // Load all core modules.
         loadScript('./core/misc.js');
         loadScript('./core/jsTimers.js');
-        loadScript('./core/chatModerator.js');
         loadScript('./core/updates.js');
+        loadScript('./core/chatModerator.js');
         loadScript('./core/fileSystem.js');
         loadScript('./core/lang.js');
+        loadScript('./core/commandPause.js');
         loadScript('./core/logging.js');
         loadScript('./core/commandRegister.js');
         loadScript('./core/whisper.js');
@@ -717,585 +356,676 @@
         loadScript('./core/permissions.js');
         loadScript('./core/streamInfo.js');
         loadScript('./core/timeSystem.js');
+        loadScript('./core/initCommands.js');
         loadScript('./core/panelCommands.js');
 
-        $.log.event('Core loaded, initializing bot...');
-
-        // Load all other modules
+        // Load all the other modules.
         loadScriptRecursive('.');
 
-        // Register custom commands and aliases.
+        // Load Discord modules if need be.
+        if (!$.hasDiscordToken) {
+            loadScript('./discord/core/misc.js');
+            loadScript('./discord/core/accountLink.js');
+            loadScript('./discord/core/patternDetector.js');
+            loadScript('./discord/core/moderation.js');
+            loadScript('./discord/core/registerCommand.js');
+            loadScript('./discord/core/accountLink.js');
+            loadScript('./discord/core/commandCooldown.js');
+            loadScript('./discord/core/roleManager.js');
+
+            // Load the other discord modules
+            loadScriptRecursive('./discord');
+            // Mark that we are using Discord.
+            // This is used by the new panel.
+            $.inidb.set('panelData', 'hasDiscord', 'true');
+        } else {
+            $.inidb.set('panelData', 'hasDiscord', 'false');
+        }
+
+        // Load new panel handler.
+        loadScript('./core/panelHandler.js', false, true);
+
+        $.log.event('Bot modules loaded. Initializing main functions...');
+
+        // Register custom commands.
         $.addComRegisterCommands();
         $.addComRegisterAliases();
 
-        // Bind all $api events
+        consoleLn('');
 
-        /**
-         * @event api-ircModeration
+        if ($.isNightly) {
+            consoleLn('PhantomBot Nightly Build - No Support is Provided');
+            consoleLn('Please report bugs including the date of the Nightly Build and Repo Version to:');
+            consoleLn('https://community.phantombot.tv/c/support/bug-reports');
+        } else if ($.isPrerelease) {
+            consoleLn('PhantomBot Pre-Release Build - Please Report Bugs and Issues Found');
+            consoleLn('When reporting bugs or issues, please remember to say that this is a pre-release build.');
+        } else {
+            consoleLn('For support please visit: https://community.phantombot.tv');
+        }
+        consoleLn('');
+    }
+
+    /*
+     * @function events - registers all events with the core.
+     */
+    function events() {
+        // Load all API events.
+
+        /*
+         * @event ircModeration
          */
         $api.on($script, 'ircModeration', function(event) {
             $.performModeration(event);
         });
 
-        /**
-         * @event api-ircChannelMessage
+        /*
+         * @event ircChannelMessage
          */
         $api.on($script, 'ircChannelMessage', function(event) {
-            if (event.getSender().equalsIgnoreCase('jtv') || event.getSender().equalsIgnoreCase('twitchnotify')) {
-                callHook('ircPrivateMessage', event, false);
-            } else {
-                callHook('ircChannelMessage', event, false);
+            callHook('ircChannelMessage', event, false);
 
-                if ($.bot.isModuleEnabled('./handlers/panelHandler.js')) {
-                    $.panelDB.updateChatLinesDB(event.getSender().toLowerCase());
-                }
+            if (isModuleEnabled('./handlers/panelHandler.js')) {
+                $.panelDB.updateChatLinesDB(event.getSender());
             }
         });
 
-        /**
-         * @event api-ircJoinComplete
-         */
-        $api.on($script, 'ircJoinComplete', function(event) {
-            connected = true;
-            $.channel = event.getChannel();
-            $.session = event.getSession();
-            connectedMsg = false;
-        });
-
-        /**
-         * @event api-ircChannelUserMode
+        /*
+         * @event ircChannelUserMode
          */
         $api.on($script, 'ircChannelUserMode', function(event) {
-            callHook('ircChannelUserMode', event, true);
-            if (!connected) {
-                return;
-            }
+            callHook('ircChannelUserMode', event, false);
 
-            if (event.getChannel().getName().equalsIgnoreCase($.channel.getName())) {
-                if (event.getUser().equalsIgnoreCase($.botName) && event.getMode().equalsIgnoreCase('o')) {
-                    if (event.getAdd().toString().equals('true')) {
-                        if (!modeO && !$.inidb.exists('settings', 'connectedMsg')) {
-                            consoleLn($.username.resolve($.botName) + ' ready!');
-                        } else {
-                            if (!modeO && !connectedMsg && $.inidb.exists('settings', 'connectedMsg')) {
-                                $.say($.inidb.get('settings', 'connectedMsg'));
-                                connectedMsg = true;
-                            }
-                        }
-                        modeO = true;
+            if (event.getUser().equalsIgnoreCase($.botName) && event.getMode().equalsIgnoreCase('O')) {
+                if (event.getAdd().toString().equals('true')) {
+                    if (isReady === false) {
+                        // Bot is now ready.
+                        consoleLn($.botName + ' ready!');
+                        // Call the initReady event.
+                        callHook('initReady', null, false);
                     }
+                    isReady = true;
                 }
             }
         });
 
-        /**
-         * @event api-command
+        /*
+         * @event command
          */
         $api.on($script, 'command', function(event) {
-            var sender = event.getSender().toLowerCase(),
-                command = event.getCommand().toLowerCase(),
+            var sender = event.getSender(),
+                command = event.getCommand(),
                 args = event.getArgs(),
-                subCommand = (args[0] ? args[0] : ''),
-                subCommandAction = (args[1] ? args[1] : ''),
-                commandCost = 0,
-                permComCheck = $.permCom(sender, command, subCommand),
-                isModv3 = $.isModv3(sender, event.getTags());
+                subCommand = $.getSubCommandFromArguments(command, args),
+                isMod = $.isModv3(sender, event.getTags());
 
-            if ($.inidb.exists('botBlackList', sender) || $.commandPause.isPaused() || !$.commandExists(command)) {
+            // Check if the command exists or if the module is disabled.
+            if (!$.commandExists(command) || !isModuleEnabled($.getCommandScript(command))) {
                 return;
-            }
+            } else
 
-            if ($.aliasExists(command) !== undefined) {
-                var ScriptEventManager = Packages.me.mast3rplan.phantombot.script.ScriptEventManager,
-                    CommandEvent = Packages.me.mast3rplan.phantombot.event.command.CommandEvent,
-                    alias = $.getIniDbString('aliases', command),
-                    aliasCmd,
-                    aliasParams;
+            // Check if the command has an alias.
+            if ($.aliasExists(command)) {
+                var alias = $.getIniDbString('aliases', command),
+                    aliasArguments = '';
 
                 if (alias.indexOf(';') === -1) {
-                    aliasCmd = alias.split(' ')[0];
-                    if (alias.split(' ').length > 1) {
-                        aliasParams = alias.substring(alias.indexOf(' ') + 1);
-                    } else {
-                        aliasParams = ' ';
-                    }
-                    ScriptEventManager.instance().runDirect(new CommandEvent(sender, aliasCmd, aliasParams + ' ' + args.join(' ')));
+                    var parts = alias.split(' ', 2);
+
+                    $.command.run(sender, parts[0], ((parts[1] !== undefined ? parts[1] : '') + ' ' + args.join(' ')), event.getTags());
                 } else {
-                    var aliasList = alias.split(';');
-                    for (var idx in aliasList) {
-                        aliasCmd = aliasList[idx].split(' ')[0];
-                        if (aliasList[idx].split(' ').length > 1) {
-                            aliasParams = aliasList[idx].substring(aliasList[idx].indexOf(' ') + 1);
-                        } else {
-                            aliasParams = ' ';
-                        }
-                        if (idx == (aliasList.length - 1)) {
-                            ScriptEventManager.instance().runDirect(new CommandEvent(sender, aliasCmd, aliasParams + ' ' + args.join(' ')));
-                        } else {
-                            ScriptEventManager.instance().runDirect(new CommandEvent(sender, aliasCmd, aliasParams));
-                        }
+                    var parts = alias.split(';');
+
+                    for (var i = 0; i < parts.length; i++) {
+                        command = parts[i].split(' ');
+
+                        $.command.run(sender, command[0], ((command[1] !== undefined ? command[1] : '') + ' ' + args.join(' ')), event.getTags());
                     }
                 }
                 return;
-            }
+            } else
 
-            if ($.coolDown.get(command, sender, isModv3) > 0) {
-                if ($.getIniDbBoolean('settings', 'coolDownMsgEnabled', false)) {
-                    $.say($.whisperPrefix(sender) + $.lang.get('init.cooldown.msg', command, Math.floor($.coolDown.get(command, sender, isModv3) / 1000)));
-                } else {
-                    consoleLn('[COMMAND COOLDOWN] Command: !' + command + ' was not sent because it is still on a cooldown.');
-                }
+            // Check the command permission.
+            if ($.permCom(sender, command, subCommand) !== 0) {
+                $.sayWithTimeout($.whisperPrefix(sender) + $.lang.get('cmd.perm.404', (!$.subCommandExists(command, subCommand) ? $.getCommandGroupName(command) : $.getSubCommandGroupName(command, subCommand))), $.getIniDbBoolean('settings', 'permComMsgEnabled', false));
+                consoleDebug('Command !' + command + ' was not sent due to the user not having permission for it.');
+                return;
+            } else
+
+            // Check the command cooldown.
+            if ($.coolDown.get(command, sender, isMod) !== 0) {
+                $.sayWithTimeout($.whisperPrefix(sender) + $.lang.get('init.cooldown.msg', command, $.coolDown.getSecs(sender, command)), $.getIniDbBoolean('settings', 'coolDownMsgEnabled', false));
+                consoleDebug('Command !' + command + ' was not sent due to it being on cooldown.');
+                return;
+            } else
+
+            // Check the command cost.
+            if ($.priceCom(sender, command, subCommand, isMod) === 1) {
+                $.sayWithTimeout($.whisperPrefix(sender) + $.lang.get('cmd.needpoints', $.getPointsString($.getCommandPrice(command, subCommand, ''))), $.getIniDbBoolean('settings', 'priceComMsgEnabled', false));
+                consoleDebug('Command !' + command + ' was not sent due to the user not having enough points.');
                 return;
             }
 
-            if (permComCheck !== 0) {
-                var permMsg;
-                if (permComCheck == 1) {
-                    permMsg = $.getCommandGroupName(command);
-                } else {
-                    if ($.subCommandExists(command, subCommand)) {
-                        permMsg = $.getSubCommandGroupName(command, subCommand);
-                    } else {
-                        permMsg = $.getCommandGroupName(command);
-                    }
-                }
-                if ($.getIniDbBoolean('settings', 'permComMsgEnabled', true)) {
-                    $.say($.whisperPrefix(sender) + $.lang.get('cmd.perm.404', permMsg));
-                }
-                return;
-            }
-
-            if (($.inidb.exists('pricecom', command) || $.inidb.exists('pricecom', command + ' ' + subCommand) || $.inidb.exists('pricecom', (command + ' ' + subCommand + ' ' + subCommandAction)))) {
-                if ((((isModv3 && pricecomMods && !$.isBot(sender)) || !isModv3))) {
-                    if (isModuleEnabled('./systems/pointSystem.js')) {
-                        commandCost = $.getCommandPrice(command, subCommand, subCommandAction);
-                        if ($.getUserPoints(sender) < commandCost) {
-                            $.say($.whisperPrefix(sender) + $.lang.get('cmd.needpoints', $.getPointsString(commandCost)));
-                            return;
-                        }
-                    }
-                }
-            }
-        
+            // Call the command function.
             callHook('command', event, false);
 
-            if (isModuleEnabled('./systems/pointSystem.js')) {
-                if (parseInt($.inidb.get('paycom', command)) > 0) {
-                    $.inidb.incr('points', sender, $.inidb.get('paycom', command));
-                }
-                if (commandCost > 0 && (((isModv3 && pricecomMods && !$.isBot(sender)) || !isModv3))) {
-                    $.inidb.decr('points', sender, commandCost);
+            // Decrease or add points after the command is sent to not slow anything down.
+            if ($.priceCom(sender, command, subCommand, isMod) === 0) {
+                $.inidb.decr('points', sender, $.getCommandPrice(command, subCommand, ''));
+            } else if ($.payCom(command) === 0) {
+                $.inidb.incr('points', sender, $.getCommandPay(command));
+            }
+        });
+
+        /*
+         * @event discordChannelCommand
+         */
+        $api.on($script, 'discordChannelCommand', function(event) {
+            var username = event.getUsername(),
+                command = event.getCommand(),
+                channel = event.getDiscordChannel(),
+                channelName = event.getChannel(),
+                channelId = event.getChannelId(),
+                isAdmin = event.isAdmin(),
+                senderId = event.getSenderId(),
+                args = event.getArgs();
+
+            if ($.discord.commandExists(command) === false && ($.discord.aliasExists(command) === false || $.discord.aliasExists(command) === true && $.discord.commandExists($.discord.getCommandAlias(command)) === false)) {
+                return;
+            }
+
+            if ($.discord.aliasExists(command) === true) {
+                command = event.setCommand($.discord.getCommandAlias(command));
+            }
+
+            if (isAdmin == false && $.discord.permCom(command, (args[0] !== undefined && $.discord.subCommandExists(command, args[0].toLowerCase()) ? args[0].toLowerCase() : '')) !== 0) {
+                return;
+            }
+
+            if (isAdmin == false && $.discord.cooldown.get(command, senderId) !== 0) {
+                return;
+            }
+
+            if ($.discord.getCommandCost(command) > 0 && $.discord.getUserPoints(senderId) < $.discord.getCommandCost(command)) {
+                return;
+            }
+
+            if ($.discord.getCommandChannel(command, channel) === undefined && $.discord.getCommandChannel(command, '_default_global_') === undefined) {
+                return;
+            } else {
+                if (($.discord.getCommandChannel(command, channel) !== undefined && (!$.discord.getCommandChannel(command, channel).equalsIgnoreCase(channelName) && !$.discord.getCommandChannel(command, channel).equalsIgnoreCase(channelId))) && $.discord.getCommandChannel(command, '_default_global_') != '') {
+                    return;
                 }
             }
-            handleInitCommands(event);
+
+            callHook('discordChannelCommand', event, false);
+
+            // Do this last to not slow down the command hook.
+            if ($.discord.getCommandCost(command) > 0) {
+                $.discord.decrUserPoints(senderId, $.discord.getCommandCost(command));
+            }
         });
 
-        /**
-         * @event api-consoleInput
+        /*
+         * @event consoleInput
          */
         $api.on($script, 'consoleInput', function(event) {
-            callHook('consoleInput', event, true);
+            callHook('consoleInput', event, false);
         });
 
-        /**
-         * @event api-twitchFollow
+        /*
+         * @event twitchFollow
          */
         $api.on($script, 'twitchFollow', function(event) {
-            callHook('twitchFollow', event, true);
+            callHook('twitchFollow', event, false);
         });
 
-        /**
-         * @event api-twitchUnFollow
+        /*
+         * @event twitchUnFollow
          */
         $api.on($script, 'twitchUnfollow', function(event) {
-            callHook('twitchUnfollow', event, true);
+            callHook('twitchUnfollow', event, false);
         });
 
-        /**
-         * @event api-twitchFollowsInitialized
+        /*
+         * @event twitchFollowsInitialized
          */
         $api.on($script, 'twitchFollowsInitialized', function(event) {
-            callHook('twitchFollowsInitialized', event, true);
+            callHook('twitchFollowsInitialized', event, false);
         });
 
-        /**
-         * @event api-twitchHosted
+        /*
+         * @event twitchHosted
          */
         $api.on($script, 'twitchHosted', function(event) {
-            callHook('twitchHosted', event, true);
+            callHook('twitchHosted', event, false);
         });
 
-        /**
-         * @event api-twitchUnhosted
+        /*
+         * @event twitchAutoHosted
          */
-        $api.on($script, 'twitchUnhosted', function(event) {
-            callHook('twitchUnhosted', event, true);
+        $api.on($script, 'twitchAutoHosted', function(event) {
+            callHook('twitchAutoHosted', event, false);
         });
 
-        /**
-         * @event api-twitchHostsInitialized
+        /*
+         * @event twitchHostsInitialized
          */
         $api.on($script, 'twitchHostsInitialized', function(event) {
-            callHook('twitchHostsInitialized', event, true);
+            callHook('twitchHostsInitialized', event, false);
         });
 
-        /**
-         * @event api-twitchSubscribe
+        /*
+         * @event twitchClip
          */
-        $api.on($script, 'twitchSubscribe', function(event) {
-            callHook('twitchSubscribe', event, true);
+        $api.on($script, 'twitchClip', function(event) {
+            callHook('twitchClip', event, false);
         });
 
-        /**
-         * @event api-twitchUnsubscribe
-         */
-        $api.on($script, 'twitchUnsubscribe', function(event) {
-            callHook('twitchUnsubscribe', event, true);
-        });
-
-        /**
-         * @event api-twitchSubscribesInitialized
-         */
-        $api.on($script, 'twitchSubscribesInitialized', function(event) {
-            callHook('twitchSubscribesInitialized', event, true);
-        });
-
-        /**
-         * @event api-ircChannelJoin
+        /*
+         * @event ircChannelJoin
          */
         $api.on($script, 'ircChannelJoin', function(event) {
-            callHook('ircChannelJoin', event, true);
+            callHook('ircChannelJoin', event, false);
         });
 
-        /**
-         * @event api-ircChannelLeave
+        /*
+         * @event ircChannelUsersUpdate
+         */
+        $api.on($script, 'ircChannelUsersUpdate', function(event) {
+            callHook('ircChannelUsersUpdate', event, false);
+        });
+
+        /*
+         * @event ircChannelLeave
          */
         $api.on($script, 'ircChannelLeave', function(event) {
-            callHook('ircChannelLeave', event, true);
+            callHook('ircChannelLeave', event, false);
         });
 
-        /**
-         * @event api-ircConnectComplete
-         */
-        $api.on($script, 'ircConnectComplete', function(event) {
-            callHook('ircConnectComplete', event, true);
-        });
-
-        /**
-         * @event api-ircJoinComplete
+        /*
+         * @event ircJoinComplete
          */
         $api.on($script, 'ircJoinComplete', function(event) {
-            callHook('ircJoinComplete', event, true);
+            callHook('ircJoinComplete', event, false);
         });
 
-        /**
-         * @event api-ircPrivateMessage
+        /*
+         * @event ircConnectComplete
+         */
+        $api.on($script, 'ircConnectComplete', function(event) {
+            callHook('ircConnectComplete', event, false);
+        });
+
+        /*
+         * @event ircPrivateMessage
          */
         $api.on($script, 'ircPrivateMessage', function(event) {
             callHook('ircPrivateMessage', event, false);
         });
 
-        /**
-         * @event api-ircClearchat
+        /*
+         * @event ircClearchat
          */
         $api.on($script, 'ircClearchat', function(event) {
             callHook('ircClearchat', event, false);
         });
 
-        /**
-         * @event api-musicPlayerConnect
+        /*
+         * @event streamLabsDonation
          */
-        $api.on($script, 'musicPlayerConnect', function(event) {
-            callHook('musicPlayerConnect', event, false);
+        $api.on($script, 'streamLabsDonation', function(event) {
+            callHook('streamLabsDonation', event, false);
         });
 
-        /**
-         * @event api-musicPlayerCurrentId
+        /*
+         * @event streamLabsDonationInitialized
          */
-        $api.on($script, 'musicPlayerCurrentId', function(event) {
-            callHook('musicPlayerCurrentId', event, false);
+        $api.on($script, 'streamLabsDonationInitialized', function(event) {
+            callHook('streamLabsDonationInitialized', event, false);
         });
 
-        /**
-         * @event api-musicPlayerCurrentVolume
+        /*
+         * @event tipeeeStreamDonationInitialized
          */
-        $api.on($script, 'musicPlayerCurrentVolume', function(event) {
-            callHook('musicPlayerCurrentVolume', event, false);
+        $api.on($script, 'tipeeeStreamDonationInitialized', function(event) {
+            callHook('tipeeeStreamDonationInitialized', event, false);
         });
 
-        /**
-         * @event api-musicPlayerDisconnect
+        /*
+         * @event tipeeeStreamDonation
          */
-        $api.on($script, 'musicPlayerDisconnect', function(event) {
-            callHook('musicPlayerDisconnect', event, false);
+        $api.on($script, 'tipeeeStreamDonation', function(event) {
+            callHook('tipeeeStreamDonation', event, false);
         });
 
-        /**
-         * @event api-musicPlayerState
+        /*
+         * @event streamElementsDonationInitialized
          */
-        $api.on($script, 'musicPlayerState', function(event) {
-            callHook('musicPlayerState', event, false);
+        $api.on($script, 'streamElementsDonationInitialized', function(event) {
+            callHook('streamElementsDonationInitialized', event, false);
         });
 
-        /**
-         * @event api-twitchAlertsDonation
+        /*
+         * @event streamElementsDonation
          */
-        $api.on($script, 'twitchAlertsDonation', function(event) {
-            callHook('twitchAlertsDonation', event, true);
+        $api.on($script, 'streamElementsDonation', function(event) {
+            callHook('streamElementsDonation', event, false);
         });
 
-        /**
-         * @event api-twitchAlertsDonationInitialized
-         */
-        $api.on($script, 'twitchAlertsDonationInitialized', function(event) {
-            callHook('twitchAlertsDonationInitialized', event, true);
-        });
-
-        /**
-         * @event api-streamTipDonation
-         */
-        $api.on($script, 'streamTipDonation', function(event) {
-            callHook('streamTipDonation', event, true);
-        });
-
-        /**
-         * @event api-streamTipDonationInitialized
-         */
-        $api.on($script, 'streamTipDonationInitialized', function(event) {
-            callHook('streamTipDonationInitialized', event, true);
-        });
-
-        /**
-         * @event api-getEmotes
+        /*
+         * @event getEmotes
          */
         $api.on($script, 'emotesGet', function(event) {
-            callHook('emotesGet', event, true);
+            callHook('emotesGet', event, false);
         });
 
-        /**
-         * @event api-ircChannelJoinUpdate
-         */
-        $api.on($script, 'ircChannelJoinUpdate', function(event) {
-            callHook('ircChannelJoinUpdate', event, true);
-        });
-
-        /**
-         * @event api-yTPlayerConnect
+        /*
+         * @event yTPlayerConnect
          */
         $api.on($script, 'yTPlayerConnect', function(event) {
             callHook('yTPlayerConnect', event, false);
         });
 
-        /**
-         * @event api-yTPlayerDisconnect
+        /*
+         * @event yTPlayerLoadPlaylistEvent
+         */
+        $api.on($script, 'yTPlayerLoadPlaylist', function(event) {
+            callHook('yTPlayerLoadPlaylist', event, false);
+        });
+
+        /*
+         * @event yTPlayerDisconnect
          */
         $api.on($script, 'yTPlayerDisconnect', function(event) {
             callHook('yTPlayerDisconnect', event, false);
         });
 
-        /**
-         * @event api-yTPlayerState
+        /*
+         * @event yTPlayerState
          */
         $api.on($script, 'yTPlayerState', function(event) {
             callHook('yTPlayerState', event, false);
         });
 
-        /**
-         * @event api-yTPlayeCurrentId
+        /*
+         * @event yTPlayeCurrentId
          */
         $api.on($script, 'yTPlayerCurrentId', function(event) {
             callHook('yTPlayerCurrentId', event, false);
         });
 
-        /**
-         * @event api-yTPlayerRequestSonglist
+        /*
+         * @event yTPlayerRequestSonglist
          */
         $api.on($script, 'yTPlayerRequestSonglist', function(event) {
             callHook('yTPlayerRequestSonglist', event, false);
         });
 
-        /**
-         * @event api-yTPlayerRequestPlaylist
+        /*
+         * @event yTPlayerRequestPlaylist
          */
         $api.on($script, 'yTPlayerRequestPlaylist', function(event) {
             callHook('yTPlayerRequestPlaylist', event, false);
         });
 
-        /**
-         * @event api-yTPlayerDeleteSREvent
+        /*
+         * @event yTPlayerDeleteSREvent
          */
         $api.on($script, 'yTPlayerDeleteSR', function(event) {
             callHook('yTPlayerDeleteSR', event, false);
         });
 
-        /**
-         * @event api-yTPlayerVolumeEvent
+        /*
+         * @event yTPlayerVolumeEvent
          */
         $api.on($script, 'yTPlayerVolume', function(event) {
             callHook('yTPlayerVolume', event, false);
         });
 
-        /**
-         * @event api-yTPlayerSkipSongEvent
+        /*
+         * @event yTPlayerSkipSongEvent
          */
         $api.on($script, 'yTPlayerSkipSong', function(event) {
             callHook('yTPlayerSkipSong', event, false);
         });
 
-        /**
-         * @event api-yTPlayerStealSongEvent
+        /*
+         * @event yTPlayerStealSongEvent
          */
         $api.on($script, 'yTPlayerStealSong', function(event) {
             callHook('yTPlayerStealSong', event, false);
         });
 
-        /**
-         * @event api-YTPlayerSongRequestEvent
+        /*
+         * @event yTPlayerSongRequestEvent
          */
         $api.on($script, 'yTPlayerSongRequest', function(event) {
             callHook('yTPlayerSongRequest', event, false);
         });
 
-        /**
-         * @event api-yTPlayerDeletePlaylistByIDEvent
+        /*
+         * @event yTPlayerDeletePlaylistByIDEvent
          */
         $api.on($script, 'yTPlayerDeletePlaylistByID', function(event) {
             callHook('yTPlayerDeletePlaylistByID', event, false);
         });
 
-        /**
-         * @event api-yTPlayerRequestCurrentSongEvent
+        /*
+         * @event yTPlayerRequestCurrentSongEvent
          */
         $api.on($script, 'yTPlayerRequestCurrentSong', function(event) {
             callHook('yTPlayerRequestCurrentSong', event, false);
         });
 
-        /**
-         * @event api-yTPlayerRandomizeEvent
+        /*
+         * @event yTPlayerRandomizeEvent
          */
         $api.on($script, 'yTPlayerRandomize', function(event) {
             callHook('yTPlayerRandomize', event, false);
         });
 
-        /**
-         * @event api-gameWispChangeEvent
+        /*
+         * @event yTPlayerDeleteCurrentEvent
+         */
+        $api.on($script, 'yTPlayerDeleteCurrent', function(event) {
+            callHook('yTPlayerDeleteCurrent', event, false);
+        });
+
+        /*
+         * @event gameWispChangeEvent
          */
         $api.on($script, 'gameWispChange', function(event) {
             callHook('gameWispChange', event, false);
         });
 
-        /**
-         * @event api-gameWispBenefitsEvent
+        /*
+         * @event gameWispBenefitsEvent
          */
         $api.on($script, 'gameWispBenefits', function(event) {
             callHook('gameWispBenefits', event, false);
         });
 
-        /**
-         * @event api-gameWispSubscribeEvent
+        /*
+         * @event gameWispSubscribeEvent
          */
         $api.on($script, 'gameWispSubscribe', function(event) {
             callHook('gameWispSubscribe', event, false);
         });
 
-        /**
-         * @event api-gameWispAnniversaryEvent
+        /*
+         * @event gameWispAnniversaryEvent
          */
         $api.on($script, 'gameWispAnniversary', function(event) {
             callHook('gameWispAnniversary', event, false);
-        }); 
+        });
 
-        /**
-         * @event api-twitterEvent
+        /*
+         * @event twitterEvent
          */
         $api.on($script, 'twitter', function(event) {
             callHook('twitter', event, false);
         });
 
-        /**
-         * @event api-twitchOnlineEvent
+        /*
+         * @event twitterRetweetEvent
+         */
+        $api.on($script, 'twitterRetweet', function(event) {
+            callHook('twitterRetweet', event, false);
+        });
+
+        /*
+         * @event twitchOnlineEvent
          */
         $api.on($script, 'twitchOnline', function(event) {
             callHook('twitchOnline', event, false);
         });
 
-        /**
-         * @event api-twitchOfflineEvent
+        /*
+         * @event twitchOfflineEvent
          */
         $api.on($script, 'twitchOffline', function(event) {
             callHook('twitchOffline', event, false);
         });
 
-        /**
-         * @event api-twitchGameChangeEvent
+        /*
+         * @event twitchGameChangeEvent
          */
         $api.on($script, 'twitchGameChange', function(event) {
             callHook('twitchGameChange', event, false);
         });
 
-        /**
-         * @event api-NewSubscriberEvent
+        /*
+         * @event twitchTitleChangeEvent
          */
-        $api.on($script, 'NewSubscriber', function(event) {
-            callHook('NewSubscriber', event, false);
+        $api.on($script, 'twitchTitleChange', function(event) {
+            callHook('twitchTitleChange', event, false);
         });
 
-        /**
-         * @event api-NewReSubscriberEvent
+        /*
+         * @event twitchSubscriber
          */
-        $api.on($script, 'NewReSubscriber', function(event) {
-            callHook('NewReSubscriber', event, false);
+        $api.on($script, 'twitchSubscriber', function(event) {
+            callHook('twitchSubscriber', event, false);
         });
 
-         /**
-         * @event api-BitsEvent
+        /*
+         * @event twitchPrimeSubscriber
          */
-        $api.on($script, 'Bits', function(event) {
-            callHook('Bits', event, false);
+        $api.on($script, 'twitchPrimeSubscriber', function(event) {
+            callHook('twitchPrimeSubscriber', event, false);
         });
 
-        /**
-         * @event api-DeveloperCommandEvent
+        /*
+         * @event reSubscriber
          */
-        $api.on($script, 'DeveloperCommand', function(event) {
-            callHook('command', event, false);
-            handleInitCommands(event);
+        $api.on($script, 'twitchReSubscriber', function(event) {
+            callHook('twitchReSubscriber', event, false);
         });
 
-        $.log.event('init.js api\'s loaded.');
-        consoleDebug('init.js api\'s loaded.');
-        consoleLn('');
-
-        /**
-         * @event initReady
+        /*
+         * @event twitchSubscriptionGift
          */
-        $.registerChatCommand('./init.js', 'chat', 1);
-        $.registerChatCommand('./init.js', 'module', 1);
-        $.registerChatCommand('./init.js', 'echo', 1);
-        $.registerChatCommand('./init.js', 'reconnect', 1);
-        $.registerChatCommand('./init.js', 'disconnect', 1);
-        $.registerChatCommand('./init.js', $.botName.toLowerCase(), 1);
+        $api.on($script, 'twitchSubscriptionGift', function(event) {
+            callHook('twitchSubscriptionGift', event, false);
+        });
 
-        // emit initReady event
-        callHook('initReady', null, true);
+        /*
+         * @event twitchMassSubscriptionGifted
+         */
+        $api.on($script, 'twitchMassSubscriptionGifted', function(event) {
+            callHook('twitchMassSubscriptionGifted', event, false);
+        });
 
-        consoleLn('');
+        /*
+         * @event twitchBits
+         */
+        $api.on($script, 'twitchBits', function(event) {
+            callHook('twitchBits', event, false);
+        });
+
+        /*
+         * @event twitchRaid
+         */
+        $api.on($script, 'twitchRaid', function(event) {
+            callHook('twitchRaid', event, false);
+        });
+
+        /*
+         * @event discordChannelMessage
+         */
+        $api.on($script, 'discordChannelMessage', function(event) {
+            callHook('discordChannelMessage', event, false);
+        });
+
+        /*
+         * @event discordChannelJoin
+         */
+        $api.on($script, 'discordChannelJoin', function(event) {
+            callHook('discordChannelJoin', event, false);
+        });
+
+        /*
+         * @event discordChannelPart
+         */
+        $api.on($script, 'discordChannelPart', function(event) {
+            callHook('discordChannelPart', event, false);
+        });
+
+        /*
+         * @event webPanelSocketUpdate
+         */
+        $api.on($script, 'webPanelSocketUpdate', function(event) {
+            callHook('webPanelSocketUpdate', event, false);
+        });
+
+        /*
+         * @event PubSubModerationTimeout
+         */
+        $api.on($script, 'PubSubModerationTimeout', function(event) {
+            callHook('PubSubModerationTimeout', event, false);
+        });
+
+        /*
+         * @event PubSubModerationUnTimeout
+         */
+        $api.on($script, 'PubSubModerationUnTimeout', function(event) {
+            callHook('PubSubModerationUnTimeout', event, false);
+        });
+
+        /*
+         * @event PubSubModerationBan
+         */
+        $api.on($script, 'PubSubModerationBan', function(event) {
+            callHook('PubSubModerationBan', event, false);
+        });
+
+        /*
+         * @event PubSubModerationUnBan
+         */
+        $api.on($script, 'PubSubModerationUnBan', function(event) {
+            callHook('PubSubModerationUnBan', event, false);
+        });
     }
 
-    /** Export functions to API */
+    // Export functions to API
     $.consoleLn = consoleLn;
     $.consoleDebug = consoleDebug;
     $.bind = addHook;
     $.unbind = removeHook;
-
     $.bot = {
-        loadScript: loadScript,
         loadScriptRecursive: loadScriptRecursive,
-        isModuleLoaded: isModuleLoaded,
         isModuleEnabled: isModuleEnabled,
+        isModuleLoaded: isModuleLoaded,
+        getModuleIndex: getModuleIndex,
+        getHookIndex: getHookIndex,
+        loadScript: loadScript,
         getModule: getModule,
+        getHook: getHook,
+        modules: modules,
+        hooks: hooks
     };
 
-    // Start init
-    startInit();
+    // Load init.js
+    init();
 })();

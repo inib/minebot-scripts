@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2016-2018 phantombot.tv
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 /**
  * gameWispHandler.js
  *
@@ -7,43 +24,49 @@
 
     var subMessage = $.getSetIniDbString('gameWispSubHandler', 'subscribeMessage', '(name) just subscribed via GameWisp at tier level (tier)!'),
         reSubMessage = $.getSetIniDbString('gameWispSubHandler', 'reSubscribeMessage', '(name) just subscribed for (months) months in a row via GameWisp!'),
-        tierUpMessage = $.getSetIniDbString('gameWispSubHandler', 'tierUpMessage', '(name) upgraded to tier (tier) on GameWisp!');
+        tierUpMessage = $.getSetIniDbString('gameWispSubHandler', 'tierUpMessage', '(name) upgraded to tier (tier) on GameWisp!'),
         subShowMessages = $.getSetIniDbBoolean('gameWispSubHandler', 'subscriberShowMessages', true),
         subReward = $.getSetIniDbNumber('gameWispSubHandler', 'subscribeReward', 0),
         reSubReward = $.getSetIniDbNumber('gameWispSubHandler', 'reSubscribeReward', 0);
 
     /*
-     * The tierData primary key needs to match the subcommand for !gamewisptier.  See notes below 
+     * The tierData primary key needs to match the subcommand for !gamewisptier.  See notes below
      * in the gamewisptier command handling.
      */
     var tierData = [];
 
-        tierData['songrequests'] = [],
-        tierData['songrequests'][0] = 0;
-        tierData['songrequests'][1] = $.getSetIniDbNumber('gameWispTiers', 'songrequest_1', 0);
-        tierData['songrequests'][2] = $.getSetIniDbNumber('gameWispTiers', 'songrequest_2', 0);
-        tierData['songrequests'][3] = $.getSetIniDbNumber('gameWispTiers', 'songrequest_3', 0);
-        tierData['songrequests'][4] = $.getSetIniDbNumber('gameWispTiers', 'songrequest_4', 0);
-        tierData['songrequests'][5] = $.getSetIniDbNumber('gameWispTiers', 'songrequest_5', 0);
-        tierData['songrequests'][6] = $.getSetIniDbNumber('gameWispTiers', 'songrequest_6', 0);
+    /*
+     * Throw an error into the Console only once if the key is bad and stop querying GameWisp until reboot.
+     * Assume that we did authenticate at first, then move to false if this is not the case.
+     */
+    var gameWispAuthenticated = true;
 
-        tierData['bonuspoints'] = [];
-        tierData['bonuspoints'][0] = 0;
-        tierData['bonuspoints'][1] = $.getSetIniDbNumber('gameWispTiers', 'bonuspoints_1', 0);
-        tierData['bonuspoints'][2] = $.getSetIniDbNumber('gameWispTiers', 'bonuspoints_2', 0);
-        tierData['bonuspoints'][3] = $.getSetIniDbNumber('gameWispTiers', 'bonuspoints_3', 0);
-        tierData['bonuspoints'][4] = $.getSetIniDbNumber('gameWispTiers', 'bonuspoints_4', 0);
-        tierData['bonuspoints'][5] = $.getSetIniDbNumber('gameWispTiers', 'bonuspoints_5', 0);
-        tierData['bonuspoints'][6] = $.getSetIniDbNumber('gameWispTiers', 'bonuspoints_6', 0);
+    tierData['songrequests'] = [];
+    tierData['songrequests'][0] = 0;
+    tierData['songrequests'][1] = $.getSetIniDbNumber('gameWispTiers', 'songrequest_1', 0);
+    tierData['songrequests'][2] = $.getSetIniDbNumber('gameWispTiers', 'songrequest_2', 0);
+    tierData['songrequests'][3] = $.getSetIniDbNumber('gameWispTiers', 'songrequest_3', 0);
+    tierData['songrequests'][4] = $.getSetIniDbNumber('gameWispTiers', 'songrequest_4', 0);
+    tierData['songrequests'][5] = $.getSetIniDbNumber('gameWispTiers', 'songrequest_5', 0);
+    tierData['songrequests'][6] = $.getSetIniDbNumber('gameWispTiers', 'songrequest_6', 0);
 
-        tierData['subbonuspoints'] = [];
-        tierData['subbonuspoints'][0] = 0;
-        tierData['subbonuspoints'][1] = $.getSetIniDbNumber('gameWispTiers', 'subbonuspoints_1', 0);
-        tierData['subbonuspoints'][2] = $.getSetIniDbNumber('gameWispTiers', 'subbonuspoints_2', 0);
-        tierData['subbonuspoints'][3] = $.getSetIniDbNumber('gameWispTiers', 'subbonuspoints_3', 0);
-        tierData['subbonuspoints'][4] = $.getSetIniDbNumber('gameWispTiers', 'subbonuspoints_4', 0);
-        tierData['subbonuspoints'][5] = $.getSetIniDbNumber('gameWispTiers', 'subbonuspoints_5', 0);
-        tierData['subbonuspoints'][6] = $.getSetIniDbNumber('gameWispTiers', 'subbonuspoints_6', 0);
+    tierData['bonuspoints'] = [];
+    tierData['bonuspoints'][0] = 0;
+    tierData['bonuspoints'][1] = $.getSetIniDbNumber('gameWispTiers', 'bonuspoints_1', 0);
+    tierData['bonuspoints'][2] = $.getSetIniDbNumber('gameWispTiers', 'bonuspoints_2', 0);
+    tierData['bonuspoints'][3] = $.getSetIniDbNumber('gameWispTiers', 'bonuspoints_3', 0);
+    tierData['bonuspoints'][4] = $.getSetIniDbNumber('gameWispTiers', 'bonuspoints_4', 0);
+    tierData['bonuspoints'][5] = $.getSetIniDbNumber('gameWispTiers', 'bonuspoints_5', 0);
+    tierData['bonuspoints'][6] = $.getSetIniDbNumber('gameWispTiers', 'bonuspoints_6', 0);
+
+    tierData['subbonuspoints'] = [];
+    tierData['subbonuspoints'][0] = 0;
+    tierData['subbonuspoints'][1] = $.getSetIniDbNumber('gameWispTiers', 'subbonuspoints_1', 0);
+    tierData['subbonuspoints'][2] = $.getSetIniDbNumber('gameWispTiers', 'subbonuspoints_2', 0);
+    tierData['subbonuspoints'][3] = $.getSetIniDbNumber('gameWispTiers', 'subbonuspoints_3', 0);
+    tierData['subbonuspoints'][4] = $.getSetIniDbNumber('gameWispTiers', 'subbonuspoints_4', 0);
+    tierData['subbonuspoints'][5] = $.getSetIniDbNumber('gameWispTiers', 'subbonuspoints_5', 0);
+    tierData['subbonuspoints'][6] = $.getSetIniDbNumber('gameWispTiers', 'subbonuspoints_6', 0);
 
     /**
      * @function updateGameWispDB
@@ -109,6 +132,7 @@
 
         if (tier > $.getGWTier(username)) {
             $.addGWSubUsersList(username, tier);
+            $.restoreSubscriberStatus(username, false);
             if (subShowMessages) {
                 $.say(tierUpMessage.replace('(name)', resolvename).replace('(tier)', tier));
             }
@@ -134,6 +158,8 @@
             $.inidb.incr('points', username, userreward);
             $.say(subMessage.replace('(name)', resolvename).replace('(tier)', tier.toString()).replace('(reward)', userreward.toString()));
         }
+        $.writeToFile(username + ' ', './addons/gameWispHandler/latestSub.txt', false);
+        $.writeToFile(username + ' ', './addons/gameWispHandler/latestSubOrResub.txt', false);
     });
 
     /**
@@ -153,6 +179,8 @@
             $.inidb.incr('points', username, parseInt(userreward));
             $.say(reSubMessage.replace('(name)', resolvename).replace('(tier)', tier.toString()).replace('(reward)', userreward.toString()).replace('(months)', months.toString()));
         }
+        $.writeToFile(username + ' ', './addons/gameWispHandler/latestResub.txt', false);
+        $.writeToFile(username + ' ', './addons/gameWispHandler/latestSubOrResub.txt', false);
     });
 
     /**
@@ -160,49 +188,65 @@
      * @param {String}
      */
     function checkGameWispSub(username) {
+        if (!gameWispAuthenticated) {
+            return;
+        }
+
         if (!$.bot.isModuleEnabled('./handlers/gameWispHandler.js')) {
             return;
         }
-$.consoleDebug('checkGameWispSub(' + username + ')');
+        $.consoleDebug('checkGameWispSub(' + username + ')');
 
-        var jsonString = $.gamewisp.getUserSubInfoString(username)+'',
+        var jsonString = $.gamewisp.getUserSubInfoString(username) + '',
             jsonData = JSON.parse(jsonString);
 
-$.consoleDebug('checkGameWispSub(' + username + '): ' + jsonString);
+        $.consoleDebug('checkGameWispSub(' + username + '): ' + jsonString.replace(/access_token=\w+&/, ''));
+
+        if (jsonData['error_description'] !== undefined) {
+            if (jsonData['error_description'].equals('The resource owner or authorization server denied the request.')) {
+                gameWispAuthenticated = false;
+                $.log.error('GameWisp: Access denied, please check your access tokens, will stop checking subscriber status.');
+                return;
+            }
+        }
+
+        if (jsonData['result'] === undefined) {
+            return;
+        }
 
         // If an error occurs in the API, pull back data from the database.
         if (jsonData['result']['status'] != 1) {
-$.consoleDebug('checkGameWispSub(' + username + '): status != 1');
+            $.consoleDebug('checkGameWispSub(' + username + '): status != 1');
             if ($.getIniDbBoolean('gamewispsubs', username, false)) {
                 $.addGWSubUsersList($.users[i][0], $.getIniDbNumber('gamewispsubs', username + '_tier', 1));
             }
             return;
         }
         if (jsonData['data'][0] == undefined) {
-$.consoleDebug('checkGameWispSub(' + username + '): data is undefined');
+            $.consoleDebug('checkGameWispSub(' + username + '): data is undefined');
             if ($.getIniDbBoolean('gamewispsubs', username, false)) {
                 $.addGWSubUsersList($.users[i][0], $.getIniDbNumber('gamewispsubs', username + '_tier', 1));
             }
             return;
         }
         if (jsonData['data'][0]['status'] == undefined) {
-$.consoleDebug('checkGameWispSub(' + username + '): status is undefined');
+            $.consoleDebug('checkGameWispSub(' + username + '): status is undefined');
             if ($.getIniDbBoolean('gamewispsubs', username, false)) {
                 $.addGWSubUsersList($.users[i][0], $.getIniDbNumber('gamewispsubs', username + '_tier', 1));
             }
             return;
         }
-        
+
         if (jsonData['data'][0]['status'].equals('inactive')) {
-$.consoleDebug('checkGameWispSub(' + username + '): inactive account');
+            $.consoleDebug('checkGameWispSub(' + username + '): inactive account');
             $.delGWSubUsersList(username);
             $.restoreSubscriberStatus(username, false);
         } else {
-$.consoleDebug('checkGameWispSub(' + username + '): adding to sub users list');
+            $.consoleDebug('checkGameWispSub(' + username + '): adding to sub users list');
             $.addGWSubUsersList(username, parseInt(jsonData['data'][0]['tier']['data']['level']));
-$.consoleDebug('checkGameWispSub(' + username + '): calling DB update; mods are ignored');
+            $.consoleDebug('checkGameWispSub(' + username + '): calling DB update; mods are ignored');
             $.restoreSubscriberStatus(username, false);
-$.consoleDebug('checkGameWispSub(' + username + '): handler complete');
+            $.consoleDebug('checkGameWispSub(' + username + '): handler complete');
         }
     }
 
@@ -225,22 +269,17 @@ $.consoleDebug('checkGameWispSub(' + username + '): handler complete');
             sender = event.getSender().toLowerCase(),
             args = event.getArgs();
 
-        /* Do not display command on list, this is for the panel */
-        if (command.equalsIgnoreCase('gamewisppanelupdate')) {
-            updateGameWispDB();
-        }
-
         /*
          * @commandpath gamewisp - Base command for GameWisp options.
          */
         if (command.equalsIgnoreCase('gamewisp')) {
-            var langSubCommandHelper = [ 'submessage', 'resubmessage', 'togglemessage', 'reward', 'resubreward' ];
+            var langSubCommandHelper = ['submessage', 'resubmessage', 'togglemessage', 'reward', 'resubreward'];
 
             if (!args[0]) {
                 $.say($.whisperPrefix(sender) + $.lang.get('gamewisp.usage', langSubCommandHelper.join(' | ')));
                 return;
             }
-  
+
             /*
              * @commandpath gamewisp submessage [message] - Edit/show the new subscription message for GameWisp.
              */
@@ -269,7 +308,7 @@ $.consoleDebug('checkGameWispSub(' + username + '): handler complete');
                 return;
             }
 
-            /* 
+            /*
              * @commandpath gamewisp tierupmessage [message] - Edit/show the tier upgrade message for GameWisp.
              */
             if (args[0].equalsIgnoreCase('tierupmessage')) {
@@ -339,13 +378,13 @@ $.consoleDebug('checkGameWispSub(' + username + '): handler complete');
         }
 
         /*
-         * @commandpath gamewisp tier - Base command for GameWisp tier options.
+         * @commandpath gamewisptier - Base command for GameWisp tier options.
          */
         if (command.equalsIgnoreCase('gamewisptier')) {
             var tierLevel = 0,
                 newValue = 0,
                 oldValue = 0,
-                subCommands = [ 'songrequests', 'bonuspoints', 'subbonuspoints' ];
+                subCommands = ['songrequests', 'bonuspoints', 'subbonuspoints'];
 
             if (!args[0]) {
                 $.say($.whisperPrefix(sender) + $.lang.get('gamewisptier.usage', subCommands.join(' | ')));
@@ -353,14 +392,14 @@ $.consoleDebug('checkGameWispSub(' + username + '): handler complete');
             }
 
             /*
-             * @commandpath gamewisptier songrequest [tier] [number] - Set/view number of additional song requests per tier.
-             * @commandpath gamewisptier bonuspoints [tier] [points] - Set/view point percentage bonus, use whole numbers (30 = 30%).
-             * @commandpath gamewisptier subbonuspoints [tier] [points] - Set/view bonus points to give for sub or resubbing per tier.
+             * @commandpath gamewisptier songrequests [tier number] [number] - Set/view number of additional song requests per tier.
+             * @commandpath gamewisptier bonuspoints [tier number] [points] - Set/view point percentage bonus, use whole numbers (30 = 30%).
+             * @commandpath gamewisptier subbonuspoints [tier number] [points] - Set/view bonus points to give for sub or resubbing per tier.
              *
              * NOTE: When adding more options, ensure that the primary key of tierData and the database key and lang file entries
              * match the subcommand. This function will then take care of all of the rest for you.
              */
-            if (subCommands.indexOf(args[0]+'') !== -1) {
+            if (subCommands.indexOf(args[0] + '') !== -1) {
                 if (args.length < 2) {
                     $.say($.whisperPrefix(sender) + $.lang.get('gamewisptier.' + args[0] + '.usage'));
                     return;
@@ -370,17 +409,17 @@ $.consoleDebug('checkGameWispSub(' + username + '): handler complete');
                 if (isNaN(tierLevel) || tierLevel < 1 || tierLevel > 6) {
                     $.say($.whisperPrefix(sender) + $.lang.get('gamewisptier.' + args[0] + '.usage'));
                     return;
-                } 
+                }
 
                 oldValue = tierData[args[0]][tierLevel];
                 if (args.length < 3) {
                     $.say($.whisperPrefix(sender) + $.lang.get('gamewisptier.' + args[0] + '.usage.tier', tierLevel, oldValue));
                     return;
                 }
-                
+
                 newValue = parseInt(args[2]);
                 if (isNaN(newValue) || newValue < 1) {
-                    $.say($.whisperPrefix(sender) + $.lang.get('gamewisptier.' + args[0] + 'usage.tier', tierLevel, oldValue));
+                    $.say($.whisperPrefix(sender) + $.lang.get('gamewisptier.' + args[0] + '.usage.tier', tierLevel, oldValue));
                     return;
                 }
 
@@ -390,20 +429,18 @@ $.consoleDebug('checkGameWispSub(' + username + '): handler complete');
                 return;
             }
         }
-    }); 
+    });
 
     /**
      * @event initReady
      */
     $.bind('initReady', function() {
-        if ($.bot.isModuleEnabled('./handlers/gameWispHandler.js')) {
-            $.registerChatCommand('./handlers/gameWispHandler.js', 'gamewisp', 1);
-            $.registerChatCommand('./handlers/gameWispHandler.js', 'gamewisptier', 1);
-            $.registerChatCommand('./handlers/gameWispHandler.js', 'gamewisppanelupdate', 1);
-        }
+        $.registerChatCommand('./handlers/gameWispHandler.js', 'gamewisp', 1);
+        $.registerChatCommand('./handlers/gameWispHandler.js', 'gamewisptier', 1);
     });
 
     /** Export functions to API */
     $.getTierData = getTierData;
     $.checkGameWispSub = checkGameWispSub;
+    $.updateGameWispDB = updateGameWispDB;
 })();

@@ -1,7 +1,33 @@
-(function() {
-    var whisperMode = $.getSetIniDbBoolean('settings', 'whisperMode', false);
+/*
+ * Copyright (C) 2016-2018 phantombot.tv
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
-    /** 
+(function() {
+    var whisperMode = $.getSetIniDbBoolean('settings', 'whisperMode', false),
+        ScriptEventManager = Packages.tv.phantombot.script.ScriptEventManager,
+        CommandEvent = Packages.tv.phantombot.event.command.CommandEvent;
+
+    /**
+     * @function reloadWhispers
+     */
+    function reloadWhispers() {
+        whisperMode = $.getIniDbBoolean('settings', 'whisperMode');
+    }
+
+    /**
      * @function hasKey
      *
      * @param {array} list
@@ -50,33 +76,27 @@
      */
     $.bind('ircPrivateMessage', function(event) {
         var sender = event.getSender(),
-            message = event.getMessage().toString(),
-            split = 0,
-            args = '',
-            command = '';
+            message = event.getMessage(),
+            arguments = '',
+            split,
+            command;
 
-        var EventBus = Packages.me.mast3rplan.phantombot.event.EventBus,
-            CommandEvent = Packages.me.mast3rplan.phantombot.event.command.CommandEvent;
+        if (sender.equalsIgnoreCase('jtv') || sender.equalsIgnoreCase('twitchnotify')) {
+            return;
+        }
 
-        if (!sender.equalsIgnoreCase('jtv') && !sender.equalsIgnoreCase('twitchnotify')) {
-            if (message.startsWith('!') && $.isMod(sender) && hasKey($.users, sender, 0)) {
-
-                message = message.substring(1);
-
-                if (message.includes(' ')) {
-                    split = message.indexOf(' ');
-                    command = message.substring(0, split);
-                    args = message.substring(split + 1);
-                }
-                else
-                {
-                    command = message;
-                }
-
-                EventBus.instance().post(new CommandEvent(event.getSender(), command, args));
-                //$.command.post(sender, command, args);
-                $.log.file('whispers', '' + sender + ': !' + message);
+        if (message.startsWith('!') && $.isMod(sender) && hasKey($.users, sender, 0)) {
+            message = message.substring(1);
+            if (message.includes(' ')) {
+                split = message.indexOf(' ');
+                command = message.substring(0, split).toLowerCase();
+                arguments = message.substring(split + 1);
+            } else {
+                command = message;
             }
+
+            ScriptEventManager.instance().onEvent(new CommandEvent(sender, command, arguments));
+            $.log.file('whispers', '' + sender + ': ' + message);
         }
     });
 
@@ -91,15 +111,9 @@
          * @commandpath togglewhispermode - Toggle whisper mode
          */
         if (command.equalsIgnoreCase('togglewhispermode')) {
-            if (whisperMode) {
-                $.inidb.set('settings', 'whisperMode', 'false');
-                whisperMode = false;
-                $.say($.whisperPrefix(sender) + $.lang.get('whisper.whispers.disabled'));
-            } else {
-                $.inidb.set('settings', 'whisperMode', 'true');
-                whisperMode = true;
-                $.say($.whisperPrefix(sender) + $.lang.get('whisper.whispers.enabled'));
-            }
+            whisperMode = !whisperMode;
+            $.setIniDbBoolean('settings', 'whisperMode', whisperMode);
+            $.say(whisperPrefix(sender) + (whisperMode ? $.lang.get('whisper.whispers.enabled') : $.lang.get('whisper.whispers.disabled')));
         }
     });
 
@@ -113,4 +127,5 @@
     /** Export functions to API */
     $.whisperPrefix = whisperPrefix;
     $.getBotWhisperMode = getBotWhisperMode;
+    $.reloadWhispers = reloadWhispers;
 })();
