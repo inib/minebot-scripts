@@ -4,10 +4,16 @@
  * Pull down emotes from Twitch, BetterTTV and FrankerZ.
  */
 (function() {
-    var emotesRegExpList = [];
+    var emotesRegExpList = [],
+        loaded = false;
 
-    // Attempt to build the regular expression cache from the inidb.
-    buildEmotesRegExp();
+    // Load an existing emote RegExp cache.  Wait to see if there was a problem that needs us to load
+    // from cache before doing so.  This saves CPU cycles and memory.
+    setTimeout(function() { 
+        if (emotesRegExpList.length === 0) { 
+            loadEmoteCache(); 
+        } 
+    }, 120e3);
 
     /**
      * @event emotesGet
@@ -16,41 +22,94 @@
         if (!$.bot.isModuleEnabled('./handlers/emotesHandler.js')) {
             return;
         }
-        emotesString = event.getEmotes();
-        $.inidb.set('emotecache', 'emotes', emotesString);
-        buildEmotesRegExp();
+        buildEmotesDB(event.getBttvEmotes(), event.getBttvLocalEmotes(), event.getFfzEmotes(), event.getFfzLocalEmotes());
     });
 
     /**
-     * @function emotesLoaded
-     * @export $.emotesHandler
-     * @returns {boolean}
+     * @function buildEmotesDB
      */
-    function emotesLoaded() {
-        return (emotesRegExpList.length != 0);
-    }
-
-    /**
-     * @function buildEmotesRegExp
-     */
-    function buildEmotesRegExp() {
-        var emotesList,
+    function buildEmotesDB(bttvEmotes, bttvLocalEmotes, ffzEmotes, ffzLocalEmotes) {
+        var defaultSets = [],
+            jsonArray = [],
+            currentSet,
+            emote,
+            i, j,
             emoteRegExp,
             newEmotesRegExpList = [];
 
-        if (!$.inidb.exists('emotecache', 'emotes')) {
+        jsonArray = bttvEmotes.getJSONArray('emotes');
+        for (i = 0; i < jsonArray.length(); i++) {
+            emote = jsonArray.getJSONObject(i).getString('code').replace('(', '\\(').replace(')', '\\)').replace('\'', '\\\'').replace('[', '\\[').replace(']', '\\]');
+
+            // Check for emote at the beginning, middle and end of a string.
+            emoteRegExp = '(\\b' + emote + '\\b)';
+            newEmotesRegExpList.push(new RegExp(emoteRegExp, 'g'));
+        }
+
+        if (bttvLocalEmotes.has('emotes')) {
+            jsonArray = bttvLocalEmotes.getJSONArray('emotes');
+            for (i = 0; i < jsonArray.length(); i++) {
+                emote = jsonArray.getJSONObject(i).getString('code').replace('(', '\\(').replace(')', '\\)').replace('\'', '\\\'').replace('[', '\\[').replace(']', '\\]');
+
+                // Check for emote at the beginning, middle and end of a string.
+                emoteRegExp = '(\\b' + emote + '\\b)';
+                newEmotesRegExpList.push(new RegExp(emoteRegExp, 'g'));
+            }
+        }
+
+        defaultSets = ffzEmotes.getJSONArray('default_sets');
+        for (i = 0; i < defaultSets.length(); i++) {
+            currentSet = String(defaultSets.getInt(i));
+            jsonArray = ffzEmotes.getJSONObject('sets').getJSONObject(currentSet).getJSONArray('emoticons');
+            for (j = 0; j < jsonArray.length(); j++) {
+                emote = jsonArray.getJSONObject(j).getString('name').replace('(', '\\(').replace(')', '\\)').replace('\'', '\\\'').replace('[', '\\[').replace(']', '\\]');
+
+                // Check for emote at the beginning, middle and end of a string.
+                emoteRegExp = '(\\b' + emote + '\\b)';
+                newEmotesRegExpList.push(new RegExp(emoteRegExp, 'g'));
+            }
+        }
+
+        if (ffzLocalEmotes.has('room')) {
+            currentSet = String(ffzLocalEmotes.getJSONObject('room').getInt('set'));
+            jsonArray = ffzLocalEmotes.getJSONObject('sets').getJSONObject(currentSet).getJSONArray('emoticons');
+            for (i = 0; i < jsonArray.length(); i++) {
+                emote = jsonArray.getJSONObject(i).getString('code').replace('(', '\\(').replace(')', '\\)').replace('\'', '\\\'').replace('[', '\\[').replace(']', '\\]');
+
+                // Check for emote at the beginning, middle and end of a string.
+                emoteRegExp = '(\\b' + emote + '\\b)';
+                newEmotesRegExpList.push(new RegExp(emoteRegExp, 'g'));
+            }
+        }
+
+        emotesRegExpList = newEmotesRegExpList;
+        newEmotesRegExpList = [];
+        $.inidb.set('emotecache', 'regexp_cache', emotesRegExpList.join(','));
+
+        loaded = true;
+        $.consoleDebug("Built " + emotesRegExpList.length + " regular expressions for emote handling.");
+    }
+
+    /**
+     * @function loadEmoteCache
+     */
+    function loadEmoteCache() {
+        if (!$.inidb.exists('emotecache', 'regexp_cache')) {
             return;
         }
 
-        emotesList = $.inidb.get('emotecache', 'emotes').split(",");
+        var regExpList = $.inidb.get('emotecache', 'regexp_cache').split(','),
+            newEmotesRegExpList = [];
 
-        for (var i = 0; i < emotesList.length; i++) {
-            // Check for emote at the beginning, middle and end of a string.
-            emoteRegExp = '(\\b' + emotesList[i] + '\\b)';
-            newEmotesRegExpList.push(new RegExp(emoteRegExp, 'g'));
+        for (var i = 0; i < regExpList.length; i++) {
+            newEmotesRegExpList.push(new RegExp(regExpList[i]));
         }
+
         emotesRegExpList = newEmotesRegExpList;
-        $.consoleDebug("Built " + emotesRegExpList.length + " regular expressions for emote handling.");
+        newEmotesRegExpList = [];
+
+        loaded = true;
+        $.consoleDebug("Built " + emotesRegExpList.length + " regular expressions for emote handling from cache.");
     }
 
     /**
@@ -68,28 +127,30 @@
      * @param {string}
      * @returns {number}
      */
-    function getEmotesMatchCount(checkString) {
-        var matches = 0,
-            sequences;
-
-        if (!emotesLoaded()) {
+    function getEmotesMatchCount(message) {
+        if (!loaded) {
             return 0;
         }
 
-        for (var i = 0; i < emotesRegExpList.length; i++) {
-            sequences = checkString.match(emotesRegExpList[i]);
-            matches += (sequences == null ? 0 : sequences.length);
+        var total = 0,
+            sequences,
+            i;
+
+        for (i in emotesRegExpList) {
+            sequences = message.match(emotesRegExpList[i]);
+            if (sequences !== null) {
+                total += sequences.length;
+            }
         }
-        return matches;
+
+        return total;
     }
 
     /**
      * Export functions to API
      */
     $.emotesHandler = {
-        emotesLoaded: emotesLoaded,
         getEmotesRegExp: getEmotesRegExp,
         getEmotesMatchCount: getEmotesMatchCount,
     };
-
 })();

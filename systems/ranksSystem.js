@@ -6,8 +6,8 @@
 
 (function() {
 
-    rankEligableTime = ($.inidb.exists('settings', 'rankEligableTime') ? parseInt($.inidb.get('settings', 'rankEligableTime')) : 50);
-    rankEligableCost = ($.inidb.exists('settings', 'rankEligableCost') ? parseInt($.inidb.get('settings', 'rankEligableCost')) : 200);
+    rankEligableTime = $.getSetIniDbNumber('settings', 'rankEligableTime', 50),
+    rankEligableCost = $.getSetIniDbNumber('settings', 'rankEligableCost', 200);
 
     var ranksTimeTable;
 
@@ -47,6 +47,8 @@
     function hasRank(username) {
         var userTime;
 
+        username = username.toLowerCase();
+
         // Has a custom rank.
         if ($.inidb.exists('viewerRanks', username.toLowerCase())) {
             return true;
@@ -56,7 +58,7 @@
         if (ranksTimeTable === undefined) {
             loadRanksTimeTable();
         }
-        if (ranksTimeTable.length === 0) {
+        if (ranksTimeTable.length == 0) {
             return false;
         }
 
@@ -83,6 +85,8 @@
     function getRank(username) {
         var userTime,
             userLevel;
+
+        username = username.toLowerCase();
 
         if (!hasRank(username)) {
             return '';
@@ -119,7 +123,7 @@
      * @returns {string}
      */
     function resolveRank(username) {
-        return ('"' + getRank(username.toLowerCase()) + '" ' + $.username.resolve(username.toLowerCase())).trim();
+        return (getRank(username.toLowerCase()) + ' ' + $.username.resolve(username)).trim();
     }
 
     /**
@@ -142,6 +146,13 @@
 
         if (isNaN(userTime)) {
             userTime = 0;
+        }
+
+        /* commandpath not provided as this is an internal Panel command. */
+        if (command.equalsIgnoreCase('rankreloadtable')) {
+            $.consoleDebug('Reloading Ranks Table after Panel Modification');
+            loadRanksTimeTable();
+            return;
         }
 
         /*
@@ -287,7 +298,7 @@
                     $.say($.whisperPrefix(sender) + $.lang.get('ranks.set.usage', rankEligableTime, rankEligableCost, $.pointNameMultiple));
                     return;
                 }
-                
+
                 if (args[0].equalsIgnoreCase('del')) {
                     if (inidb.exists('viewerRanks', sender.toLowerCase())) {
                         $.say($.whisperPrefix(sender) + $.lang.get('ranks.delself.success'));
@@ -328,16 +339,11 @@
                     return;
                 }
             }
-            
-            if ($.inidb.exists('viewerRanks', username.toLowerCase())) {
-                $.say($.whisperPrefix(sender) + $.lang.get('ranks.rank.customsuccess', username, $.inidb.get('viewerRanks', username.toLowerCase())));
-                return;
-            }
 
             if (ranksTimeTable === undefined) {
                 loadRanksTimeTable();
             }
-            if (ranksTimeTable.length === 0) {
+            if (ranksTimeTable.length == 0) {
                 $.say($.whisperPrefix(sender) + $.lang.get('ranks.rank.404'));
                 return;
             }
@@ -350,26 +356,23 @@
                     i = ranksTimeTable.length;
                 }
             }
-            
-            var response = '';
+
+            if ($.inidb.exists('viewerRanks', username.toLowerCase())) {
+                $.say($.lang.get('ranks.rank.customsuccess', username, $.inidb.get('viewerRanks', username.toLowerCase())));
+                return;
+            }
 
             if (userLevel <= ranksTimeTable.length - 2) {
                 nextLevel = parseInt(userLevel) + 1;
                 timeUntilNextRank = parseInt(ranksTimeTable[nextLevel]) - userTime;
                 if (userLevel == -1) {
-                    response = $.whisperPrefix(sender) + $.lang.get('ranks.rank.norank.success', username, timeUntilNextRank);
+                    $.say($.whisperPrefix(sender) + $.lang.get('ranks.rank.norank.success', username, timeUntilNextRank, $.inidb.get('ranksMapping', ranksTimeTable[nextLevel].toString())));
                 } else {
-                    response = $.whisperPrefix(sender) + $.lang.get('ranks.rank.success', username, $.inidb.get('ranksMapping', ranksTimeTable[userLevel].toString()), timeUntilNextRank);
+                    $.say($.whisperPrefix(sender) + $.lang.get('ranks.rank.success', username, $.inidb.get('ranksMapping', ranksTimeTable[userLevel].toString()), timeUntilNextRank, $.inidb.get('ranksMapping', ranksTimeTable[nextLevel].toString())));
                 }
             } else {
-                response = $.whisperPrefix(sender) + $.lang.get('ranks.rank.maxsuccess', username, $.inidb.get('ranksMapping', ranksTimeTable[userLevel].toString()));
+                $.say($.whisperPrefix(sender) + $.lang.get('ranks.rank.maxsuccess', username, $.inidb.get('ranksMapping', ranksTimeTable[userLevel].toString())));
             }
-            
-            if ($.bot.isModuleEnabled('./systems/pointSystem.js') && (getUserPoints(sender) > rankEligableCost) && (userTime >= rankEligableTime)) {
-                response += ' ' + $.lang.get('ranks.rank.eligable');
-            }
-            
-            $.say(response);
             return;
         }
 
@@ -382,10 +385,9 @@
     $.bind('initReady', function() {
         if ($.bot.isModuleEnabled('./systems/ranksSystem.js')) {
             $.registerChatCommand('./systems/ranksSystem.js', 'rank', 7);
-            $.registerChatCommand('./systems/ranksSystem.js', 'rankedit', 1);            
-            $.registerChatSubcommand('rank', 'set', 7);
-            $.registerChatSubcommand('rank', 'help', 7);
-            $.registerChatSubcommand('rank', 'del', 7);
+            $.registerChatCommand('./systems/ranksSystem.js', 'rankedit', 1);
+            $.registerChatCommand('./systems/ranksSystem.js', 'rankreloadtable', 1);
+
             $.registerChatSubcommand('rankedit', 'add', 1);
             $.registerChatSubcommand('rankedit', 'del', 1);
             $.registerChatSubcommand('rankedit', 'custom', 1);
